@@ -281,6 +281,8 @@ namespace Highfly.Mobile
 
         private GameObject _controlsRoot;
         private Font _font;
+        private Sprite _discSprite;
+        private Sprite _ringSprite;
         private float _nextPlayerProbe;
         private bool _mobileMode;
 
@@ -295,10 +297,11 @@ namespace Highfly.Mobile
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflyMobileBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.1");
+            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.3");
             DontDestroyOnLoad(root);
 
             root.AddComponent<HighflyVirtualInput>();
+            root.AddComponent<HighflyMobileRuntimeLocalizer>();
             root.AddComponent<HighflyMobileBootstrap>();
         }
 
@@ -372,10 +375,12 @@ namespace Highfly.Mobile
 
         private void RefreshPlayableState()
         {
-            bool hasPlayer = UnityEngine.Object.FindFirstObjectByType<PlayerController>() != null;
+            var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            bool hasPlayer = player != null;
+            bool isInteracting = hasPlayer && player.currentState == PlayerState.Interact;
 
             if (_controlsRoot != null)
-                _controlsRoot.SetActive(hasPlayer);
+                _controlsRoot.SetActive(hasPlayer && !isInteracting);
         }
 
         private void EnsureEventSystem()
@@ -395,6 +400,8 @@ namespace Highfly.Mobile
         private void BuildUI()
         {
             _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _discSprite = CreateRadialSprite(false);
+            _ringSprite = CreateRadialSprite(true);
 
             var canvasGo = new GameObject("HIGHFLY Mobile HUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);
@@ -412,7 +419,6 @@ namespace Highfly.Mobile
             CreateLookZone(_controlsRoot.transform);
             CreateJoystick(_controlsRoot.transform);
             CreateActionButtons(_controlsRoot.transform);
-            CreateStatusTag(_controlsRoot.transform);
             _controlsRoot.SetActive(false);
         }
 
@@ -446,7 +452,8 @@ namespace Highfly.Mobile
             baseRect.anchoredPosition = new Vector2(170f, 175f);
 
             var baseImage = baseGo.GetComponent<Image>();
-            baseImage.color = new Color(0.08f, 0.35f, 0.65f, 0.20f);
+            baseImage.sprite = _discSprite;
+            baseImage.color = new Color(0.02f, 0.09f, 0.16f, 0.50f);
 
             var knobGo = new GameObject("Knob", typeof(RectTransform), typeof(Image));
             knobGo.transform.SetParent(baseGo.transform, false);
@@ -458,8 +465,20 @@ namespace Highfly.Mobile
             knobRect.anchoredPosition = Vector2.zero;
 
             var knobImage = knobGo.GetComponent<Image>();
-            knobImage.color = new Color(0.35f, 0.75f, 1f, 0.45f);
+            knobImage.sprite = _discSprite;
+            knobImage.color = new Color(0.15f, 0.72f, 1f, 0.68f);
             knobImage.raycastTarget = false;
+
+            var ringGo = new GameObject("JoystickRing", typeof(RectTransform), typeof(Image));
+            ringGo.transform.SetParent(baseGo.transform, false);
+            var ringRect = ringGo.GetComponent<RectTransform>();
+            ringRect.anchorMin = ringRect.anchorMax = new Vector2(0.5f, 0.5f);
+            ringRect.pivot = new Vector2(0.5f, 0.5f);
+            ringRect.sizeDelta = new Vector2(222f, 222f);
+            var ringImage = ringGo.GetComponent<Image>();
+            ringImage.sprite = _ringSprite;
+            ringImage.color = new Color(0.20f, 0.75f, 1f, 0.42f);
+            ringImage.raycastTarget = false;
 
             baseGo.GetComponent<HighflyJoystick>().Configure(knobRect, 86f);
 
@@ -468,30 +487,21 @@ namespace Highfly.Mobile
 
         private void CreateActionButtons(Transform parent)
         {
-            CreateButton(parent, "ATQ",      new Vector2(-125f, 145f), new Vector2(160f, 160f), Key.None, HighflyMouseButton.Left, 28);
-            CreateButton(parent, "ESQUIVAR", new Vector2(-305f, 118f), new Vector2(132f, 104f), Key.F, HighflyMouseButton.None, 17);
-            CreateButton(parent, "PARRY",    new Vector2(-245f, 255f), new Vector2(126f, 100f), Key.None, HighflyMouseButton.Right, 18);
-            CreateButton(parent, "S1",       new Vector2(-110f, 315f), new Vector2(126f, 126f), Key.Q, HighflyMouseButton.None, 22);
-            CreateButton(parent, "LOCK",     new Vector2(-395f, 265f), new Vector2(108f, 82f), Key.Tab, HighflyMouseButton.None, 16);
-            CreateButton(parent, "USAR",     new Vector2(-420f, 150f), new Vector2(108f, 82f), Key.E, HighflyMouseButton.None, 16);
-            CreateButton(parent, "SALTAR",   new Vector2(-305f, 370f), new Vector2(112f, 82f), Key.Space, HighflyMouseButton.None, 15);
-            CreateButton(parent, "POCIÓN",   new Vector2(-525f, 230f), new Vector2(108f, 82f), Key.R, HighflyMouseButton.None, 15);
-        }
+            // Primary combat cluster
+            CreateButton(parent, "ATQ",      new Vector2(-125f, 145f), new Vector2(176f, 176f), Key.None, HighflyMouseButton.Left, 30);
+            CreateButton(parent, "S1",       new Vector2(-125f, 350f), new Vector2(122f, 122f), Key.Q, HighflyMouseButton.None, 23);
+            CreateButton(parent, "S2",       new Vector2(-270f, 390f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
+            CreateButton(parent, "S3",       new Vector2(-405f, 340f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
+            CreateButton(parent, "S4",       new Vector2(-500f, 240f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
+            CreateButton(parent, "ULT",      new Vector2(-315f, 525f), new Vector2(146f, 146f), Key.None, HighflyMouseButton.None, 24);
 
-        private void CreateStatusTag(Transform parent)
-        {
-            var tag = CreateText(
-                "CoreTag",
-                parent,
-                "HIGHFLY CORE • MOBILE v0.2",
-                18,
-                TextAnchor.UpperLeft,
-                new Color(0.75f, 0.92f, 1f, 0.75f));
-
-            tag.rectTransform.anchorMin = tag.rectTransform.anchorMax = new Vector2(0f, 1f);
-            tag.rectTransform.pivot = new Vector2(0f, 1f);
-            tag.rectTransform.sizeDelta = new Vector2(360f, 40f);
-            tag.rectTransform.anchoredPosition = new Vector2(18f, -16f);
+            // Defensive / utility cluster
+            CreateButton(parent, "ESQUIVAR", new Vector2(-320f, 145f), new Vector2(126f, 126f), Key.F, HighflyMouseButton.None, 16);
+            CreateButton(parent, "PARRY",    new Vector2(-455f, 145f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.Right, 17);
+            CreateButton(parent, "USAR",     new Vector2(-585f, 125f), new Vector2(104f, 104f), Key.E, HighflyMouseButton.None, 15);
+            CreateButton(parent, "LOCK",     new Vector2(-610f, 260f), new Vector2(100f, 100f), Key.Tab, HighflyMouseButton.None, 14);
+            CreateButton(parent, "SALTAR\nESCALAR", new Vector2(-585f, 400f), new Vector2(112f, 112f), Key.Space, HighflyMouseButton.None, 13);
+            CreateButton(parent, "POCIÓN",   new Vector2(-710f, 250f), new Vector2(94f, 94f), Key.R, HighflyMouseButton.None, 13);
         }
 
         private void CreateButton(
@@ -503,29 +513,110 @@ namespace Highfly.Mobile
             HighflyMouseButton mouseButton,
             int fontSize)
         {
-            var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(HighflyActionButton));
+            string safeName = label.Replace("\n", "_");
+            var go = new GameObject(safeName, typeof(RectTransform), typeof(Image), typeof(HighflyActionButton));
             go.transform.SetParent(parent, false);
 
             var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
+            bool leftSide = anchoredPosition.x > 0f;
+            rect.anchorMin = rect.anchorMax = leftSide ? new Vector2(0f, 0f) : new Vector2(1f, 0f);
             rect.pivot = new Vector2(0.5f, 0.5f);
             rect.sizeDelta = size;
             rect.anchoredPosition = anchoredPosition;
 
+            Color accent = GetButtonAccent(label);
+
+            var glowGo = new GameObject("Glow", typeof(RectTransform), typeof(Image));
+            glowGo.transform.SetParent(go.transform, false);
+            var glowRect = glowGo.GetComponent<RectTransform>();
+            glowRect.anchorMin = glowRect.anchorMax = new Vector2(0.5f, 0.5f);
+            glowRect.pivot = new Vector2(0.5f, 0.5f);
+            glowRect.sizeDelta = size * 1.16f;
+            var glow = glowGo.GetComponent<Image>();
+            glow.sprite = _discSprite;
+            glow.color = new Color(accent.r, accent.g, accent.b, 0.10f);
+            glow.raycastTarget = false;
+
             var image = go.GetComponent<Image>();
-            image.color = new Color(0.12f, 0.32f, 0.58f, 0.26f);
+            image.sprite = _discSprite;
+            image.color = new Color(0.015f, 0.035f, 0.07f, 0.78f);
             image.raycastTarget = true;
+
+            var ringGo = new GameObject("Ring", typeof(RectTransform), typeof(Image));
+            ringGo.transform.SetParent(go.transform, false);
+            var ringRect = ringGo.GetComponent<RectTransform>();
+            ringRect.anchorMin = Vector2.zero;
+            ringRect.anchorMax = Vector2.one;
+            ringRect.offsetMin = new Vector2(4f, 4f);
+            ringRect.offsetMax = new Vector2(-4f, -4f);
+            var ring = ringGo.GetComponent<Image>();
+            ring.sprite = _ringSprite;
+            ring.color = new Color(accent.r, accent.g, accent.b, 0.82f);
+            ring.raycastTarget = false;
 
             go.GetComponent<HighflyActionButton>().Configure(key, mouseButton);
 
             var text = CreateText(
-                label + "_Text",
+                safeName + "_Text",
                 go.transform,
                 label,
                 fontSize,
                 TextAnchor.MiddleCenter,
-                new Color(1f, 1f, 1f, 0.90f));
+                new Color(0.94f, 0.98f, 1f, 0.96f));
             Stretch(text.rectTransform);
+        }
+
+        private static Color GetButtonAccent(string label)
+        {
+            if (label == "ULT") return new Color(0.62f, 0.32f, 1f, 1f);
+            if (label == "ATQ") return new Color(0.10f, 0.85f, 1f, 1f);
+            if (label.StartsWith("S")) return new Color(0.18f, 0.58f, 1f, 1f);
+            if (label == "PARRY") return new Color(0.35f, 0.82f, 1f, 1f);
+            if (label == "POCIÓN") return new Color(0.52f, 0.42f, 1f, 1f);
+            return new Color(0.20f, 0.68f, 0.95f, 1f);
+        }
+
+        private static Sprite CreateRadialSprite(bool ringOnly)
+        {
+            const int size = 128;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            texture.name = ringOnly ? "HF_Ring" : "HF_Disc";
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.filterMode = FilterMode.Bilinear;
+            texture.hideFlags = HideFlags.DontSave;
+
+            var pixels = new Color32[size * size];
+            float center = (size - 1) * 0.5f;
+            float outer = center - 1f;
+            float inner = outer * 0.82f;
+
+            for (int y = 0; y < size; y++)
+            {
+                for (int x = 0; x < size; x++)
+                {
+                    float dx = x - center;
+                    float dy = y - center;
+                    float d = Mathf.Sqrt(dx * dx + dy * dy);
+                    bool visible = ringOnly
+                        ? d <= outer && d >= inner
+                        : d <= outer;
+
+                    pixels[y * size + x] = visible
+                        ? new Color32(255, 255, 255, 255)
+                        : new Color32(255, 255, 255, 0);
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+
+            var sprite = Sprite.Create(
+                texture,
+                new Rect(0f, 0f, size, size),
+                new Vector2(0.5f, 0.5f),
+                100f);
+            sprite.hideFlags = HideFlags.DontSave;
+            return sprite;
         }
 
         private Text CreateText(
