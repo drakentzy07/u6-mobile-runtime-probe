@@ -42,9 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          curl -L --fail --retry 5 \
-            "https://codeload.github.com/DohunWi/3D-Action/zip/da73b5be7ffa7216c48e196c4a69fe3ff66c6c65" \
-            -o lucid.zip
+          curl -L --fail --retry 5             "https://codeload.github.com/DohunWi/3D-Action/zip/da73b5be7ffa7216c48e196c4a69fe3ff66c6c65"             -o lucid.zip
           unzip -q lucid.zip
           SRC="$(find . -maxdepth 1 -type d -name '3D-Action-*' | head -n1)"
           test -n "$SRC"
@@ -86,6 +84,9 @@ jobs:
           set -euxo pipefail
           OUT="LucidHost/3D_game/build/WebGL"
           test -f "$OUT/index.html"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          test -w "$OUT"
           touch "$OUT/.nojekyll"
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
