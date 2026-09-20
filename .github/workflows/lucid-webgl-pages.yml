@@ -38,17 +38,32 @@ jobs:
           docker-images: false
           swap-storage: false
 
-      - name: Download pinned Lucid
+      - name: Download pinned Lucid with Git LFS
         shell: bash
         run: |
           set -euxo pipefail
-          curl -L --fail --retry 5             "https://codeload.github.com/DohunWi/3D-Action/zip/da73b5be7ffa7216c48e196c4a69fe3ff66c6c65"             -o lucid.zip
-          unzip -q lucid.zip
-          SRC="$(find . -maxdepth 1 -type d -name '3D-Action-*' | head -n1)"
-          test -n "$SRC"
-          mv "$SRC" LucidHost
+          git lfs version
+
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+
           test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
           cat LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+          ASSET="LucidHost/3D_game/Assets/FourEvilDragonsPBR/Animations/DragonUsurper/idle01.fbx"
+          test -f "$ASSET"
+          test "$(stat -c%s "$ASSET")" -gt 100000
+          if head -n 1 "$ASSET" | grep -q "git-lfs.github.com"; then
+            echo "ERROR: LFS pointer detected instead of real asset"
+            exit 1
+          fi
+          echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
       - name: Install CI build script
         shell: bash
@@ -61,9 +76,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-da73b5be-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs') }}
+          key: lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-da73b5be-
+            lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
