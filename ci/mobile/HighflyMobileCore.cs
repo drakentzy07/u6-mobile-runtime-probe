@@ -274,12 +274,12 @@ namespace Highfly.Mobile
         private const int ReferenceHeight = 1080;
 
         private GameObject _controlsRoot;
-        private GameObject _introRoot;
         private Font _font;
         private float _nextPlayerProbe;
         private bool _mobileMode;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
+        [DllImport("__Internal")] private static extern int HF_IsTouchDevice();
         [DllImport("__Internal")] private static extern void HF_RequestFullscreen();
         [DllImport("__Internal")] private static extern void HF_ConfigureCanvas();
 #endif
@@ -300,9 +300,11 @@ namespace Highfly.Mobile
         {
             DontDestroyOnLoad(gameObject);
 
-            _mobileMode =
-                Application.isMobilePlatform ||
-                Application.platform == RuntimePlatform.WebGLPlayer;
+            _mobileMode = Application.isMobilePlatform;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            try { _mobileMode = _mobileMode || HF_IsTouchDevice() != 0; } catch { }
+#endif
 
             if (!_mobileMode)
             {
@@ -337,37 +339,27 @@ namespace Highfly.Mobile
         {
             if (!_mobileMode) return;
 
-            if (Cursor.lockState != CursorLockMode.None)
-                Cursor.lockState = CursorLockMode.None;
-
-            if (Cursor.visible)
-                Cursor.visible = false;
+            // On native mobile there is no hardware mouse cursor to manage.
+            // On WebGL, cursor/pointer-lock is handled in JS so desktop browser
+            // state is never left hidden after closing or changing tabs.
+            if (Application.isMobilePlatform)
+            {
+                if (Cursor.lockState != CursorLockMode.None)
+                    Cursor.lockState = CursorLockMode.None;
+                if (Cursor.visible)
+                    Cursor.visible = false;
+            }
         }
 
-        public void DismissIntro()
+        public void RequestImmersiveMode()
         {
-            RequestImmersiveMode();
-
-            var input = HighflyVirtualInput.Instance;
-            if (input != null)
+            if (Application.isMobilePlatform)
             {
-                input.PulseKey(Key.Enter);
-                input.PulseKey(Key.Space);
+                Screen.fullScreen = true;
+                Screen.orientation = ScreenOrientation.LandscapeLeft;
             }
 
-            if (_introRoot != null) _introRoot.SetActive(false);
-            RefreshPlayableState();
-        }
-
-        private void RequestImmersiveMode()
-        {
-            Screen.fullScreen = true;
-
-            if (Application.isMobilePlatform)
-                Screen.orientation = ScreenOrientation.LandscapeLeft;
-
 #if UNITY_WEBGL && !UNITY_EDITOR
-            try { HF_ConfigureCanvas(); } catch { }
             try { HF_RequestFullscreen(); } catch { }
 #endif
         }
@@ -375,20 +367,23 @@ namespace Highfly.Mobile
         private void RefreshPlayableState()
         {
             bool hasPlayer = UnityEngine.Object.FindFirstObjectByType<PlayerController>() != null;
-            bool introVisible = _introRoot != null && _introRoot.activeSelf;
 
             if (_controlsRoot != null)
-                _controlsRoot.SetActive(hasPlayer && !introVisible);
+                _controlsRoot.SetActive(hasPlayer);
         }
 
         private void EnsureEventSystem()
         {
-            if (EventSystem.current != null) return;
+            var eventSystem = EventSystem.current;
+            if (eventSystem == null)
+            {
+                var eventSystemGo = new GameObject("HIGHFLY EventSystem");
+                DontDestroyOnLoad(eventSystemGo);
+                eventSystem = eventSystemGo.AddComponent<EventSystem>();
+            }
 
-            var eventSystem = new GameObject("HIGHFLY EventSystem");
-            DontDestroyOnLoad(eventSystem);
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<InputSystemUIInputModule>();
+            if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
+                eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
         }
 
         private void BuildUI()
@@ -413,34 +408,6 @@ namespace Highfly.Mobile
             CreateActionButtons(_controlsRoot.transform);
             CreateStatusTag(_controlsRoot.transform);
             _controlsRoot.SetActive(false);
-
-            _introRoot = CreateStretchRoot("TapToEnter", canvasGo.transform);
-            var introImage = _introRoot.AddComponent<Image>();
-            introImage.color = new Color(0f, 0f, 0f, 0.08f);
-            introImage.raycastTarget = true;
-
-            var introTap = _introRoot.AddComponent<HighflyIntroTap>();
-            introTap.Configure(this);
-
-            var introText = CreateText(
-                "IntroText",
-                _introRoot.transform,
-                "TOCAR PARA ENTRAR",
-                44,
-                TextAnchor.MiddleCenter,
-                new Color(1f, 1f, 1f, 0.95f));
-            Stretch(introText.rectTransform);
-            introText.rectTransform.anchoredPosition = new Vector2(0f, -350f);
-
-            var sub = CreateText(
-                "IntroSub",
-                _introRoot.transform,
-                "HIGHFLY • LUCID MOBILE CORE v0.1",
-                22,
-                TextAnchor.MiddleCenter,
-                new Color(0.65f, 0.9f, 1f, 0.9f));
-            Stretch(sub.rectTransform);
-            sub.rectTransform.anchoredPosition = new Vector2(0f, -405f);
         }
 
         private void CreateLookZone(Transform parent)
@@ -510,7 +477,7 @@ namespace Highfly.Mobile
             var tag = CreateText(
                 "CoreTag",
                 parent,
-                "HIGHFLY CORE • MOBILE v0.1",
+                "HIGHFLY CORE • MOBILE v0.2",
                 18,
                 TextAnchor.UpperLeft,
                 new Color(0.75f, 0.92f, 1f, 0.75f));
