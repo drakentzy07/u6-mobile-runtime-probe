@@ -65,6 +65,20 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
+      - name: Install HIGHFLY Mobile Core v0.1
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
+          mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
+
+          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          test -s LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          echo "HIGHFLY_MOBILE_CORE_INSTALLED=1"
+
       - name: Install CI build script
         shell: bash
         run: |
@@ -76,8 +90,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v01-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**') }}
           restore-keys: |
+            lucid-6000.4.0f1-webgl-mobile-v01-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
 
       - name: Build WebGL
