@@ -218,7 +218,7 @@ namespace Highfly.Mobile
         }
     }
 
-    public sealed class HighflyLookZone : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+    public sealed class HighflyLookZone : MonoBehaviour, IPointerDownHandler, IInitializePotentialDragHandler, IDragHandler, IPointerUpHandler
     {
         [SerializeField] private float sensitivity = 0.42f;
         private int _pointerId = int.MinValue;
@@ -229,11 +229,17 @@ namespace Highfly.Mobile
             sensitivity = lookSensitivity;
         }
 
+        public void OnInitializePotentialDrag(PointerEventData eventData)
+        {
+            eventData.useDragThreshold = false;
+        }
+
         public void OnPointerDown(PointerEventData eventData)
         {
             if (_pointerId != int.MinValue) return;
             _pointerId = eventData.pointerId;
             _lastPosition = eventData.position;
+            eventData.useDragThreshold = false;
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -416,7 +422,7 @@ namespace Highfly.Mobile
             go.transform.SetParent(parent, false);
 
             var rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.46f, 0f);
+            rect.anchorMin = new Vector2(0.50f, 0f);
             rect.anchorMax = Vector2.one;
             rect.offsetMin = Vector2.zero;
             rect.offsetMax = Vector2.zero;
