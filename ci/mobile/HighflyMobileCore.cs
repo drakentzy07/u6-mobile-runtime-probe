@@ -264,7 +264,7 @@ namespace Highfly.Mobile
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (_owner != null) _owner.DismissIntro();
+            if (_owner != null) _owner.RequestImmersiveMode();
         }
     }
 
