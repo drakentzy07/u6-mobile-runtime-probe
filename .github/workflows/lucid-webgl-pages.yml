@@ -1,0 +1,122 @@
+name: Lucid WebGL Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "ci/**"
+      - ".github/workflows/lucid-webgl-pages.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build Lucid WebGL
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout probe repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -L --fail --retry 5 \
+            "https://codeload.github.com/DohunWi/3D-Action/zip/da73b5be7ffa7216c48e196c4a69fe3ff66c6c65" \
+            -o lucid.zip
+          unzip -q lucid.zip
+          SRC="$(find . -maxdepth 1 -type d -name '3D-Action-*' | head -n1)"
+          test -n "$SRC"
+          mv "$SRC" LucidHost
+          test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+          cat LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+      - name: Install CI build script
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p LucidHost/3D_game/Assets/Editor
+          cp ci/HighflyCiWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyCiWebGLBuilder.cs
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: lucid-6000.4.0f1-webgl-da73b5be-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs') }}
+          restore-keys: |
+            lucid-6000.4.0f1-webgl-da73b5be-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.4.0f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.CI.WebGLBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify WebGL output
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          test -f "$OUT/index.html"
+          touch "$OUT/.nojekyll"
+          du -sh "$OUT"
+          find "$OUT" -maxdepth 2 -type f | head -n 40
+
+      - name: Upload raw WebGL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lucid-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: LucidHost/3D_game/build/WebGL
+
+  deploy:
+    name: Deploy GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
