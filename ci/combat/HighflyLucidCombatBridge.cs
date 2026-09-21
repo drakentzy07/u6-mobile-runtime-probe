@@ -38,42 +38,64 @@ namespace Highfly.Combat
 
             _core?.Buffer(action);
 
-            switch (action)
+            if (HighflySkillLabMode.IsActive && HighflyPremiumSkillRuntime.Instance != null)
             {
-                case HighflyCombatAction.Light:
-                    _player.HighflyMobileAttack();
-                    break;
-
-                case HighflyCombatAction.Dodge:
-                    _player.HighflyMobileRoll();
-                    break;
-
-                case HighflyCombatAction.Parry:
-                    _player.HighflyMobileParry();
-                    break;
-
-                case HighflyCombatAction.Skill1:
-                    if (HighflySkillLabMode.IsActive && HighflySkillLabController.Instance != null)
-                        HighflySkillLabController.Instance.TriggerS1();
-                    else
+                switch (action)
+                {
+                    case HighflyCombatAction.Light:
+                        _player.HighflyMobileAttack();
+                        break;
+                    case HighflyCombatAction.Dodge:
+                        _player.HighflyMobileRoll();
+                        break;
+                    case HighflyCombatAction.Parry:
+                        _player.HighflyMobileParry();
+                        break;
+                    case HighflyCombatAction.Skill1:
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.TwinDance);
+                        break;
+                    case HighflyCombatAction.Skill2:
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.PhantomStep);
+                        break;
+                    case HighflyCombatAction.Skill3:
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.ShadowShackle);
+                        break;
+                    case HighflyCombatAction.Skill4:
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.VitalPact);
+                        break;
+                    case HighflyCombatAction.Ultimate:
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.ShadowCall);
+                        break;
+                }
+            }
+            else
+            {
+                switch (action)
+                {
+                    case HighflyCombatAction.Light:
+                        _player.HighflyMobileAttack();
+                        break;
+                    case HighflyCombatAction.Dodge:
+                        _player.HighflyMobileRoll();
+                        break;
+                    case HighflyCombatAction.Parry:
+                        _player.HighflyMobileParry();
+                        break;
+                    case HighflyCombatAction.Skill1:
                         _player.HighflyMobileSkill1();
-                    break;
-
-                case HighflyCombatAction.Skill2:
-                    TryDragonStep();
-                    break;
-
-                case HighflyCombatAction.Skill3:
-                    TryArcPulse();
-                    break;
-
-                case HighflyCombatAction.Ultimate:
-                    TryDragonBurst();
-                    break;
+                        break;
+                    case HighflyCombatAction.Skill2:
+                        TryDragonStep();
+                        break;
+                    case HighflyCombatAction.Skill3:
+                        TryArcPulse();
+                        break;
+                    case HighflyCombatAction.Ultimate:
+                        TryDragonBurst();
+                        break;
+                }
             }
 
-            // Phase 1 integration: requests already pass through the Dragon-inspired
-            // typed buffer. Animation-window consumption is connected next.
             if (_core != null)
             {
                 HighflyBufferedAction consumed;
