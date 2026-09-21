@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
+using Highfly.Combat;
 
 namespace Highfly.Mobile
 {
@@ -221,20 +222,37 @@ namespace Highfly.Mobile
         private void ExecuteAction()
         {
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            var combat = UnityEngine.Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
 
             switch (action)
             {
                 case HighflyMobileAction.Attack:
-                    player?.HighflyMobileAttack();
+                    if (combat != null) combat.Request(HighflyCombatAction.Light);
+                    else player?.HighflyMobileAttack();
                     break;
                 case HighflyMobileAction.Skill1:
-                    player?.HighflyMobileSkill1();
+                    if (combat != null) combat.Request(HighflyCombatAction.Skill1);
+                    else player?.HighflyMobileSkill1();
+                    break;
+                case HighflyMobileAction.Skill2:
+                    combat?.Request(HighflyCombatAction.Skill2);
+                    break;
+                case HighflyMobileAction.Skill3:
+                    combat?.Request(HighflyCombatAction.Skill3);
+                    break;
+                case HighflyMobileAction.Skill4:
+                    combat?.Request(HighflyCombatAction.Skill4);
+                    break;
+                case HighflyMobileAction.Ultimate:
+                    combat?.Request(HighflyCombatAction.Ultimate);
                     break;
                 case HighflyMobileAction.Dodge:
-                    player?.HighflyMobileRoll();
+                    if (combat != null) combat.Request(HighflyCombatAction.Dodge);
+                    else player?.HighflyMobileRoll();
                     break;
                 case HighflyMobileAction.Parry:
-                    player?.HighflyMobileParry();
+                    if (combat != null) combat.Request(HighflyCombatAction.Parry);
+                    else player?.HighflyMobileParry();
                     break;
                 case HighflyMobileAction.Interact:
                     player?.HighflyMobileInteract();
@@ -248,12 +266,6 @@ namespace Highfly.Mobile
                 case HighflyMobileAction.Potion:
                     UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
                     break;
-
-                // Reserved visual slots: HIGHFLY Skill Core will bind them next.
-                case HighflyMobileAction.Skill2:
-                case HighflyMobileAction.Skill3:
-                case HighflyMobileAction.Skill4:
-                case HighflyMobileAction.Ultimate:
                 case HighflyMobileAction.Sprint:
                 case HighflyMobileAction.None:
                 default:
@@ -543,6 +555,9 @@ namespace Highfly.Mobile
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
             bool hasPlayer = player != null;
             bool isInteracting = hasPlayer && player.currentState == PlayerState.Interact;
+
+            if (hasPlayer && player.GetComponent<HighflyLucidCombatBridge>() == null)
+                player.gameObject.AddComponent<HighflyLucidCombatBridge>();
 
             if (_controlsRoot != null)
                 _controlsRoot.SetActive(hasPlayer && !isInteracting);
