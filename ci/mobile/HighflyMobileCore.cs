@@ -127,25 +127,39 @@ namespace Highfly.Mobile
     {
         [SerializeField] private HighflyMobileAction action = HighflyMobileAction.None;
 
+        private RectTransform _rect;
+        private Image _image;
+        private Vector3 _restScale = Vector3.one;
+        private Color _restColor;
+
         public void Configure(HighflyMobileAction mobileAction)
         {
             action = mobileAction;
+            _rect = transform as RectTransform;
+            _image = GetComponent<Image>();
+
+            if (_rect != null) _restScale = _rect.localScale;
+            if (_image != null) _restColor = _image.color;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (action == HighflyMobileAction.Sprint)
+            if (_rect != null) _rect.localScale = _restScale * 0.92f;
+            if (_image != null)
             {
-                var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-                player?.SetHighflyMobileSprint(true);
-                return;
+                var c = _restColor;
+                _image.color = new Color(
+                    Mathf.Min(1f, c.r + 0.10f),
+                    Mathf.Min(1f, c.g + 0.16f),
+                    Mathf.Min(1f, c.b + 0.22f),
+                    Mathf.Min(1f, c.a + 0.16f));
             }
 
             ExecuteAction();
         }
 
-        public void OnPointerUp(PointerEventData eventData) => Release();
-        public void OnPointerExit(PointerEventData eventData) => Release();
+        public void OnPointerUp(PointerEventData eventData) => RestoreVisual();
+        public void OnPointerExit(PointerEventData eventData) => RestoreVisual();
 
         private void ExecuteAction()
         {
@@ -178,26 +192,25 @@ namespace Highfly.Mobile
                     UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
                     break;
 
-                // Slots S2/S3/S4/ULT are intentionally reserved for HIGHFLY Skill Core.
+                // Reserved visual slots: HIGHFLY Skill Core will bind them next.
                 case HighflyMobileAction.Skill2:
                 case HighflyMobileAction.Skill3:
                 case HighflyMobileAction.Skill4:
                 case HighflyMobileAction.Ultimate:
+                case HighflyMobileAction.Sprint:
                 case HighflyMobileAction.None:
                 default:
                     break;
             }
         }
 
-        private void Release()
+        private void RestoreVisual()
         {
-            if (action != HighflyMobileAction.Sprint) return;
-
-            var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-            player?.SetHighflyMobileSprint(false);
+            if (_rect != null) _rect.localScale = _restScale;
+            if (_image != null) _image.color = _restColor;
         }
 
-        private void OnDisable() => Release();
+        private void OnDisable() => RestoreVisual();
     }
 
     public sealed class HighflyJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -500,7 +513,7 @@ namespace Highfly.Mobile
             image.color = new Color(0f, 0f, 0f, 0.001f);
             image.raycastTarget = true;
 
-            go.GetComponent<HighflyLookZone>().Configure(0.42f);
+            go.GetComponent<HighflyLookZone>().Configure(0.32f);
         }
 
         private void CreateJoystick(Transform parent)
@@ -545,29 +558,28 @@ namespace Highfly.Mobile
 
             baseGo.GetComponent<HighflyJoystick>().Configure(knobRect, 86f);
 
-            CreateButton(parent, "CORRER", new Vector2(165f, 330f), new Vector2(130f, 58f), HighflyMobileAction.Sprint, 19);
         }
 
         private void CreateActionButtons(Transform parent)
         {
-            // Mobile-Legends-inspired combat crescent around the main attack button.
-            CreateButton(parent, "ATQ",      new Vector2(-120f, 145f), new Vector2(176f, 176f), HighflyMobileAction.Attack, 30);
+            // Clean crescent around ATQ: designed for one-thumb reach on landscape phones.
+            CreateButton(parent, "ATQ",      new Vector2(-118f, 132f), new Vector2(184f, 184f), HighflyMobileAction.Attack, 31);
 
-            CreateButton(parent, "S1",       new Vector2(-295f, 120f), new Vector2(116f, 116f), HighflyMobileAction.Skill1, 22);
-            CreateButton(parent, "S2",       new Vector2(-265f, 265f), new Vector2(112f, 112f), HighflyMobileAction.Skill2, 21);
-            CreateButton(parent, "S3",       new Vector2(-175f, 375f), new Vector2(112f, 112f), HighflyMobileAction.Skill3, 21);
-            CreateButton(parent, "S4",       new Vector2(-55f, 355f),  new Vector2(112f, 112f), HighflyMobileAction.Skill4, 21);
+            CreateButton(parent, "S1",       new Vector2(-315f, 92f),  new Vector2(110f, 110f), HighflyMobileAction.Skill1, 21);
+            CreateButton(parent, "S2",       new Vector2(-345f, 225f), new Vector2(108f, 108f), HighflyMobileAction.Skill2, 20);
+            CreateButton(parent, "S3",       new Vector2(-300f, 355f), new Vector2(108f, 108f), HighflyMobileAction.Skill3, 20);
+            CreateButton(parent, "S4",       new Vector2(-195f, 445f), new Vector2(108f, 108f), HighflyMobileAction.Skill4, 20);
 
-            // Third row / ultimate.
-            CreateButton(parent, "ULT",      new Vector2(-190f, 535f), new Vector2(146f, 146f), HighflyMobileAction.Ultimate, 24);
+            // Ultimate gets its own third-row emphasis.
+            CreateButton(parent, "ULT",      new Vector2(-365f, 515f), new Vector2(142f, 142f), HighflyMobileAction.Ultimate, 24);
 
-            // Defensive and utility controls deliberately separated from the skill crescent.
-            CreateButton(parent, "ESQUIVAR", new Vector2(-450f, 105f), new Vector2(122f, 122f), HighflyMobileAction.Dodge, 15);
-            CreateButton(parent, "PARRY",    new Vector2(-570f, 165f), new Vector2(108f, 108f), HighflyMobileAction.Parry, 16);
-            CreateButton(parent, "USAR",     new Vector2(-690f, 105f), new Vector2(100f, 100f), HighflyMobileAction.Interact, 14);
-            CreateButton(parent, "LOCK",     new Vector2(-700f, 245f), new Vector2(98f, 98f), HighflyMobileAction.Lock, 14);
-            CreateButton(parent, "SALTAR\nESCALAR", new Vector2(-615f, 385f), new Vector2(108f, 108f), HighflyMobileAction.JumpClimb, 12);
-            CreateButton(parent, "POCIÓN",   new Vector2(-805f, 245f), new Vector2(92f, 92f), HighflyMobileAction.Potion, 12);
+            // Utility lane: intentionally detached from the skill crescent.
+            CreateButton(parent, "ESQUIVAR", new Vector2(-535f, 105f), new Vector2(118f, 118f), HighflyMobileAction.Dodge, 15);
+            CreateButton(parent, "PARRY",    new Vector2(-655f, 185f), new Vector2(104f, 104f), HighflyMobileAction.Parry, 15);
+            CreateButton(parent, "USAR",     new Vector2(-770f, 102f), new Vector2(96f, 96f), HighflyMobileAction.Interact, 13);
+            CreateButton(parent, "LOCK",     new Vector2(-780f, 235f), new Vector2(92f, 92f), HighflyMobileAction.Lock, 13);
+            CreateButton(parent, "SALTAR\nESCALAR", new Vector2(-690f, 365f), new Vector2(104f, 104f), HighflyMobileAction.JumpClimb, 11);
+            CreateButton(parent, "POCIÓN",   new Vector2(-875f, 235f), new Vector2(88f, 88f), HighflyMobileAction.Potion, 11);
         }
 
         private void CreateButton(
