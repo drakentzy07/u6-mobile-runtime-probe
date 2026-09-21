@@ -17,6 +17,12 @@ public static class HighflyMobileText
         { "I'm still here.\nStill breathing.\nThe nightmare didn't take me.",
           "Sigo aquí.\nSigo respirando.\nLa pesadilla no pudo conmigo." },
 
+        { "My body remembers — even if my mind struggles.\nMove. Dodge. Survive.\nThat's all there is to it.",
+          "Mi cuerpo recuerda, incluso si mi mente lucha por hacerlo.\nMuévete. Esquiva. Sobrevive.\nEso es todo." },
+        { "My body remembers — even if my mind struggles.", "Mi cuerpo recuerda, incluso si mi mente lucha por hacerlo." },
+        { "Move. Dodge. Survive.", "Muévete. Esquiva. Sobrevive." },
+        { "That's all there is to it.", "Eso es todo." },
+
         { "You...\nYou're still lucid.\nI haven't seen eyes like that since the King fell asleep.",
           "Tú...\nSigues lúcido.\nNo veía unos ojos así desde que el Rey cayó dormido." },
         { "This castle used to be full of light.\nNow the nightmare has swallowed everything —\nthe people, the knights... all of them, lost.",
@@ -85,19 +91,6 @@ public static class HighflyMobileText
         s = s.Replace("[ TAB ]", "LOCK");
         s = s.Replace("[ Space ]", "SALTAR");
         s = s.Replace("[ R ]", "POCIÓN");
-
-        s = s.Replace("Move", "Moverse");
-        s = s.Replace("Attack", "Atacar");
-        s = s.Replace("Roll", "Esquivar");
-        s = s.Replace("Dodge", "Esquivar");
-        s = s.Replace("Parry", "Parry");
-        s = s.Replace("Skill", "Habilidad");
-        s = s.Replace("Lock On", "Fijar objetivo");
-        s = s.Replace("Interact", "Interactuar");
-        s = s.Replace("Jump", "Saltar");
-        s = s.Replace("Use Potion", "Usar poción");
-        s = s.Replace("Talk", "Hablar");
-        s = s.Replace("Pray", "Usar altar");
 
         return s;
     }
