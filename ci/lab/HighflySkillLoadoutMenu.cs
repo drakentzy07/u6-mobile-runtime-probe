@@ -12,6 +12,7 @@ namespace Highfly.SkillLab
         public string Role;
         public string Evolution;
         public bool Implemented;
+        public float CooldownSeconds;
 
         public HighflySkillDefinitionLite(
             HighflyPremiumSkillId id,
@@ -19,7 +20,8 @@ namespace Highfly.SkillLab
             string family,
             string role,
             string evolution,
-            bool implemented)
+            bool implemented,
+            float cooldownSeconds)
         {
             Id = id;
             Name = name;
@@ -27,6 +29,7 @@ namespace Highfly.SkillLab
             Role = role;
             Evolution = evolution;
             Implemented = implemented;
+            CooldownSeconds = cooldownSeconds;
         }
     }
 
@@ -37,82 +40,119 @@ namespace Highfly.SkillLab
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.TwinDance,
                 "DANZA GEMELA",
-                "ARMA / COMBO / MULTI-HIT",
-                "Presión melee y finisher encadenado.",
+                "ARMA / COMBO",
+                "Ida, vuelta y X finisher con buffer táctil.",
                 "Base de DANZA FANTASMA.",
-                true),
+                true,
+                0.18f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.PhantomStep,
                 "PASO FANTASMA",
-                "MOVILIDAD / RUSH / I-FRAME",
-                "Reposicionamiento ofensivo y evasión perfecta.",
+                "MOVILIDAD / I-FRAME",
+                "Rush eléctrico, afterimages y reposicionamiento.",
                 "Base de DANZA FANTASMA.",
-                true),
+                true,
+                1.15f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.ShadowShackle,
                 "GRILLETE UMBRÍO",
-                "SOMBRA / CONTROL / MARK",
-                "Inmoviliza, marca y atrae al objetivo.",
-                "Puede mutar hacia control múltiple.",
-                true),
+                "SOMBRA / CONTROL",
+                "Mano umbría, root, cadenas y pull.",
+                "Evoluciona a GRILLETE ABISAL.",
+                true,
+                4.5f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.VitalPact,
                 "PACTO VITAL",
-                "VITAL / BUFF / SUSTAIN",
-                "Convierte agresión en supervivencia.",
-                "Base de DOMINIO VITAL.",
-                true),
+                "VITAL / BUFF",
+                "Ritual de sustain y conversión de daño en vida.",
+                "Evoluciona a DOMINIO VITAL.",
+                true,
+                10f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.ShadowCall,
                 "LLAMADO DE LA SOMBRA",
-                "SOMBRA / SUMMON / ECHO",
-                "Sombras ofensivas sincronizadas con el cazador.",
-                "Base de ECO UMBRÍO.",
-                true),
+                "SOMBRA / SUMMON",
+                "Dos sombras en V copian y encadenan ataques.",
+                "Base de VÍNCULO UMBRÍO.",
+                true,
+                12f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.PhantomTwinDance,
                 "DANZA FANTASMA",
                 "FUSIÓN / ARMA + MOVILIDAD",
-                "Tres cortes espaciales con micro-blink, afterimages y remate.",
-                "Danza Gemela + Paso Fantasma • condición de fusión.",
-                true),
+                "Tres micro-blinks con cortes espaciales y finisher.",
+                "Danza Gemela + Paso Fantasma.",
+                true,
+                5f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.ShadowLink,
                 "VÍNCULO UMBRÍO",
                 "FUSIÓN / SOMBRA + VITAL",
-                "Activa formación sombra, drenaje de vida y ataque coordinado.",
+                "Formación sombra, drenaje y ataque coordinado.",
                 "Llamado de la Sombra + Pacto Vital.",
-                true),
+                true,
+                11f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.AbyssalShackle,
                 "GRILLETE ABISAL",
-                "EVOLUCIÓN / CONTROL + SOMBRA",
-                "Manos y grilletes atrapan hasta tres objetivos y los convergen.",
-                "Evolución de Grillete Umbrío por maestría/condición.",
-                true),
+                "EVOLUCIÓN / CONTROL",
+                "Hasta tres objetivos: manos, grilletes y convergencia.",
+                "Evolución de Grillete Umbrío.",
+                true,
+                7f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.VitalDomain,
                 "DOMINIO VITAL",
-                "EVOLUCIÓN / DOMINIO + SUSTAIN",
-                "Ritual persistente: drena enemigos y restaura al cazador.",
+                "EVOLUCIÓN / DOMINIO",
+                "Campo ritual persistente de drain y sustain.",
                 "Evolución de Pacto Vital.",
-                true),
+                true,
+                15f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.ShadowJudgment,
                 "JUICIO DE LA SOMBRA",
-                "FINISHER / EJECUCIÓN / SOMBRA",
-                "Mano umbría + formación en V + ejecución triple sincronizada.",
+                "FINISHER / EJECUCIÓN",
+                "Fijación + formación triple + ejecución coordinada.",
                 "Finisher avanzado de la rama Umbría.",
-                true)
+                true,
+                14f),
+
+            new HighflySkillDefinitionLite(
+                HighflyPremiumSkillId.EclipseRend,
+                "DESGARRO ECLIPSE",
+                "MULTI-CUT / EXECUTION",
+                "Siete cortes visibles y confirmación X retardada.",
+                "Familia de multicorte de alta velocidad.",
+                true,
+                7f),
+
+            new HighflySkillDefinitionLite(
+                HighflyPremiumSkillId.ReturnWall,
+                "MURALLA DE RETORNO",
+                "DEFENSA / REFLECT",
+                "Ventana frontal que anula y devuelve daño real.",
+                "Familia reactiva / perfect guard.",
+                true,
+                9f),
+
+            new HighflySkillDefinitionLite(
+                HighflyPremiumSkillId.VoraciousEcho,
+                "ECO VORAZ",
+                "DECOY / BLINK / COUNTER",
+                "Deja un clon señuelo, reposiciona y contraataca.",
+                "Familia engaño / clon / evasión.",
+                true,
+                8f)
         };
 
         public static HighflySkillDefinitionLite Get(HighflyPremiumSkillId id)
@@ -122,6 +162,12 @@ namespace Highfly.SkillLab
                     return All[i];
 
             return null;
+        }
+
+        public static float GetCooldownDuration(HighflyPremiumSkillId id)
+        {
+            HighflySkillDefinitionLite def = Get(id);
+            return def != null ? Mathf.Max(0.01f, def.CooldownSeconds) : 1f;
         }
     }
 
@@ -183,12 +229,23 @@ namespace Highfly.SkillLab
     [DisallowMultipleComponent]
     public sealed class HighflySkillLoadoutMenu : MonoBehaviour
     {
+        public static HighflySkillLoadoutMenu Instance { get; private set; }
+
         private Canvas _canvas;
         private GameObject _panel;
+        private GameObject _quickPanel;
+
         private Button _openButton;
+        private Button _quickButton;
+
         private Text _selectedInfo;
-        private Text[] _slotLabels = new Text[5];
-        private Button[] _slotButtons = new Button[5];
+        private Text _quickTitle;
+
+        private readonly Text[] _slotLabels = new Text[5];
+        private readonly Button[] _slotButtons = new Button[5];
+
+        private readonly Text[] _quickSlotLabels = new Text[5];
+        private readonly Button[] _quickSlotButtons = new Button[5];
 
         private int _selectedSlot;
 
@@ -208,9 +265,31 @@ namespace Highfly.SkillLab
             return menu;
         }
 
+        private void Awake()
+        {
+            Instance = this;
+        }
+
         private void OnDestroy()
         {
             HighflySkillLoadout.Changed -= Refresh;
+
+            if (Instance == this)
+                Instance = null;
+        }
+
+        public void OpenQuickForSlot(int slot)
+        {
+            _selectedSlot = Mathf.Clamp(slot, 0, 4);
+
+            if (_panel != null)
+                _panel.SetActive(false);
+
+            if (_quickPanel != null)
+            {
+                _quickPanel.SetActive(true);
+                Refresh();
+            }
         }
 
         private void Build()
@@ -245,18 +324,41 @@ namespace Highfly.SkillLab
 
             _openButton.onClick.AddListener(TogglePanel);
 
+            _quickButton = CreateButton(
+                canvasGo.transform,
+                "RÁPIDO",
+                new Vector2(1f, 1f),
+                new Vector2(-92f, -130f),
+                new Vector2(154f, 58f),
+                new Color(0.055f, 0.065f, 0.09f, 0.92f),
+                new Color(0.58f, 0.34f, 1f, 1f));
+
+            _quickButton.onClick.AddListener(ToggleQuickPanel);
+
+            BuildFullPanel(canvasGo.transform);
+            BuildQuickPanel(canvasGo.transform);
+
+            _selectedSlot = 0;
+            Refresh();
+
+            _panel.SetActive(false);
+            _quickPanel.SetActive(false);
+        }
+
+        private void BuildFullPanel(Transform parent)
+        {
             _panel = new GameObject(
                 "SkillLoadoutPanel",
                 typeof(RectTransform),
                 typeof(Image));
 
-            _panel.transform.SetParent(canvasGo.transform, false);
+            _panel.transform.SetParent(parent, false);
 
             RectTransform panelRect = _panel.GetComponent<RectTransform>();
             panelRect.anchorMin = panelRect.anchorMax = new Vector2(0.5f, 0.5f);
             panelRect.pivot = new Vector2(0.5f, 0.5f);
-            panelRect.anchoredPosition = new Vector2(145f, 0f);
-            panelRect.sizeDelta = new Vector2(1180f, 820f);
+            panelRect.anchoredPosition = new Vector2(110f, 0f);
+            panelRect.sizeDelta = new Vector2(1360f, 900f);
 
             _panel.GetComponent<Image>().color =
                 new Color(0.025f, 0.035f, 0.055f, 0.97f);
@@ -264,17 +366,17 @@ namespace Highfly.SkillLab
             CreateLabel(
                 _panel.transform,
                 "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT",
-                new Vector2(-545f, 355f),
-                new Vector2(790f, 60f),
+                new Vector2(-625f, 395f),
+                new Vector2(900f, 60f),
                 30,
                 TextAnchor.MiddleLeft,
                 new Color(0.88f, 0.96f, 1f, 1f));
 
             CreateLabel(
                 _panel.transform,
-                "10 skills activas • seleccioná S1–S5 y equipá. Base, evolución y fusión comparten el mismo CORE.",
-                new Vector2(-545f, 305f),
-                new Vector2(990f, 45f),
+                "13 skills activas • base + evolución + fusión + referencias mecánicas • mismo HIGHFLY CORE",
+                new Vector2(-625f, 346f),
+                new Vector2(1120f, 42f),
                 18,
                 TextAnchor.MiddleLeft,
                 new Color(0.68f, 0.74f, 0.82f, 1f));
@@ -283,7 +385,7 @@ namespace Highfly.SkillLab
                 _panel.transform,
                 "CERRAR",
                 new Vector2(0.5f, 0.5f),
-                new Vector2(490f, 350f),
+                new Vector2(575f, 395f),
                 new Vector2(150f, 54f),
                 new Color(0.12f, 0.13f, 0.16f, 1f),
                 new Color(0.70f, 0.74f, 0.80f, 1f));
@@ -293,14 +395,14 @@ namespace Highfly.SkillLab
             for (int i = 0; i < 5; i++)
             {
                 int slot = i;
-                float x = -460f + i * 205f;
+                float x = -510f + i * 250f;
 
                 Button button = CreateButton(
                     _panel.transform,
                     "S" + (i + 1),
                     new Vector2(0.5f, 0.5f),
-                    new Vector2(x, 230f),
-                    new Vector2(185f, 105f),
+                    new Vector2(x, 270f),
+                    new Vector2(225f, 105f),
                     new Color(0.055f, 0.075f, 0.11f, 1f),
                     new Color(0.06f, 0.77f, 1f, 1f));
 
@@ -316,77 +418,180 @@ namespace Highfly.SkillLab
 
             CreateLabel(
                 _panel.transform,
-                "CATÁLOGO DE HABILIDADES",
-                new Vector2(-545f, 135f),
-                new Vector2(470f, 45f),
+                "CATÁLOGO",
+                new Vector2(-625f, 190f),
+                new Vector2(260f, 45f),
                 22,
                 TextAnchor.MiddleLeft,
                 new Color(0.86f, 0.90f, 0.96f, 1f));
+
+            const int columns = 3;
+            const int rows = 5;
 
             for (int i = 0; i < HighflySkillCatalog.All.Length; i++)
             {
                 HighflySkillDefinitionLite def = HighflySkillCatalog.All[i];
 
-                int col = i < 5 ? 0 : 1;
-                int row = i % 5;
+                int col = i / rows;
+                int row = i % rows;
 
-                float x = col == 0 ? -300f : 300f;
-                float y = 70f - row * 105f;
+                float x = -420f + col * 420f;
+                float y = 130f - row * 102f;
 
                 string title =
-                    (def.Implemented ? "" : "🔒 ") +
                     def.Name +
                     "\n" +
-                    def.Family;
+                    def.Family +
+                    "   CD " +
+                    def.CooldownSeconds.ToString("0.#") +
+                    "s";
 
                 Button card = CreateButton(
                     _panel.transform,
                     title,
                     new Vector2(0.5f, 0.5f),
                     new Vector2(x, y),
-                    new Vector2(540f, 88f),
-                    def.Implemented
-                        ? new Color(0.055f, 0.075f, 0.105f, 1f)
-                        : new Color(0.065f, 0.065f, 0.075f, 0.88f),
-                    def.Implemented
-                        ? new Color(0.13f, 0.70f, 0.92f, 1f)
-                        : new Color(0.32f, 0.32f, 0.35f, 1f));
+                    new Vector2(390f, 86f),
+                    new Color(0.055f, 0.075f, 0.105f, 1f),
+                    new Color(0.13f, 0.70f, 0.92f, 1f));
 
                 Text cardText = card.GetComponentInChildren<Text>();
-                cardText.fontSize = 17;
+                cardText.fontSize = 15;
                 cardText.alignment = TextAnchor.MiddleLeft;
 
-                if (def.Implemented)
+                HighflyPremiumSkillId id = def.Id;
+                card.onClick.AddListener(() =>
                 {
-                    HighflyPremiumSkillId id = def.Id;
-                    card.onClick.AddListener(() =>
-                    {
-                        HighflySkillLoadout.Assign(_selectedSlot, id);
-                        UpdateSelectedInfo();
-                    });
-                }
+                    HighflySkillLoadout.Assign(_selectedSlot, id);
+                    UpdateSelectedInfo();
+                });
             }
 
             _selectedInfo = CreateLabel(
                 _panel.transform,
                 "",
-                new Vector2(-545f, -365f),
-                new Vector2(1080f, 62f),
+                new Vector2(-625f, -400f),
+                new Vector2(1230f, 66f),
                 17,
                 TextAnchor.MiddleLeft,
                 new Color(0.72f, 0.80f, 0.88f, 1f));
+        }
 
-            _selectedSlot = 0;
-            Refresh();
-            _panel.SetActive(false);
+        private void BuildQuickPanel(Transform parent)
+        {
+            _quickPanel = new GameObject(
+                "QuickSkillPanel",
+                typeof(RectTransform),
+                typeof(Image));
+
+            _quickPanel.transform.SetParent(parent, false);
+
+            RectTransform rect = _quickPanel.GetComponent<RectTransform>();
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-18f, -200f);
+            rect.sizeDelta = new Vector2(720f, 690f);
+
+            _quickPanel.GetComponent<Image>().color =
+                new Color(0.025f, 0.035f, 0.055f, 0.96f);
+
+            _quickTitle = CreateLabel(
+                _quickPanel.transform,
+                "",
+                new Vector2(-205f, 305f),
+                new Vector2(520f, 42f),
+                22,
+                TextAnchor.MiddleLeft,
+                new Color(0.90f, 0.96f, 1f, 1f));
+
+            Button close = CreateButton(
+                _quickPanel.transform,
+                "X",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(315f, 305f),
+                new Vector2(54f, 46f),
+                new Color(0.11f, 0.12f, 0.15f, 1f),
+                new Color(0.55f, 0.60f, 0.68f, 1f));
+
+            close.onClick.AddListener(() => _quickPanel.SetActive(false));
+
+            for (int i = 0; i < 5; i++)
+            {
+                int slot = i;
+
+                Button slotButton = CreateButton(
+                    _quickPanel.transform,
+                    "S" + (i + 1),
+                    new Vector2(0.5f, 0.5f),
+                    new Vector2(-260f + i * 130f, 245f),
+                    new Vector2(116f, 62f),
+                    new Color(0.055f, 0.075f, 0.105f, 1f),
+                    new Color(0.16f, 0.68f, 0.96f, 1f));
+
+                _quickSlotButtons[i] = slotButton;
+                _quickSlotLabels[i] = slotButton.GetComponentInChildren<Text>();
+
+                slotButton.onClick.AddListener(() =>
+                {
+                    _selectedSlot = slot;
+                    Refresh();
+                });
+            }
+
+            for (int i = 0; i < HighflySkillCatalog.All.Length; i++)
+            {
+                HighflySkillDefinitionLite def = HighflySkillCatalog.All[i];
+
+                int col = i % 2;
+                int row = i / 2;
+
+                float x = col == 0 ? -178f : 178f;
+                float y = 165f - row * 72f;
+
+                Button card = CreateButton(
+                    _quickPanel.transform,
+                    def.Name,
+                    new Vector2(0.5f, 0.5f),
+                    new Vector2(x, y),
+                    new Vector2(330f, 58f),
+                    new Color(0.05f, 0.065f, 0.095f, 1f),
+                    new Color(0.34f, 0.26f, 0.62f, 1f));
+
+                Text t = card.GetComponentInChildren<Text>();
+                t.fontSize = 14;
+
+                HighflyPremiumSkillId id = def.Id;
+                card.onClick.AddListener(() =>
+                {
+                    HighflySkillLoadout.Assign(_selectedSlot, id);
+                    Refresh();
+                });
+            }
         }
 
         private void TogglePanel()
         {
             if (_panel == null) return;
+
+            if (_quickPanel != null)
+                _quickPanel.SetActive(false);
+
             _panel.SetActive(!_panel.activeSelf);
 
             if (_panel.activeSelf)
+                Refresh();
+        }
+
+        private void ToggleQuickPanel()
+        {
+            if (_quickPanel == null) return;
+
+            if (_panel != null)
+                _panel.SetActive(false);
+
+            _quickPanel.SetActive(!_quickPanel.activeSelf);
+
+            if (_quickPanel.activeSelf)
                 Refresh();
         }
 
@@ -397,10 +602,17 @@ namespace Highfly.SkillLab
                 HighflySkillDefinitionLite def =
                     HighflySkillCatalog.Get(HighflySkillLoadout.Get(i));
 
+                string shortName = def != null ? def.Name : "-";
+
                 if (_slotLabels[i] != null)
                     _slotLabels[i].text =
                         "S" + (i + 1) + "\n" +
-                        (def != null ? def.Name : "-");
+                        shortName;
+
+                if (_quickSlotLabels[i] != null)
+                    _quickSlotLabels[i].text =
+                        "S" + (i + 1) + "\n" +
+                        CompactName(shortName);
 
                 Image image = _slotButtons[i] != null
                     ? _slotButtons[i].GetComponent<Image>()
@@ -412,6 +624,29 @@ namespace Highfly.SkillLab
                         ? new Color(0.08f, 0.38f, 0.50f, 1f)
                         : new Color(0.055f, 0.075f, 0.11f, 1f);
                 }
+
+                Image quickImage = _quickSlotButtons[i] != null
+                    ? _quickSlotButtons[i].GetComponent<Image>()
+                    : null;
+
+                if (quickImage != null)
+                {
+                    quickImage.color = i == _selectedSlot
+                        ? new Color(0.11f, 0.28f, 0.52f, 1f)
+                        : new Color(0.055f, 0.075f, 0.105f, 1f);
+                }
+            }
+
+            if (_quickTitle != null)
+            {
+                HighflySkillDefinitionLite def =
+                    HighflySkillCatalog.Get(HighflySkillLoadout.Get(_selectedSlot));
+
+                _quickTitle.text =
+                    "SELECCIÓN RÁPIDA • S" +
+                    (_selectedSlot + 1) +
+                    " • " +
+                    (def != null ? def.Name : "-");
             }
 
             UpdateSelectedInfo();
@@ -431,12 +666,26 @@ namespace Highfly.SkillLab
             }
 
             _selectedInfo.text =
-                "S" + (_selectedSlot + 1) + " • " +
+                "S" + (_selectedSlot + 1) +
+                " • " +
                 def.Name +
                 "  |  " +
                 def.Role +
                 "  |  " +
-                def.Evolution;
+                def.Evolution +
+                "  |  CD " +
+                def.CooldownSeconds.ToString("0.#") +
+                "s";
+        }
+
+        private static string CompactName(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return "-";
+
+            string[] parts = value.Split(' ');
+            if (parts.Length <= 2) return value;
+
+            return parts[0] + " " + parts[1];
         }
 
         private static Button CreateButton(
