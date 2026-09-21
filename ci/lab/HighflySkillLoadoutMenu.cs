@@ -632,6 +632,8 @@ namespace Highfly.SkillLab
 
             yield return new WaitForSecondsRealtime(PreviewDuration(id));
 
+            runtime?.ClearPreviewCooldown(id);
+
             _previewing = false;
 
             if (_panel != null)
