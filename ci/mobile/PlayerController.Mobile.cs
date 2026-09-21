@@ -64,7 +64,9 @@ public class PlayerController : MonoBehaviour
     private PlayerLockOn _lockOnSystem; 
     public bool IsLockOn => _lockOnSystem != null && _lockOnSystem.isLockOn; 
     public Transform LockOnTarget => _lockOnSystem != null ? _lockOnSystem.currentTarget : null;
-    public Transform cameraRoot; 
+    public Transform cameraRoot;
+    public Vector2 HighflyMobileMoveInput => _highflyMobileMove;
+    public bool HighflyMobileInputActive => _highflyMobileInput; 
 
     [Header("Audio Clip")]
     public AudioClip parrySound; // 휘두르는 소리
