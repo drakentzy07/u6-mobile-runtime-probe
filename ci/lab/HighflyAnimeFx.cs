@@ -151,6 +151,89 @@ namespace Highfly.SkillLab
             return fx;
         }
 
+        public static HighflyReflectWallFx SpawnReflectWall(
+            Transform owner,
+            Color color,
+            float duration)
+        {
+            if (owner == null) return null;
+
+            var go = new GameObject("HF_REFLECT_WALL");
+            var fx = go.AddComponent<HighflyReflectWallFx>();
+            fx.Initialize(owner, color, duration);
+            return fx;
+        }
+
+        public static GameObject SpawnDecoyClone(
+            Transform playerRoot,
+            Color color,
+            float duration)
+        {
+            if (playerRoot == null) return null;
+
+            var ghostRoot = new GameObject("HF_DECOY_CLONE");
+            ghostRoot.transform.position = Vector3.zero;
+            ghostRoot.transform.rotation = Quaternion.identity;
+            ghostRoot.transform.localScale = Vector3.one;
+
+            Material ghostMat =
+                HighflyPremiumFx.CreateTransparentMaterial(
+                    new Color(color.r, color.g, color.b, 0.62f),
+                    color * 2.4f);
+
+            foreach (SkinnedMeshRenderer smr in
+                     playerRoot.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+            {
+                if (smr == null || !smr.enabled) continue;
+
+                Mesh baked = new Mesh();
+                smr.BakeMesh(baked);
+
+                var part = new GameObject("Decoy_" + smr.name);
+                part.transform.SetParent(ghostRoot.transform, false);
+                part.transform.position = smr.transform.position;
+                part.transform.rotation = smr.transform.rotation;
+                part.transform.localScale = smr.transform.lossyScale;
+
+                part.AddComponent<MeshFilter>().sharedMesh = baked;
+
+                var mr = part.AddComponent<MeshRenderer>();
+                int count = Mathf.Max(1, smr.sharedMaterials.Length);
+                var mats = new Material[count];
+                for (int i = 0; i < mats.Length; i++) mats[i] = ghostMat;
+                mr.sharedMaterials = mats;
+                mr.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+
+            foreach (MeshFilter source in
+                     playerRoot.GetComponentsInChildren<MeshFilter>(true))
+            {
+                if (source == null || source.sharedMesh == null) continue;
+
+                Renderer sourceRenderer = source.GetComponent<Renderer>();
+                if (sourceRenderer == null || !sourceRenderer.enabled) continue;
+
+                var part = new GameObject("DecoyMesh_" + source.name);
+                part.transform.SetParent(ghostRoot.transform, false);
+                part.transform.position = source.transform.position;
+                part.transform.rotation = source.transform.rotation;
+                part.transform.localScale = source.transform.lossyScale;
+
+                part.AddComponent<MeshFilter>().sharedMesh = source.sharedMesh;
+
+                var mr = part.AddComponent<MeshRenderer>();
+                mr.sharedMaterial = ghostMat;
+                mr.shadowCastingMode =
+                    UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+
+            var pulse = ghostRoot.AddComponent<HighflyDecoyPulseFx>();
+            pulse.Initialize(duration);
+
+            return ghostRoot;
+        }
+
         public static void SpawnImpactCross(
             Vector3 position,
             Vector3 forward,
@@ -160,6 +243,169 @@ namespace Highfly.SkillLab
             SpawnBladeCut(position, forward, color, 45f, size, 0.38f, 0.16f);
             SpawnBladeCut(position, forward, Color.white, -45f, size * 0.96f, 0.24f, 0.14f);
             HighflyPremiumFx.SpawnResource("Sparks", position, Quaternion.identity, 0.52f, 0.58f, color);
+        }
+    }
+
+    public sealed class HighflyReflectWallFx : MonoBehaviour
+    {
+        private Transform _owner;
+        private float _end;
+        private readonly List<Transform> _layers = new List<Transform>();
+
+        public void Initialize(Transform owner, Color color, float duration)
+        {
+            _owner = owner;
+            _end = Time.unscaledTime + duration;
+
+            transform.SetParent(owner, false);
+            transform.localPosition = new Vector3(0f, 1.05f, 1.45f);
+            transform.localRotation = Quaternion.identity;
+
+            _layers.Add(CreateArc("Outer", color, 1.65f, 0.080f, 54, 145f));
+            _layers.Add(CreateArc("Mid", Color.white, 1.28f, 0.036f, 46, 138f));
+            _layers.Add(CreateArc("Inner", color, 0.88f, 0.030f, 38, 132f));
+
+            CreateSpokes(color);
+        }
+
+        private Transform CreateArc(
+            string name,
+            Color color,
+            float radius,
+            float width,
+            int points,
+            float degrees)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+
+            var lr = go.AddComponent<LineRenderer>();
+            lr.useWorldSpace = false;
+            lr.positionCount = points;
+            lr.widthMultiplier = width;
+            lr.numCapVertices = 5;
+            lr.sharedMaterial =
+                HighflyPremiumFx.CreateTransparentMaterial(
+                    new Color(color.r, color.g, color.b, 0.76f),
+                    color * 3.1f);
+
+            float half = degrees * 0.5f;
+
+            for (int i = 0; i < points; i++)
+            {
+                float t = i / (float)(points - 1);
+                float a = Mathf.Lerp(-half, half, t) * Mathf.Deg2Rad;
+
+                lr.SetPosition(
+                    i,
+                    new Vector3(
+                        Mathf.Sin(a) * radius,
+                        Mathf.Cos(a) * radius - radius * 0.25f,
+                        0f));
+            }
+
+            return go.transform;
+        }
+
+        private void CreateSpokes(Color color)
+        {
+            for (int i = -3; i <= 3; i++)
+            {
+                var go = new GameObject("RuneSpoke_" + i);
+                go.transform.SetParent(transform, false);
+
+                var lr = go.AddComponent<LineRenderer>();
+                lr.useWorldSpace = false;
+                lr.positionCount = 3;
+                lr.widthMultiplier = 0.024f;
+                lr.sharedMaterial =
+                    HighflyPremiumFx.CreateTransparentMaterial(
+                        new Color(color.r, color.g, color.b, 0.62f),
+                        color * 2.5f);
+
+                float x = i * 0.25f;
+                lr.SetPosition(0, new Vector3(x * 0.45f, -0.95f, 0f));
+                lr.SetPosition(1, new Vector3(x, 0.0f, 0f));
+                lr.SetPosition(2, new Vector3(x * 0.45f, 0.95f, 0f));
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (_owner == null || Time.unscaledTime >= _end)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            float dt = Time.unscaledDeltaTime;
+
+            for (int i = 0; i < _layers.Count; i++)
+            {
+                if (_layers[i] == null) continue;
+                _layers[i].localScale =
+                    Vector3.one *
+                    (1f + Mathf.Sin(Time.unscaledTime * 7f + i) * 0.020f);
+            }
+
+            transform.localRotation =
+                Quaternion.Euler(
+                    0f,
+                    Mathf.Sin(Time.unscaledTime * 4.5f) * 1.6f,
+                    0f);
+        }
+    }
+
+    public sealed class HighflyDecoyPulseFx : MonoBehaviour
+    {
+        private float _start;
+        private float _duration;
+        private Renderer[] _renderers;
+
+        public void Initialize(float duration)
+        {
+            _start = Time.unscaledTime;
+            _duration = Mathf.Max(0.15f, duration);
+            _renderers = GetComponentsInChildren<Renderer>(true);
+        }
+
+        private void Update()
+        {
+            float t = Mathf.Clamp01(
+                (Time.unscaledTime - _start) / _duration);
+
+            float pulse = 0.94f + Mathf.Sin(Time.unscaledTime * 18f) * 0.035f;
+            transform.localScale = Vector3.one * pulse;
+
+            float alpha =
+                Mathf.Lerp(0.68f, 0.12f, Mathf.Pow(t, 1.5f));
+
+            foreach (Renderer r in _renderers)
+            {
+                if (r == null) continue;
+
+                foreach (Material m in r.materials)
+                {
+                    if (m == null) continue;
+
+                    if (m.HasProperty("_BaseColor"))
+                    {
+                        Color col = m.GetColor("_BaseColor");
+                        col.a = alpha;
+                        m.SetColor("_BaseColor", col);
+                    }
+
+                    if (m.HasProperty("_Color"))
+                    {
+                        Color col = m.GetColor("_Color");
+                        col.a = alpha;
+                        m.SetColor("_Color", col);
+                    }
+                }
+            }
+
+            if (t >= 1f)
+                Destroy(gameObject);
         }
     }
 
