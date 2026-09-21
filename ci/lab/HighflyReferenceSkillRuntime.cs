@@ -77,6 +77,24 @@ namespace Highfly.SkillLab
         private bool _hitStopRunning;
 
         public float RendRemaining => Mathf.Max(0f, _cdRend - Time.unscaledTime);
+
+        public void ForcePreview(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.EclipseRend:
+                    _cdRend = -99f;
+                    break;
+                case HighflyPremiumSkillId.ReturnWall:
+                    _cdReflect = -99f;
+                    break;
+                case HighflyPremiumSkillId.VoraciousEcho:
+                    _cdDecoy = -99f;
+                    break;
+            }
+
+            Trigger(id);
+        }
         public float ReflectRemaining => Mathf.Max(0f, _cdReflect - Time.unscaledTime);
         public float DecoyRemaining => Mathf.Max(0f, _cdDecoy - Time.unscaledTime);
 
