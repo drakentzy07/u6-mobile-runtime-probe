@@ -292,6 +292,92 @@ namespace Highfly.SkillLab
             }
         }
 
+        public static void SpawnCrescentSlash(
+            Vector3 origin,
+            Vector3 forward,
+            Color color,
+            float radius,
+            float thickness,
+            float rollDegrees,
+            float duration = 0.20f)
+        {
+            var go = new GameObject("HF_CRESCENT_SLASH");
+            go.transform.position = origin;
+            go.transform.rotation =
+                Quaternion.LookRotation(forward, Vector3.up) *
+                Quaternion.Euler(0f, 0f, rollDegrees);
+
+            const int segments = 22;
+            float inner = Mathf.Max(0.05f, radius - thickness);
+            float outer = radius;
+            float startAngle = -58f;
+            float endAngle = 58f;
+
+            Vector3[] vertices = new Vector3[(segments + 1) * 2];
+            int[] triangles = new int[segments * 6];
+            Vector2[] uv = new Vector2[vertices.Length];
+
+            for (int i = 0; i <= segments; i++)
+            {
+                float t = i / (float)segments;
+                float angle = Mathf.Lerp(startAngle, endAngle, t) * Mathf.Deg2Rad;
+
+                Vector3 dir =
+                    new Vector3(
+                        Mathf.Sin(angle),
+                        Mathf.Cos(angle),
+                        0f);
+
+                vertices[i * 2] = dir * inner;
+                vertices[i * 2 + 1] = dir * outer;
+
+                uv[i * 2] = new Vector2(t, 0f);
+                uv[i * 2 + 1] = new Vector2(t, 1f);
+
+                if (i < segments)
+                {
+                    int v = i * 2;
+                    int ti = i * 6;
+                    triangles[ti + 0] = v;
+                    triangles[ti + 1] = v + 3;
+                    triangles[ti + 2] = v + 1;
+                    triangles[ti + 3] = v;
+                    triangles[ti + 4] = v + 2;
+                    triangles[ti + 5] = v + 3;
+                }
+            }
+
+            Mesh mesh = new Mesh();
+            mesh.name = "HF_CrescentMesh";
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.uv = uv;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            MeshFilter mf = go.AddComponent<MeshFilter>();
+            mf.sharedMesh = mesh;
+
+            MeshRenderer mr = go.AddComponent<MeshRenderer>();
+            mr.sharedMaterial = CreateTransparentMaterial(
+                new Color(color.r, color.g, color.b, 0.78f),
+                color * 3.5f);
+
+            mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+            HighflyCrescentFade fade = go.AddComponent<HighflyCrescentFade>();
+            fade.Initialize(duration, mesh, mr);
+        }
+
+        public static void SpawnVitalSigil(Transform target, float duration)
+        {
+            if (target == null) return;
+
+            var root = new GameObject("HF_VITAL_SIGIL");
+            var sigil = root.AddComponent<HighflyVitalSigilFx>();
+            sigil.Initialize(target, duration);
+        }
+
         public static Material CreateTransparentMaterial(Color baseColor, Color emission)
         {
             Shader shader =
@@ -318,6 +404,152 @@ namespace Highfly.SkillLab
             mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             mat.renderQueue = 3000;
             return mat;
+        }
+    }
+
+    public sealed class HighflyCrescentFade : MonoBehaviour
+    {
+        private float _start;
+        private float _duration;
+        private Mesh _mesh;
+        private MeshRenderer _renderer;
+
+        public void Initialize(float duration, Mesh mesh, MeshRenderer renderer)
+        {
+            _start = Time.unscaledTime;
+            _duration = Mathf.Max(0.05f, duration);
+            _mesh = mesh;
+            _renderer = renderer;
+        }
+
+        private void Update()
+        {
+            float t = (Time.unscaledTime - _start) / _duration;
+            if (t >= 1f)
+            {
+                if (_mesh != null) Destroy(_mesh);
+                Destroy(gameObject);
+                return;
+            }
+
+            transform.localScale = Vector3.one * Mathf.Lerp(0.86f, 1.08f, t);
+
+            if (_renderer != null)
+            {
+                foreach (Material m in _renderer.materials)
+                {
+                    if (m == null) continue;
+
+                    float a = Mathf.Lerp(0.82f, 0f, t);
+
+                    if (m.HasProperty("_BaseColor"))
+                    {
+                        Color cc = m.GetColor("_BaseColor");
+                        cc.a = a;
+                        m.SetColor("_BaseColor", cc);
+                    }
+
+                    if (m.HasProperty("_Color"))
+                    {
+                        Color cc = m.GetColor("_Color");
+                        cc.a = a;
+                        m.SetColor("_Color", cc);
+                    }
+                }
+            }
+        }
+    }
+
+    public sealed class HighflyVitalSigilFx : MonoBehaviour
+    {
+        private Transform _target;
+        private float _end;
+        private Transform _ringA;
+        private Transform _ringB;
+        private Transform _ringC;
+
+        public void Initialize(Transform target, float duration)
+        {
+            _target = target;
+            _end = Time.unscaledTime + duration;
+
+            transform.position = target.position + Vector3.up * 0.035f;
+
+            _ringA = CreateRing("VitalOuter", 1.65f, 0.055f, 72);
+            _ringB = CreateRing("VitalInner", 1.05f, 0.035f, 60);
+            _ringC = CreateRuneSpokes();
+        }
+
+        private Transform CreateRing(string name, float radius, float width, int points)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+
+            var lr = go.AddComponent<LineRenderer>();
+            lr.loop = true;
+            lr.useWorldSpace = false;
+            lr.positionCount = points;
+            lr.widthMultiplier = width;
+            lr.sharedMaterial = HighflyPremiumFx.CreateTransparentMaterial(
+                new Color(0.18f, 0.82f, 0.44f, 0.78f),
+                new Color(0.32f, 1f, 0.58f, 1f));
+
+            for (int i = 0; i < points; i++)
+            {
+                float a = (i / (float)points) * Mathf.PI * 2f;
+                lr.SetPosition(i, new Vector3(Mathf.Cos(a) * radius, 0f, Mathf.Sin(a) * radius));
+            }
+
+            return go.transform;
+        }
+
+        private Transform CreateRuneSpokes()
+        {
+            var root = new GameObject("VitalRunes");
+            root.transform.SetParent(transform, false);
+
+            for (int i = 0; i < 6; i++)
+            {
+                var go = new GameObject("Rune_" + i);
+                go.transform.SetParent(root.transform, false);
+
+                var lr = go.AddComponent<LineRenderer>();
+                lr.useWorldSpace = false;
+                lr.positionCount = 3;
+                lr.widthMultiplier = 0.032f;
+                lr.sharedMaterial = HighflyPremiumFx.CreateTransparentMaterial(
+                    new Color(0.20f, 0.78f, 0.46f, 0.72f),
+                    new Color(0.34f, 1f, 0.62f, 1f));
+
+                float a = (i / 6f) * Mathf.PI * 2f;
+                Vector3 d = new Vector3(Mathf.Cos(a), 0f, Mathf.Sin(a));
+                Vector3 p = new Vector3(-d.z, 0f, d.x);
+
+                lr.SetPosition(0, d * 0.48f - p * 0.16f);
+                lr.SetPosition(1, d * 1.12f);
+                lr.SetPosition(2, d * 0.48f + p * 0.16f);
+            }
+
+            return root.transform;
+        }
+
+        private void LateUpdate()
+        {
+            if (_target == null || Time.unscaledTime >= _end)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            transform.position = _target.position + Vector3.up * 0.035f;
+
+            float dt = Time.unscaledDeltaTime;
+            if (_ringA != null) _ringA.Rotate(0f, 42f * dt, 0f, Space.Self);
+            if (_ringB != null) _ringB.Rotate(0f, -72f * dt, 0f, Space.Self);
+            if (_ringC != null) _ringC.Rotate(0f, 26f * dt, 0f, Space.Self);
+
+            float pulse = 1f + Mathf.Sin(Time.unscaledTime * 4.5f) * 0.035f;
+            transform.localScale = Vector3.one * pulse;
         }
     }
 
