@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Highfly.SkillLab;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -66,7 +67,17 @@ public class PlayerController : MonoBehaviour
     public Transform LockOnTarget => _lockOnSystem != null ? _lockOnSystem.currentTarget : null;
     public Transform cameraRoot;
     public Vector2 HighflyMobileMoveInput => _highflyMobileMove;
-    public bool HighflyMobileInputActive => _highflyMobileInput; 
+    public bool HighflyMobileInputActive => _highflyMobileInput;
+    public bool HighflyIsGrounded => _isGrounded;
+    public float HighflyVerticalSpeed => _verticalVelocity.y;
+
+    public void HighflyLabSetVerticalSpeed(float speed, bool triggerJumpAnimation = true)
+    {
+        _verticalVelocity.y = speed;
+
+        if (triggerJumpAnimation && animator != null)
+            animator.SetTrigger(AnimID_Jump);
+    } 
 
     [Header("Audio Clip")]
     public AudioClip parrySound; // 휘두르는 소리
@@ -552,11 +563,25 @@ public class PlayerController : MonoBehaviour
     private void OnJump(InputAction.CallbackContext context) => HighflyMobileJump();
     public void HighflyMobileJump()
     {
+        // LAB-only aerial layer. The stable APP still uses Lucid's original jump.
+        if (HighflySkillLabMode.IsActive && HighflyAerialMobility.Instance != null)
+        {
+            HighflyAerialMobility.Instance.RequestJump();
+            return;
+        }
+
+        HighflyPerformBaseJump();
+    }
+
+    public void HighflyPerformBaseJump()
+    {
         // Locomotion 상태일 때만 점프 가능
         if (currentState == PlayerState.Locomotion && _isGrounded)
         {
             _verticalVelocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            animator.SetTrigger(AnimID_Jump);
+
+            if (animator != null)
+                animator.SetTrigger(AnimID_Jump);
         }
     }
 
