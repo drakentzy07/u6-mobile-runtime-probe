@@ -162,7 +162,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.5");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.6");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -191,14 +191,15 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.5\n" +
+                    "HIGHFLY • SKILL LAB v0.6\n" +
                     "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | 1..5 skills | 6 dodge | 7 parry | 8 lock | 9 poción | 0 ATQ\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "S1 " + SkillName(0) + "  •  S2 " + SkillName(1) + "\n" +
                     "S3 " + SkillName(2) + "  •  S4 " + SkillName(3) + "\n" +
-                    "S5 " + SkillName(4) + "   |   SKILLS = LOADOUT\n\n" +
+                    "S5 " + SkillName(4) + "   |   SKILLS / RÁPIDO = LOADOUT\n" +
+                    "13 SKILLS • cooldown radial activo • S11 multicorte • S12 reflect • S13 señuelo\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -229,6 +230,9 @@ namespace Highfly.SkillLab
 
             if (player.GetComponent<HighflyAdvancedSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyAdvancedSkillRuntime>();
+
+            if (player.GetComponent<HighflyReferenceSkillRuntime>() == null)
+                player.gameObject.AddComponent<HighflyReferenceSkillRuntime>();
 
             if (player.GetComponent<HighflyAerialMobility>() == null)
                 player.gameObject.AddComponent<HighflyAerialMobility>();
