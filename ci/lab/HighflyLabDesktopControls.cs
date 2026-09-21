@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Highfly.Mobile;
+using Highfly.Combat;
 
 namespace Highfly.SkillLab
 {
@@ -38,29 +39,30 @@ namespace Highfly.SkillLab
 
                 // Fast LAB keyboard: 1..5 skills, 6 dodge, 7 parry,
                 // 8 lock, 9 potion, 0 basic attack.
-                var premium = HighflyPremiumSkillRuntime.Instance;
+                HighflyLucidCombatBridge combat =
+                    UnityEngine.Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
 
                 if (keyboard.digit1Key.wasPressedThisFrame)
-                    premium?.Trigger(HighflyPremiumSkillId.TwinDance);
+                    combat?.Request(HighflyCombatAction.Skill1);
                 if (keyboard.digit2Key.wasPressedThisFrame)
-                    premium?.Trigger(HighflyPremiumSkillId.PhantomStep);
+                    combat?.Request(HighflyCombatAction.Skill2);
                 if (keyboard.digit3Key.wasPressedThisFrame)
-                    premium?.Trigger(HighflyPremiumSkillId.ShadowShackle);
+                    combat?.Request(HighflyCombatAction.Skill3);
                 if (keyboard.digit4Key.wasPressedThisFrame)
-                    premium?.Trigger(HighflyPremiumSkillId.VitalPact);
+                    combat?.Request(HighflyCombatAction.Skill4);
                 if (keyboard.digit5Key.wasPressedThisFrame)
-                    premium?.Trigger(HighflyPremiumSkillId.ShadowCall);
+                    combat?.Request(HighflyCombatAction.Ultimate);
 
                 if (keyboard.digit6Key.wasPressedThisFrame)
-                    _player.HighflyMobileRoll();
+                    combat?.Request(HighflyCombatAction.Dodge);
                 if (keyboard.digit7Key.wasPressedThisFrame)
-                    _player.HighflyMobileParry();
+                    combat?.Request(HighflyCombatAction.Parry);
                 if (keyboard.digit8Key.wasPressedThisFrame)
                     _player.HighflyMobileLockOn();
                 if (keyboard.digit9Key.wasPressedThisFrame)
                     UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
                 if (keyboard.digit0Key.wasPressedThisFrame)
-                    _player.HighflyMobileAttack();
+                    combat?.Request(HighflyCombatAction.Light);
 
                 // R = instant recenter to the approved Golden third-person framing.
                 if (keyboard.rKey.wasPressedThisFrame)
