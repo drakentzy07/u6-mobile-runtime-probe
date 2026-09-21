@@ -113,8 +113,15 @@ namespace Highfly.SkillLab
             // Reuse Lucid's real sword animation ownership instead of inventing a LAB animator.
             _player.HighflyMobileAttack();
 
-            Color c1 = new Color(0.10f, 0.90f, 1f, 1f);
-            Color c2 = new Color(0.55f, 0.22f, 1f, 1f);
+            Color c1 = new Color(0.10f, 0.78f, 1f, 1f);
+            Color c2 = new Color(0.46f, 0.16f, 0.92f, 1f);
+
+            HighflyPremiumFx.AttachWeaponTrail(
+                _player,
+                stage == 2 ? c2 : c1,
+                stage == 3 ? Color.white : c2,
+                stage == 3 ? 0.42f : 0.32f,
+                stage == 3 ? 0.28f : 0.20f);
 
             SpawnTelegraphArc(transform.position + Vector3.up * 1.0f, dir, c1, 1.5f + stage * 0.2f);
             yield return new WaitForSecondsRealtime(stage == 3 ? 0.055f : 0.075f);
@@ -142,7 +149,9 @@ namespace Highfly.SkillLab
                 SpawnSlash(dir, Color.white, 0f, 2.7f);
                 SpawnSlash(dir, c2, 90f, 2.55f);
                 DealConeDamage(48f, 3.05f, 1.55f, dir, "Gemela-Finisher");
+                Vector3 finishPoint = transform.position + dir * 2.0f + Vector3.up * 0.8f;
                 SpawnImpactRing(transform.position + dir * 2.0f, c2, 2.8f);
+                HighflyPremiumFx.SpawnResource("EnergyExplosion", finishPoint, Quaternion.identity, 0.55f, 1.6f);
                 StartCoroutine(FovPunch(5.5f, 0.10f));
             }
         }
@@ -165,34 +174,54 @@ namespace Highfly.SkillLab
             Vector3 dir = FacingDirection();
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
-            // Lucid Roll supplies the actual i-frame contract.
+            // Lucid Roll supplies the real i-frame contract.
             _player.HighflyMobileRoll();
 
-            Color ghost = new Color(0.22f, 0.78f, 1f, 1f);
+            Color ghost = new Color(0.16f, 0.66f, 1f, 1f);
             float start = Time.unscaledTime;
-            float duration = 0.22f;
-            float nextEcho = 0f;
+            float duration = 0.24f;
+            float nextEchoAt = 0f;
+            Vector3 lastFxPosition = transform.position + Vector3.up * 0.85f;
+
+            HighflyPremiumFx.SpawnResource(
+                "ElectricalSparks",
+                transform.position + Vector3.up * 0.85f,
+                Quaternion.LookRotation(dir),
+                0.55f,
+                0.75f);
 
             while (Time.unscaledTime - start < duration)
             {
-                float t = (Time.unscaledTime - start) / duration;
+                float elapsed = Time.unscaledTime - start;
 
                 if (_cc != null)
-                    _cc.Move(dir * (7.5f * Time.unscaledDeltaTime));
+                    _cc.Move(dir * (9.2f * Time.unscaledDeltaTime));
 
-                if (t >= nextEcho)
+                if (elapsed >= nextEchoAt)
                 {
-                    nextEcho += 0.18f;
-                    SpawnGhostEcho(transform.position, ghost);
+                    nextEchoAt += 0.052f;
+
+                    Vector3 currentFxPosition = transform.position + Vector3.up * 0.85f;
+                    HighflyPremiumFx.SpawnAfterImage(transform, ghost, 0.24f);
+                    HighflyPremiumFx.SpawnLightningSegment(lastFxPosition, currentFxPosition, ghost, 0.14f);
+                    lastFxPosition = currentFxPosition;
                 }
 
                 yield return null;
             }
 
+            HighflyPremiumFx.SpawnResource(
+                "ElectricalSparks",
+                transform.position + Vector3.up * 0.85f,
+                Quaternion.LookRotation(dir),
+                0.70f,
+                0.85f);
+
+            HighflyPremiumFx.AttachWeaponTrail(_player, Color.white, ghost, 0.30f, 0.20f);
             SpawnSlash(dir, ghost, 0f, 2.2f);
-            DealConeDamage(27f, 2.45f, 1.15f, dir, "Paso-Fantasma");
+            DealConeDamage(31f, 2.75f, 1.35f, dir, "Paso-Fantasma");
             SpawnImpactRing(transform.position + dir * 1.2f, ghost, 1.45f);
-            StartCoroutine(FovPunch(3.2f, 0.08f));
+            StartCoroutine(FovPunch(3.8f, 0.09f));
         }
 
         // ------------------------------------------------------------------
@@ -203,7 +232,7 @@ namespace Highfly.SkillLab
         {
             if (!CanAct() || Time.unscaledTime < _cdShackle) return;
 
-            CharacterStats target = FindBestTarget(9.0f, 95f);
+            CharacterStats target = FindBestTarget(11.5f, 170f);
             if (target == null)
             {
                 HighflySkillLabMetrics.RecordAction("S3 • GRILLETE UMBRÍO (SIN OBJETIVO)", 0);
@@ -219,28 +248,67 @@ namespace Highfly.SkillLab
         {
             if (target == null) yield break;
 
-            Color shadow = new Color(0.43f, 0.12f, 0.92f, 1f);
-            Vector3 origin = transform.position + Vector3.up * 1.05f;
-            Vector3 end = target.transform.position + Vector3.up * 0.9f;
+            Color shadow = new Color(0.42f, 0.10f, 0.78f, 1f);
 
-            for (int i = 0; i < 3; i++)
-            {
-                Vector3 side = transform.right * ((i - 1) * 0.18f);
-                SpawnChain(origin + side, end, shadow, 0.36f);
-            }
-
-            DealDirect(target, 24f, "Grillete");
-            SpawnImpactRing(end, shadow, 1.35f);
+            Vector3 targetFx = target.transform.position + Vector3.up * 0.85f;
+            HighflyPremiumFx.SpawnResource(
+                "PlasmaExplosion",
+                targetFx,
+                Quaternion.identity,
+                0.34f,
+                1.35f,
+                new Color(0.42f, 0.12f, 0.72f, 1f));
 
             var status = target.GetComponent<HighflyLabStatusReceiver>();
             if (status == null)
                 status = target.gameObject.AddComponent<HighflyLabStatusReceiver>();
 
-            status.ApplyRoot(2.2f);
-            status.ApplyShadowMark(5.0f);
+            status.ApplyRoot(2.65f);
+            status.ApplyShadowMark(5.5f);
 
-            yield return new WaitForSecondsRealtime(0.12f);
-            SpawnChain(origin, end, Color.white, 0.18f);
+            Vector3[] sourceOffsets =
+            {
+                new Vector3(-0.42f, 0.95f, 0.10f),
+                new Vector3( 0.42f, 0.95f, 0.10f),
+                new Vector3(-0.22f, 0.48f, 0.20f),
+                new Vector3( 0.22f, 0.48f, 0.20f)
+            };
+
+            Vector3[] targetOffsets =
+            {
+                new Vector3(-0.28f, 1.05f, 0f),
+                new Vector3( 0.28f, 1.05f, 0f),
+                new Vector3(-0.22f, 0.45f, 0f),
+                new Vector3( 0.22f, 0.45f, 0f)
+            };
+
+            for (int i = 0; i < 4; i++)
+            {
+                HighflyPremiumFx.SpawnShadowTether(
+                    transform,
+                    target.transform,
+                    sourceOffsets[i],
+                    targetOffsets[i],
+                    0.95f,
+                    i);
+            }
+
+            DealDirect(target, 28f, "Grillete");
+
+            yield return StartCoroutine(PullTargetTowardPlayer(target, 0.46f, 2.25f));
+
+            if (target != null)
+            {
+                Vector3 end = target.transform.position + Vector3.up * 0.85f;
+                SpawnImpactRing(end, shadow, 1.55f);
+                HighflyPremiumFx.SpawnResource(
+                    "Sparks",
+                    end,
+                    Quaternion.identity,
+                    0.55f,
+                    0.75f,
+                    new Color(0.64f, 0.24f, 1f, 1f));
+            }
         }
 
         // ------------------------------------------------------------------
@@ -263,8 +331,16 @@ namespace Highfly.SkillLab
                 _stats.RestoreEgo(heal);
             }
 
-            Color life = new Color(0.16f, 1f, 0.62f, 1f);
+            Color life = new Color(0.16f, 0.92f, 0.52f, 1f);
             SpawnImpactRing(transform.position + Vector3.up * 0.15f, life, 3.2f);
+            HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                transform.position + Vector3.up * 0.6f,
+                Quaternion.identity,
+                0.82f,
+                2.25f,
+                new Color(0.58f, 1f, 0.70f, 1f));
+            HighflyPremiumFx.SpawnVitalAura(transform, 8f);
             StartCoroutine(VitalAuraRoutine(life));
         }
 
@@ -295,18 +371,31 @@ namespace Highfly.SkillLab
 
             for (int i = 0; i < 2; i++)
             {
-                var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                go.name = "HIGHFLY_SHADOW_" + (i + 1);
-                Destroy(go.GetComponent<Collider>());
+                Vector3 spawnPos =
+                    transform.position +
+                    transform.right * (i == 0 ? -1.75f : 1.75f) +
+                    transform.forward * 0.65f;
 
-                go.transform.position = transform.position + transform.right * (i == 0 ? -1.6f : 1.6f);
-                go.transform.localScale = new Vector3(0.48f, 0.90f, 0.48f);
+                HighflyPremiumFx.SpawnResource(
+                    "PlasmaExplosion",
+                    spawnPos + Vector3.up * 0.55f,
+                    Quaternion.identity,
+                    0.42f,
+                    1.2f,
+                    new Color(0.24f, 0.04f, 0.52f, 1f));
 
-                var renderer = go.GetComponent<Renderer>();
-                if (renderer != null)
-                    renderer.sharedMaterial = HighflyLabVisuals.CreateMaterial(
-                        new Color(0.10f, 0.02f, 0.22f, 1f),
-                        new Color(0.35f, 0.08f, 1f, 1f));
+                GameObject go = HighflyPremiumFx.SpawnShadowKnight(
+                    spawnPos,
+                    transform.rotation);
+
+                if (go == null)
+                {
+                    go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                    go.name = "HIGHFLY_SHADOW_FALLBACK_" + (i + 1);
+                    Destroy(go.GetComponent<Collider>());
+                    go.transform.position = spawnPos + Vector3.up * 0.9f;
+                    go.transform.localScale = new Vector3(0.45f, 0.90f, 0.45f);
+                }
 
                 var minion = go.AddComponent<HighflyShadowMinion>();
                 minion.Initialize(this, transform, i == 0 ? -1f : 1f, 9.5f);
@@ -316,43 +405,70 @@ namespace Highfly.SkillLab
 
         public CharacterStats FindBestTarget(float radius, float angle)
         {
-            Vector3 origin = transform.position + Vector3.up * 0.8f;
-            int count = Physics.OverlapSphereNonAlloc(origin, radius, _hits, ~0, QueryTriggerInteraction.Collide);
+            CharacterStats[] all =
+                UnityEngine.Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
 
-            CharacterStats best = null;
-            float bestScore = float.MaxValue;
-
-            for (int i = 0; i < count; i++)
+            Vector3 viewDir = transform.forward;
+            if (_player != null && _player.cameraTransform != null)
             {
-                Collider hit = _hits[i];
-                if (hit == null) continue;
+                viewDir = _player.cameraTransform.forward;
+                viewDir.y = 0f;
+                if (viewDir.sqrMagnitude > 0.001f)
+                    viewDir.Normalize();
+                else
+                    viewDir = transform.forward;
+            }
 
-                CharacterStats stats = hit.GetComponentInParent<CharacterStats>();
-                if (stats == null || stats.transform == transform) continue;
+            CharacterStats bestInView = null;
+            float bestViewScore = float.MaxValue;
 
-                bool valid = stats is HighflyLabDummyStats;
-                if (!valid)
-                {
-                    try { valid = stats.CompareTag("Enemy"); } catch { }
-                }
-                if (!valid) continue;
+            CharacterStats nearestFallback = null;
+            float nearestDistance = float.MaxValue;
+
+            for (int i = 0; i < all.Length; i++)
+            {
+                CharacterStats stats = all[i];
+                if (!IsValidTarget(stats)) continue;
 
                 Vector3 delta = stats.transform.position - transform.position;
                 delta.y = 0f;
-                if (delta.sqrMagnitude < 0.01f) continue;
+                float distance = delta.magnitude;
 
-                float a = Vector3.Angle(transform.forward, delta.normalized);
-                if (a > angle * 0.5f) continue;
+                if (distance <= 0.01f || distance > radius)
+                    continue;
 
-                float score = delta.sqrMagnitude + a * 0.06f;
-                if (score < bestScore)
+                if (distance < nearestDistance)
                 {
-                    bestScore = score;
-                    best = stats;
+                    nearestDistance = distance;
+                    nearestFallback = stats;
+                }
+
+                float a = Vector3.Angle(viewDir, delta / distance);
+                if (a > angle * 0.5f)
+                    continue;
+
+                // Center-screen alignment matters more than tiny distance differences.
+                float score = a * 0.11f + distance * 0.32f;
+                if (score < bestViewScore)
+                {
+                    bestViewScore = score;
+                    bestInView = stats;
                 }
             }
 
-            return best;
+            return bestInView != null ? bestInView : nearestFallback;
+        }
+
+        private bool IsValidTarget(CharacterStats stats)
+        {
+            if (stats == null || stats.transform == transform)
+                return false;
+
+            if (stats is HighflyLabDummyStats)
+                return true;
+
+            try { return stats.CompareTag("Enemy"); }
+            catch { return false; }
         }
 
         public void DealDirect(CharacterStats target, float damage, string source)
@@ -366,6 +482,13 @@ namespace Highfly.SkillLab
             target.TakeDamage(damage, 25f, transform);
             HighflySkillLabMetrics.RecordHit(damage);
 
+            HighflyPremiumFx.SpawnResource(
+                "Sparks",
+                target.transform.position + Vector3.up * 0.85f,
+                Quaternion.identity,
+                0.48f,
+                0.55f);
+
             if (VitalPactActive && _stats != null)
                 _stats.RestoreEgo(damage * 0.22f);
 
@@ -374,32 +497,93 @@ namespace Highfly.SkillLab
 
         private void DealConeDamage(float damage, float reach, float radius, Vector3 dir, string source)
         {
-            Vector3 center = transform.position + Vector3.up * 0.9f + dir * reach;
-            int count = Physics.OverlapSphereNonAlloc(center, radius, _hits, ~0, QueryTriggerInteraction.Collide);
+            CharacterStats[] all =
+                UnityEngine.Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
 
-            var seen = new HashSet<CharacterStats>();
+            float maxDistance = reach + radius * 0.95f;
+            float minForwardDot = -0.05f;
 
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < all.Length; i++)
             {
-                Collider hit = _hits[i];
-                if (hit == null) continue;
-
-                CharacterStats stats = hit.GetComponentInParent<CharacterStats>();
-                if (stats == null || stats.transform == transform || seen.Contains(stats)) continue;
-
-                bool valid = stats is HighflyLabDummyStats;
-                if (!valid)
-                {
-                    try { valid = stats.CompareTag("Enemy"); } catch { }
-                }
-                if (!valid) continue;
+                CharacterStats stats = all[i];
+                if (!IsValidTarget(stats)) continue;
 
                 Vector3 to = stats.transform.position - transform.position;
+                float vertical = Mathf.Abs(to.y);
                 to.y = 0f;
-                if (Vector3.Dot(dir, to.normalized) < 0.12f) continue;
 
-                seen.Add(stats);
+                float distance = to.magnitude;
+                if (distance <= 0.01f || distance > maxDistance || vertical > 2.5f)
+                    continue;
+
+                Vector3 n = to / distance;
+                float forwardDot = Vector3.Dot(dir, n);
+                if (forwardDot < minForwardDot)
+                    continue;
+
+                // Wider up close, tighter at the outer edge: feels like a sword sweep.
+                float lateralAllowance =
+                    Mathf.Lerp(radius * 1.45f, radius * 0.80f, distance / maxDistance);
+
+                float lateral =
+                    Vector3.Cross(dir, n).magnitude * distance;
+
+                if (lateral > lateralAllowance)
+                    continue;
+
                 DealDirect(stats, damage, source);
+            }
+        }
+
+        private IEnumerator PullTargetTowardPlayer(
+            CharacterStats target,
+            float duration,
+            float stopDistance)
+        {
+            if (target == null) yield break;
+
+            Transform targetTransform = target.transform;
+            NavMeshAgent agent = target.GetComponentInParent<NavMeshAgent>();
+            bool agentUsable = agent != null && agent.enabled;
+            bool oldUpdatePosition = false;
+
+            if (agentUsable)
+            {
+                oldUpdatePosition = agent.updatePosition;
+                agent.updatePosition = false;
+                agent.isStopped = true;
+            }
+
+            Vector3 start = targetTransform.position;
+            Vector3 delta = start - transform.position;
+            delta.y = 0f;
+
+            Vector3 end =
+                transform.position +
+                (delta.sqrMagnitude > 0.001f ? delta.normalized : transform.forward) *
+                stopDistance;
+
+            end.y = start.y;
+
+            float begin = Time.unscaledTime;
+
+            while (target != null && Time.unscaledTime - begin < duration)
+            {
+                float t = (Time.unscaledTime - begin) / Mathf.Max(0.001f, duration);
+                float eased = 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
+
+                targetTransform.position = Vector3.Lerp(start, end, eased);
+                yield return null;
+            }
+
+            if (target != null)
+                targetTransform.position = end;
+
+            if (agentUsable && agent != null)
+            {
+                agent.Warp(end);
+                agent.updatePosition = oldUpdatePosition;
+                agent.isStopped = true; // status receiver releases it when root expires
             }
         }
 
