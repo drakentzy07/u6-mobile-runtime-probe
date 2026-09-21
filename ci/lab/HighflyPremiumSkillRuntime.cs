@@ -117,6 +117,35 @@ namespace Highfly.SkillLab
             HighflyReferenceSkillRuntime.Instance?.ForcePreview(id);
         }
 
+        public void ClearPreviewCooldown(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.TwinDance:
+                    _cdTwin = -99f;
+                    _twinQueued = false;
+                    break;
+                case HighflyPremiumSkillId.PhantomStep:
+                    _cdStep = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowShackle:
+                    _cdShackle = -99f;
+                    break;
+                case HighflyPremiumSkillId.VitalPact:
+                    _cdPact = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowCall:
+                    _cdSummon = -99f;
+                    break;
+                default:
+                    if ((int)id <= 10)
+                        HighflyAdvancedSkillRuntime.Instance?.ClearPreviewCooldown(id);
+                    else
+                        HighflyReferenceSkillRuntime.Instance?.ClearPreviewCooldown(id);
+                    break;
+            }
+        }
+
         public float GetCooldownRemaining(HighflyPremiumSkillId id)
         {
             float now = Time.unscaledTime;
