@@ -7,18 +7,13 @@ namespace Highfly.SkillLab
 {
     public static class HighflySkillLabMode
     {
-        private static bool? _cached;
-
         public static bool IsActive
         {
             get
             {
-                if (_cached.HasValue) return _cached.Value;
-
                 string url = Application.absoluteURL ?? string.Empty;
-                _cached = url.IndexOf("lab=1", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                          url.IndexOf("skilllab", StringComparison.OrdinalIgnoreCase) >= 0;
-                return _cached.Value;
+                return url.IndexOf("lab=1", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                       url.IndexOf("skilllab", StringComparison.OrdinalIgnoreCase) >= 0;
             }
         }
     }
@@ -333,7 +328,6 @@ namespace Highfly.SkillLab
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
-            if (!HighflySkillLabMode.IsActive) return;
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
             var root = new GameObject("HIGHFLY_SKILL_LAB_v0.1");
@@ -343,6 +337,8 @@ namespace Highfly.SkillLab
 
         private void Update()
         {
+            if (!HighflySkillLabMode.IsActive) return;
+
             if (!_setup)
             {
                 var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
