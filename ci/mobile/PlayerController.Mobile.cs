@@ -219,8 +219,11 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            // 락온이 아니면 그냥 플레이어의 원래 회전을 따라감
-            cameraRoot.localRotation = Quaternion.identity;
+            // Desktop keeps Lucid's original behaviour.
+            // HIGHFLY mobile preserves world-space camera heading so left-stick
+            // character rotation cannot drag the view.
+            if (!_highflyMobileInput && cameraRoot != null)
+                cameraRoot.localRotation = Quaternion.identity;
         }
     }
 
@@ -442,34 +445,49 @@ public class PlayerController : MonoBehaviour
             }
 
             // 2. 회전
+            // HIGHFLY mobile: rotating the character from the left stick must not rotate the free camera.
+            Quaternion preservedCameraRootRotation =
+                (_highflyMobileInput && cameraRoot != null && !IsLockOn)
+                    ? cameraRoot.rotation
+                    : Quaternion.identity;
+
             if (moveDirection != Vector3.zero)
             {
                 Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
                 transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
             }
 
+            if (_highflyMobileInput && cameraRoot != null && !IsLockOn)
+                cameraRoot.rotation = preservedCameraRootRotation;
+
             // 이동 속도 결정 로직
             float targetSpeed = 0.0f;
             if (_inputMove != Vector2.zero)
             {
-                bool isSprinting = _highflyMobileSprintHeld || _inputActions.Player.Sprint.IsPressed();
-                
-                // [수정] 달리기 스태미나 처리
-                if (isSprinting)
+                if (_highflyMobileInput)
                 {
-                    // 지속 소모 (deltaTime 곱해서 프레임당 소모량 계산)
-                    if (_stats != null && _stats.UseVolition(sprintVolitionCost * Time.deltaTime))
-                    {
-                        targetSpeed = sprintSpeed; // 스태미나 있으면 달리기
-                    }
-                    else
-                    {
-                        targetSpeed = moveSpeed; // 없으면 강제로 걷기
-                    }
+                    // Touch-first analog locomotion:
+                    // short stick travel = precise walk, full travel = normal run.
+                    // No separate "CORRER" button on mobile.
+                    float magnitude = Mathf.Clamp01(_inputMove.magnitude);
+                    float analog = Mathf.InverseLerp(0.12f, 1f, magnitude);
+                    targetSpeed = Mathf.Lerp(moveSpeed * 0.38f, moveSpeed, analog);
                 }
                 else
                 {
-                    targetSpeed = moveSpeed; // 쉬프트 안 누름
+                    bool isSprinting = _inputActions.Player.Sprint.IsPressed();
+
+                    if (isSprinting)
+                    {
+                        if (_stats != null && _stats.UseVolition(sprintVolitionCost * Time.deltaTime))
+                            targetSpeed = sprintSpeed;
+                        else
+                            targetSpeed = moveSpeed;
+                    }
+                    else
+                    {
+                        targetSpeed = moveSpeed;
+                    }
                 }
             }
 
