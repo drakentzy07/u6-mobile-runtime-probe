@@ -456,13 +456,11 @@ namespace Highfly.SkillLab
                     transform.right * (i == 0 ? -1.75f : 1.75f) +
                     transform.forward * 0.65f;
 
-                HighflyPremiumFx.SpawnResource(
-                    "PlasmaExplosion",
-                    spawnPos + Vector3.up * 0.55f,
-                    Quaternion.identity,
-                    0.42f,
-                    1.2f,
-                    new Color(0.24f, 0.04f, 0.52f, 1f));
+                HighflyAnimeFx.SpawnGrandMagicCircle(
+                    transform,
+                    new Color(0.30f, 0.06f, 0.55f, 1f),
+                    1.15f,
+                    0.65f);
 
                 GameObject go = HighflyPremiumFx.SpawnShadowKnight(
                     spawnPos,
@@ -1030,11 +1028,11 @@ namespace Highfly.SkillLab
             if (_attacking)
                 return;
 
-            // Formation instead of orbit: two shadow escorts flank the hunter.
+            // V formation: two escorts stay behind-left / behind-right of the hunter.
             Vector3 desired =
                 _master.position +
-                _master.right * (_side * 1.35f) -
-                _master.forward * 0.50f;
+                _master.right * (_side * 1.55f) -
+                _master.forward * 1.05f;
 
             transform.position = Vector3.SmoothDamp(
                 transform.position,
@@ -1125,14 +1123,14 @@ namespace Highfly.SkillLab
                 ? new Color(0.82f, 0.42f, 1f, 1f)
                 : new Color(0.52f, 0.18f, 0.96f, 1f);
 
-            HighflyPremiumFx.SpawnCrescentSlash(
+            HighflyAnimeFx.SpawnBladeCut(
                 transform.position + Vector3.up * 1.05f + attackDir * 0.90f,
                 attackDir,
                 shadow,
-                heavy ? 1.85f : 1.45f,
-                heavy ? 0.48f : 0.34f,
                 _side > 0f ? 42f : -42f,
-                heavy ? 0.24f : 0.19f);
+                heavy ? 3.0f : 2.45f,
+                heavy ? 0.46f : 0.36f,
+                heavy ? 0.21f : 0.17f);
 
             HighflyPremiumFx.SpawnResource(
                 "Sparks",
