@@ -456,11 +456,13 @@ namespace Highfly.SkillLab
                     transform.right * (i == 0 ? -1.75f : 1.75f) +
                     transform.forward * 0.65f;
 
-                HighflyAnimeFx.SpawnGrandMagicCircle(
-                    transform,
-                    new Color(0.30f, 0.06f, 0.55f, 1f),
-                    1.15f,
-                    0.65f);
+                HighflyPremiumFx.SpawnResource(
+                    "Sparks",
+                    spawnPos + Vector3.up * 0.20f,
+                    Quaternion.identity,
+                    0.34f,
+                    0.50f,
+                    new Color(0.34f, 0.08f, 0.62f, 1f));
 
                 GameObject go = HighflyPremiumFx.SpawnShadowKnight(
                     spawnPos,
