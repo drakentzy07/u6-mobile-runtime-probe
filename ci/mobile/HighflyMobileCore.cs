@@ -8,6 +8,7 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 using Highfly.Combat;
+using Highfly.SkillLab;
 
 namespace Highfly.Mobile
 {
@@ -479,7 +480,9 @@ namespace Highfly.Mobile
         {
             DontDestroyOnLoad(gameObject);
 
-            _mobileMode = Application.isMobilePlatform;
+            // The Skill Lab intentionally renders the exact mobile HUD/input layout on desktop
+            // so PC iteration matches the S23 Ultra control topology.
+            _mobileMode = Application.isMobilePlatform || HighflySkillLabMode.IsActive;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { _mobileMode = _mobileMode || HF_IsTouchDevice() != 0; } catch { }
