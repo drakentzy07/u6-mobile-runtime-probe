@@ -480,7 +480,11 @@ namespace Highfly.SkillLab
                 damage *= 1.20f;
 
             target.TakeDamage(damage, 25f, transform);
-            HighflySkillLabMetrics.RecordHit(damage);
+
+            // Lab dummies record every hit inside TakeDamage so basic ATQ and
+            // premium skills share one telemetry path. Real enemies are counted here.
+            if (!(target is HighflyLabDummyStats))
+                HighflySkillLabMetrics.RecordHit(damage);
 
             HighflyPremiumFx.SpawnResource(
                 "Sparks",
