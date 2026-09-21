@@ -95,6 +95,22 @@ namespace Highfly.SkillLab
 
             Trigger(id);
         }
+        public void ClearPreviewCooldown(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.EclipseRend:
+                    _cdRend = -99f;
+                    break;
+                case HighflyPremiumSkillId.ReturnWall:
+                    _cdReflect = -99f;
+                    break;
+                case HighflyPremiumSkillId.VoraciousEcho:
+                    _cdDecoy = -99f;
+                    break;
+            }
+        }
+
         public float ReflectRemaining => Mathf.Max(0f, _cdReflect - Time.unscaledTime);
         public float DecoyRemaining => Mathf.Max(0f, _cdDecoy - Time.unscaledTime);
 
