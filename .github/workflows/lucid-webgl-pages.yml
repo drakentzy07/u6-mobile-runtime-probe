@@ -84,6 +84,9 @@ jobs:
           cp ci/lab/HighflyPremiumSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           cp ci/lab/HighflyLabDesktopControls.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
           cp ci/lab/HighflyPremiumFx.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          cp ci/lab/HighflyAnimeFx.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          cp ci/lab/HighflyAdvancedSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          cp ci/lab/HighflyAerialMobility.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           cp ci/lab/HighflySkillLoadoutMenu.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
 
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/ElectricalSparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab"
@@ -112,6 +115,9 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab
@@ -119,9 +125,17 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.4" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "HIGHFLY SYSTEM • SKILL LOADOUT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.5" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "DANZA FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "VÍNCULO UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "GRILLETE ABISAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "JUICIO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          grep -q "SpawnShadowHand" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "SpawnGrandMagicCircle" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "DOBLE SALTO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          grep -q "WALL JUMP" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          grep -q "PARKOUR_WALL_LEFT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "CheckPlayerBounds" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "DANZA GEMELA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "PASO FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
@@ -166,9 +180,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v04-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v05-anime-grade-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v04-
+            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v05-anime-grade-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
             lucid-6000.4.0f1-webgl-mobile-v06-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
