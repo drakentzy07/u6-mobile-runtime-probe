@@ -19,7 +19,11 @@ namespace Highfly.SkillLab
         ShadowLink = 7,
         AbyssalShackle = 8,
         VitalDomain = 9,
-        ShadowJudgment = 10
+        ShadowJudgment = 10,
+
+        EclipseRend = 11,
+        ReturnWall = 12,
+        VoraciousEcho = 13
     }
 
     [DisallowMultipleComponent]
@@ -33,6 +37,7 @@ namespace Highfly.SkillLab
 
         private int _twinStage;
         private float _lastTwinInput = -99f;
+        private bool _twinQueued;
 
         private float _cdTwin;
         private float _cdStep;
@@ -63,6 +68,38 @@ namespace Highfly.SkillLab
             if (Instance == this) Instance = null;
         }
 
+        private void Update()
+        {
+            if (_twinQueued &&
+                Time.unscaledTime >= _cdTwin &&
+                Time.unscaledTime - _lastTwinInput <= TwinReset)
+            {
+                _twinQueued = false;
+                TriggerTwinDance();
+            }
+        }
+
+        public float GetCooldownRemaining(HighflyPremiumSkillId id)
+        {
+            float now = Time.unscaledTime;
+
+            switch (id)
+            {
+                case HighflyPremiumSkillId.TwinDance:
+                    return Mathf.Max(0f, _cdTwin - now);
+                case HighflyPremiumSkillId.PhantomStep:
+                    return Mathf.Max(0f, _cdStep - now);
+                case HighflyPremiumSkillId.ShadowShackle:
+                    return Mathf.Max(0f, _cdShackle - now);
+                case HighflyPremiumSkillId.VitalPact:
+                    return Mathf.Max(0f, _cdPact - now);
+                case HighflyPremiumSkillId.ShadowCall:
+                    return Mathf.Max(0f, _cdSummon - now);
+            }
+
+            return 0f;
+        }
+
         public void Trigger(HighflyPremiumSkillId id)
         {
             switch (id)
@@ -90,6 +127,12 @@ namespace Highfly.SkillLab
                 case HighflyPremiumSkillId.ShadowJudgment:
                     HighflyAdvancedSkillRuntime.Instance?.Trigger(id);
                     break;
+
+                case HighflyPremiumSkillId.EclipseRend:
+                case HighflyPremiumSkillId.ReturnWall:
+                case HighflyPremiumSkillId.VoraciousEcho:
+                    HighflyReferenceSkillRuntime.Instance?.Trigger(id);
+                    break;
             }
         }
 
@@ -107,7 +150,14 @@ namespace Highfly.SkillLab
         // ------------------------------------------------------------------
         private void TriggerTwinDance()
         {
-            if (!CanAct() || Time.unscaledTime < _cdTwin) return;
+            if (!CanAct()) return;
+
+            if (Time.unscaledTime < _cdTwin)
+            {
+                // One buffered press keeps the three-stage chain reliable on touch.
+                _twinQueued = true;
+                return;
+            }
 
             if (Time.unscaledTime - _lastTwinInput > TwinReset)
                 _twinStage = 0;
@@ -317,14 +367,11 @@ namespace Highfly.SkillLab
                 1.10f,
                 new Color(0.32f, 0.04f, 0.58f, 1f));
 
-            Vector3 targetFx = target.transform.position + Vector3.up * 0.85f;
-            HighflyPremiumFx.SpawnResource(
-                "PlasmaExplosion",
-                targetFx,
-                Quaternion.identity,
-                0.18f,
-                0.85f,
-                new Color(0.42f, 0.12f, 0.72f, 1f));
+            HighflyAnimeFx.SpawnGrandMagicCircle(
+                target.transform,
+                new Color(0.30f, 0.04f, 0.56f, 1f),
+                1.10f,
+                1.15f);
 
             var status = target.GetComponent<HighflyLabStatusReceiver>();
             if (status == null)
@@ -453,8 +500,8 @@ namespace Highfly.SkillLab
             {
                 Vector3 spawnPos =
                     transform.position +
-                    transform.right * (i == 0 ? -1.75f : 1.75f) +
-                    transform.forward * 0.65f;
+                    transform.right * (i == 0 ? -1.45f : 1.45f) +
+                    transform.forward * 1.65f;
 
                 HighflyPremiumFx.SpawnResource(
                     "Sparks",
@@ -1005,6 +1052,7 @@ namespace Highfly.SkillLab
         private float _phase;
         private bool _attacking;
         private Vector3 _formationVelocity;
+        private Animator _animator;
 
         public void Initialize(
             HighflyPremiumSkillRuntime owner,
@@ -1017,6 +1065,7 @@ namespace Highfly.SkillLab
             _side = side;
             _expiresAt = Time.unscaledTime + lifeSeconds;
             _phase = side > 0f ? 0f : Mathf.PI;
+            _animator = GetComponentInChildren<Animator>(true);
         }
 
         private void Update()
@@ -1030,11 +1079,11 @@ namespace Highfly.SkillLab
             if (_attacking)
                 return;
 
-            // V formation: two escorts stay behind-left / behind-right of the hunter.
+            // V formation: hunter stays at the rear point, shadows lead ahead.
             Vector3 desired =
                 _master.position +
-                _master.right * (_side * 1.55f) -
-                _master.forward * 1.05f;
+                _master.right * (_side * 1.45f) +
+                _master.forward * 1.55f;
 
             transform.position = Vector3.SmoothDamp(
                 transform.position,
@@ -1091,6 +1140,24 @@ namespace Highfly.SkillLab
             }
 
             transform.rotation = Quaternion.LookRotation(attackDir, Vector3.up);
+
+            if (_animator != null)
+            {
+                bool hasAttack = false;
+                bool hasCombo = false;
+
+                foreach (AnimatorControllerParameter p in _animator.parameters)
+                {
+                    if (p.name == "doAttack") hasAttack = true;
+                    if (p.name == "ComboStep") hasCombo = true;
+                }
+
+                if (hasCombo)
+                    _animator.SetInteger("ComboStep", heavy ? 3 : 1);
+
+                if (hasAttack)
+                    _animator.SetTrigger("doAttack");
+            }
 
             Vector3 start = transform.position;
             Vector3 lungeTarget = start + attackDir * (heavy ? 1.35f : 0.95f);
