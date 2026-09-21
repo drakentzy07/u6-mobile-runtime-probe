@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
+using Highfly.Mobile;
 
 namespace Highfly.SkillLab
 {
@@ -54,274 +55,38 @@ namespace Highfly.SkillLab
 
     public sealed class HighflyLabDummyStats : CharacterStats
     {
+        private Vector3 _baseScale;
+
         public override void Start()
         {
             maxEgo = 999999f;
             currentEgo = maxEgo;
+            _baseScale = transform.localScale;
         }
 
         public override void TakeDamage(float damage, float composureDamage = 10f, Transform attacker = null)
         {
-            HighflySkillLabMetrics.RecordHit(damage);
             currentEgo = maxEgo;
-
-            var renderer = GetComponentInChildren<Renderer>();
-            if (renderer != null)
-                renderer.transform.localScale = new Vector3(1.08f, 0.94f, 1.08f);
-
-            StartCoroutine(RestoreScale(renderer));
+            StopAllCoroutines();
+            StartCoroutine(HitPulse());
         }
 
-        private IEnumerator RestoreScale(Renderer renderer)
+        private IEnumerator HitPulse()
         {
-            yield return new WaitForSecondsRealtime(0.07f);
-            if (renderer != null)
-                renderer.transform.localScale = Vector3.one;
-        }
-    }
+            transform.localScale = new Vector3(
+                _baseScale.x * 1.08f,
+                _baseScale.y * 0.94f,
+                _baseScale.z * 1.08f);
 
-    [DisallowMultipleComponent]
-    public sealed class HighflySkillLabController : MonoBehaviour
-    {
-        public static HighflySkillLabController Instance { get; private set; }
-
-        private PlayerController _player;
-        private CharacterController _cc;
-        private int _s1Stage;
-        private float _lastS1Time = -99f;
-        private const float ComboResetSeconds = 0.85f;
-
-        private readonly Collider[] _hits = new Collider[32];
-
-        private void Awake()
-        {
-            Instance = this;
-            _player = GetComponent<PlayerController>();
-            _cc = GetComponent<CharacterController>();
-        }
-
-        private void OnDestroy()
-        {
-            if (Instance == this) Instance = null;
-        }
-
-        public void TriggerS1()
-        {
-            if (_player == null) return;
-            if (_player.currentState == PlayerState.Die ||
-                _player.currentState == PlayerState.Interact ||
-                _player.currentState == PlayerState.UseItem)
-                return;
-
-            if (Time.unscaledTime - _lastS1Time > ComboResetSeconds)
-                _s1Stage = 0;
-
-            _s1Stage = (_s1Stage % 3) + 1;
-            _lastS1Time = Time.unscaledTime;
-
-            HighflySkillLabMetrics.RecordAction("S1 • CHAIN ASSAULT", _s1Stage);
-
-            switch (_s1Stage)
-            {
-                case 1:
-                    StartCoroutine(ExecuteSlash(
-                        stage: 1,
-                        damage: 24f,
-                        reach: 2.2f,
-                        radius: 1.15f,
-                        lunge: 0.45f,
-                        startDelay: 0.05f,
-                        accent: new Color(0.10f, 0.82f, 1f, 1f)));
-                    break;
-
-                case 2:
-                    StartCoroutine(ExecuteSlash(
-                        stage: 2,
-                        damage: 31f,
-                        reach: 2.5f,
-                        radius: 1.25f,
-                        lunge: 0.60f,
-                        startDelay: 0.04f,
-                        accent: new Color(0.22f, 0.48f, 1f, 1f)));
-                    break;
-
-                default:
-                    StartCoroutine(ExecuteSlash(
-                        stage: 3,
-                        damage: 46f,
-                        reach: 2.9f,
-                        radius: 1.50f,
-                        lunge: 0.90f,
-                        startDelay: 0.03f,
-                        accent: new Color(0.63f, 0.26f, 1f, 1f)));
-                    break;
-            }
-        }
-
-        private IEnumerator ExecuteSlash(
-            int stage,
-            float damage,
-            float reach,
-            float radius,
-            float lunge,
-            float startDelay,
-            Color accent)
-        {
-            SpawnAnticipation(accent, stage);
-
-            if (startDelay > 0f)
-                yield return new WaitForSecondsRealtime(startDelay);
-
-            Vector3 dir = GetFacingDirection();
-
-            if (_cc != null)
-                _cc.Move(dir * lunge);
-
-            SpawnSlashArc(dir, accent, stage);
-            DamageFront(damage, reach, radius, dir);
-
-            if (stage == 3)
-            {
-                yield return new WaitForSecondsRealtime(0.035f);
-                SpawnImpactRing(accent, 2.8f);
-            }
-        }
-
-        private Vector3 GetFacingDirection()
-        {
-            Vector2 move = _player.HighflyMobileMoveInput;
-            if (move.sqrMagnitude > 0.03f && _player.cameraTransform != null)
-            {
-                Vector3 forward = _player.cameraTransform.forward;
-                Vector3 right = _player.cameraTransform.right;
-                forward.y = 0f;
-                right.y = 0f;
-                forward.Normalize();
-                right.Normalize();
-
-                Vector3 desired = forward * move.y + right * move.x;
-                if (desired.sqrMagnitude > 0.001f)
-                {
-                    desired.Normalize();
-                    transform.rotation = Quaternion.LookRotation(desired, Vector3.up);
-                    return desired;
-                }
-            }
-
-            return transform.forward;
-        }
-
-        private void DamageFront(float damage, float reach, float radius, Vector3 dir)
-        {
-            Vector3 center = transform.position + Vector3.up * 0.95f + dir * reach;
-
-            int count = Physics.OverlapSphereNonAlloc(
-                center,
-                radius,
-                _hits,
-                ~0,
-                QueryTriggerInteraction.Collide);
-
-            for (int i = 0; i < count; i++)
-            {
-                Collider hit = _hits[i];
-                if (hit == null) continue;
-
-                CharacterStats stats = hit.GetComponentInParent<CharacterStats>();
-                if (stats == null || stats.transform == transform) continue;
-
-                bool enemy = false;
-                try { enemy = stats.CompareTag("Enemy"); } catch { }
-
-                if (!enemy && !(stats is HighflyLabDummyStats))
-                    continue;
-
-                stats.TakeDamage(damage, 20f + damage * 0.25f, transform);
-            }
-        }
-
-        private void SpawnAnticipation(Color accent, int stage)
-        {
-            var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            go.name = "LAB_S1_ANTICIPATION";
-            Destroy(go.GetComponent<Collider>());
-
-            go.transform.position = transform.position + Vector3.up * 1.0f;
-            go.transform.localScale = Vector3.one * (0.18f + stage * 0.04f);
-
-            var renderer = go.GetComponent<Renderer>();
-            renderer.material.color = new Color(accent.r, accent.g, accent.b, 0.55f);
-
-            Destroy(go, 0.12f);
-        }
-
-        private void SpawnSlashArc(Vector3 dir, Color accent, int stage)
-        {
-            var go = new GameObject("LAB_S1_SLASH_ARC");
-            go.transform.position = transform.position + Vector3.up * 1.05f + dir * 1.35f;
-            go.transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
-
-            var ps = go.AddComponent<ParticleSystem>();
-
-            var main = ps.main;
-            main.loop = false;
-            main.duration = 0.18f;
-            main.startLifetime = 0.16f + stage * 0.025f;
-            main.startSpeed = 7f + stage * 1.6f;
-            main.startSize = 0.12f + stage * 0.035f;
-            main.startColor = accent;
-            main.simulationSpace = ParticleSystemSimulationSpace.World;
-
-            var emission = ps.emission;
-            emission.rateOverTime = 0f;
-            emission.SetBursts(new[]
-            {
-                new ParticleSystem.Burst(0f, (short)(18 + stage * 10))
-            });
-
-            var shape = ps.shape;
-            shape.shapeType = ParticleSystemShapeType.Cone;
-            shape.angle = 22f + stage * 3f;
-            shape.radius = 0.18f;
-
-            ps.Play();
-            Destroy(go, 0.8f);
-        }
-
-        private void SpawnImpactRing(Color accent, float radius)
-        {
-            var go = new GameObject("LAB_S1_FINISH_RING");
-            go.transform.position = transform.position + Vector3.up * 0.25f + transform.forward * 1.9f;
-
-            var ps = go.AddComponent<ParticleSystem>();
-            var main = ps.main;
-            main.loop = false;
-            main.duration = 0.24f;
-            main.startLifetime = 0.22f;
-            main.startSpeed = radius * 5.4f;
-            main.startSize = 0.18f;
-            main.startColor = accent;
-
-            var emission = ps.emission;
-            emission.rateOverTime = 0f;
-            emission.SetBursts(new[]
-            {
-                new ParticleSystem.Burst(0f, (short)44)
-            });
-
-            var shape = ps.shape;
-            shape.shapeType = ParticleSystemShapeType.Circle;
-            shape.radius = 0.30f;
-
-            ps.Play();
-            Destroy(go, 1f);
+            yield return new WaitForSecondsRealtime(0.065f);
+            transform.localScale = _baseScale;
         }
     }
 
     [DisallowMultipleComponent]
     public sealed class HighflySkillLabBootstrap : MonoBehaviour
     {
-        private const float LabY = 45f;
+        private const float LabY = 120f;
         private bool _setup;
         private Text _metricsText;
 
@@ -330,7 +95,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.1");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.2");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -353,10 +118,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.1\n" +
-                    "GOLDEN CAMERA + GOLDEN MOBILE CORE\n\n" +
+                    "HIGHFLY • SKILL LAB v0.2\n" +
+                    "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
+                    "PC: WASD + arrastre derecho | Mobile: joystick + derecha\n\n" +
+                    "S1 DANZA GEMELA  •  S2 PASO FANTASMA\n" +
+                    "S3 GRILLETE UMBRÍO  •  S4 PACTO VITAL\n" +
+                    "S5 LLAMADO DE LA SOMBRA (slot ULT)\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
-                    "Combo S1: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
+                    "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
                     "Golpes: " + HighflySkillLabMetrics.TotalHits + "\n" +
                     "Daño acumulado: " + HighflySkillLabMetrics.TotalDamage.ToString("0") + "\n" +
@@ -369,64 +138,200 @@ namespace Highfly.SkillLab
             _setup = true;
             HighflySkillLabMetrics.Reset();
 
-            CreateArena();
+            BuildRoom();
 
             CharacterController cc = player.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
-            player.transform.position = new Vector3(0f, LabY + 1.1f, -6.5f);
+
+            player.transform.position = new Vector3(0f, LabY + 0.9f, -7.2f);
             player.transform.rotation = Quaternion.identity;
+
             if (cc != null) cc.enabled = true;
 
-            if (player.GetComponent<HighflySkillLabController>() == null)
-                player.gameObject.AddComponent<HighflySkillLabController>();
+            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
+                player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
 
-            CreateDummy(new Vector3(0f, LabY + 1f, 3.5f));
+            if (player.GetComponent<HighflyLabDesktopControls>() == null)
+                player.gameObject.AddComponent<HighflyLabDesktopControls>();
+
+            CreateDummy(new Vector3(0f, LabY + 1.0f, 3.5f));
+            CreateDummy(new Vector3(-3.4f, LabY + 1.0f, 5.3f));
+            CreateDummy(new Vector3(3.4f, LabY + 1.0f, 5.3f));
+
             CreateMetricsHud();
+
+            Camera cam = Camera.main;
+            if (cam != null)
+            {
+                cam.clearFlags = CameraClearFlags.SolidColor;
+                cam.backgroundColor = new Color(0.008f, 0.014f, 0.028f, 1f);
+            }
+
+            if (!Application.isMobilePlatform)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+
+            StartCoroutine(SnapCameraNextFrame());
+            StartCoroutine(RelabelLabButtons());
         }
 
-        private static void CreateArena()
+        private IEnumerator SnapCameraNextFrame()
         {
-            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            floor.name = "LAB_ARENA_FLOOR";
-            floor.transform.position = new Vector3(0f, LabY, 3f);
-            floor.transform.localScale = new Vector3(28f, 0.8f, 28f);
+            yield return null;
+            yield return null;
 
-            var renderer = floor.GetComponent<Renderer>();
-            if (renderer != null)
-                renderer.material.color = new Color(0.025f, 0.035f, 0.065f, 1f);
-
-            CreatePillar(new Vector3(-10f, LabY + 2f, 11f));
-            CreatePillar(new Vector3(10f, LabY + 2f, 11f));
-            CreatePillar(new Vector3(-10f, LabY + 2f, -5f));
-            CreatePillar(new Vector3(10f, LabY + 2f, -5f));
+            HighflyThirdPersonMobileCamera.Instance?.SnapBehindPlayer(13f);
         }
 
-        private static void CreatePillar(Vector3 position)
+        private IEnumerator RelabelLabButtons()
         {
-            var pillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            pillar.name = "LAB_PILLAR";
-            pillar.transform.position = position;
-            pillar.transform.localScale = new Vector3(0.7f, 2.2f, 0.7f);
+            yield return null;
+            yield return null;
 
-            var renderer = pillar.GetComponent<Renderer>();
+            var allText = UnityEngine.Object.FindObjectsByType<Text>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            for (int i = 0; i < allText.Length; i++)
+            {
+                if (allText[i] == null) continue;
+                if (allText[i].text == "ULT")
+                    allText[i].text = "S5";
+            }
+        }
+
+        private static void BuildRoom()
+        {
+            Material floorMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.025f, 0.035f, 0.055f, 1f),
+                new Color(0.00f, 0.10f, 0.18f, 1f));
+
+            Material wallMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.012f, 0.018f, 0.032f, 1f),
+                new Color(0.015f, 0.05f, 0.10f, 1f));
+
+            Material cyanMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.015f, 0.12f, 0.16f, 1f),
+                new Color(0.05f, 0.92f, 1f, 1f));
+
+            Material violetMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.08f, 0.025f, 0.12f, 1f),
+                new Color(0.55f, 0.10f, 1f, 1f));
+
+            CreateBlock(
+                "LAB_FLOOR",
+                new Vector3(0f, LabY - 0.35f, 3f),
+                new Vector3(28f, 0.7f, 28f),
+                floorMat);
+
+            CreateBlock(
+                "LAB_BACK_WALL",
+                new Vector3(0f, LabY + 4.5f, 16.5f),
+                new Vector3(28f, 9f, 0.55f),
+                wallMat);
+
+            CreateBlock(
+                "LAB_LEFT_WALL",
+                new Vector3(-13.7f, LabY + 4.5f, 3f),
+                new Vector3(0.55f, 9f, 28f),
+                wallMat);
+
+            CreateBlock(
+                "LAB_RIGHT_WALL",
+                new Vector3(13.7f, LabY + 4.5f, 3f),
+                new Vector3(0.55f, 9f, 28f),
+                wallMat);
+
+            // Distance lanes every 2m.
+            for (int z = -4; z <= 14; z += 2)
+            {
+                CreateBlock(
+                    "LAB_GRID_Z_" + z,
+                    new Vector3(0f, LabY + 0.025f, z),
+                    new Vector3(24f, 0.03f, 0.025f),
+                    z % 4 == 0 ? cyanMat : wallMat);
+            }
+
+            for (int x = -10; x <= 10; x += 2)
+            {
+                CreateBlock(
+                    "LAB_GRID_X_" + x,
+                    new Vector3(x, LabY + 0.026f, 4f),
+                    new Vector3(0.025f, 0.03f, 20f),
+                    x == 0 ? violetMat : wallMat);
+            }
+
+            // Portal-like lab pylons.
+            CreateBlock("LAB_PYLON_L", new Vector3(-6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), cyanMat);
+            CreateBlock("LAB_PYLON_R", new Vector3(6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), violetMat);
+
+            var key = new GameObject("LAB_KEY_LIGHT");
+            key.transform.position = new Vector3(-3f, LabY + 7f, -2f);
+            key.transform.rotation = Quaternion.Euler(48f, 28f, 0f);
+            var keyLight = key.AddComponent<Light>();
+            keyLight.type = LightType.Directional;
+            keyLight.intensity = 1.15f;
+            keyLight.color = new Color(0.62f, 0.82f, 1f, 1f);
+
+            var rim = new GameObject("LAB_RIM_LIGHT");
+            rim.transform.position = new Vector3(0f, LabY + 5.5f, 9f);
+            var rimLight = rim.AddComponent<Light>();
+            rimLight.type = LightType.Point;
+            rimLight.range = 18f;
+            rimLight.intensity = 2.0f;
+            rimLight.color = new Color(0.42f, 0.18f, 1f, 1f);
+        }
+
+        private static GameObject CreateBlock(string name, Vector3 position, Vector3 scale, Material mat)
+        {
+            var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            go.name = name;
+            go.transform.position = position;
+            go.transform.localScale = scale;
+
+            var renderer = go.GetComponent<Renderer>();
             if (renderer != null)
-                renderer.material.color = new Color(0.08f, 0.16f, 0.26f, 1f);
+                renderer.sharedMaterial = mat;
+
+            return go;
         }
 
         private static void CreateDummy(Vector3 position)
         {
-            var dummy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            dummy.name = "LAB_DUMMY_INMORTAL";
-            dummy.transform.position = position;
-            dummy.transform.localScale = new Vector3(1.1f, 1.3f, 1.1f);
+            var root = new GameObject("LAB_DUMMY_INMORTAL");
+            root.transform.position = position;
 
-            try { dummy.tag = "Enemy"; } catch { }
+            var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            body.name = "Body";
+            body.transform.SetParent(root.transform, false);
+            body.transform.localPosition = Vector3.zero;
+            body.transform.localScale = new Vector3(0.90f, 1.15f, 0.90f);
 
-            var renderer = dummy.GetComponent<Renderer>();
-            if (renderer != null)
-                renderer.material.color = new Color(0.18f, 0.62f, 0.95f, 1f);
+            try { root.tag = "Enemy"; } catch { }
 
-            dummy.AddComponent<HighflyLabDummyStats>();
+            var bodyRenderer = body.GetComponent<Renderer>();
+            if (bodyRenderer != null)
+                bodyRenderer.sharedMaterial = HighflyLabVisuals.CreateMaterial(
+                    new Color(0.025f, 0.065f, 0.10f, 1f),
+                    new Color(0.08f, 0.78f, 1f, 1f));
+
+            root.AddComponent<HighflyLabDummyStats>();
+
+            var ring = new GameObject("DummyRing");
+            ring.transform.SetParent(root.transform, false);
+            ring.transform.localPosition = new Vector3(0f, -0.95f, 0f);
+
+            var lr = ring.AddComponent<LineRenderer>();
+            lr.loop = true;
+            lr.useWorldSpace = false;
+            lr.positionCount = 40;
+            lr.widthMultiplier = 0.045f;
+            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.08f, 0.78f, 1f, 1f));
+
+            for (int i = 0; i < 40; i++)
+            {
+                float a = (i / 40f) * Mathf.PI * 2f;
+                lr.SetPosition(i, new Vector3(Mathf.Cos(a) * 0.90f, 0f, Mathf.Sin(a) * 0.90f));
+            }
         }
 
         private void CreateMetricsHud()
@@ -449,11 +354,23 @@ namespace Highfly.SkillLab
             var rect = panel.GetComponent<RectTransform>();
             rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
             rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(24f, -24f);
-            rect.sizeDelta = new Vector2(420f, 270f);
+            rect.anchoredPosition = new Vector2(24f, -128f);
+            rect.sizeDelta = new Vector2(590f, 390f);
 
             var image = panel.GetComponent<Image>();
-            image.color = new Color(0.015f, 0.025f, 0.05f, 0.78f);
+            image.color = new Color(0.008f, 0.015f, 0.035f, 0.86f);
+
+            var accent = new GameObject("Accent", typeof(RectTransform), typeof(Image));
+            accent.transform.SetParent(panel.transform, false);
+
+            var accentRect = accent.GetComponent<RectTransform>();
+            accentRect.anchorMin = new Vector2(0f, 0f);
+            accentRect.anchorMax = new Vector2(0f, 1f);
+            accentRect.pivot = new Vector2(0f, 0.5f);
+            accentRect.anchoredPosition = Vector2.zero;
+            accentRect.sizeDelta = new Vector2(8f, 0f);
+
+            accent.GetComponent<Image>().color = new Color(0.05f, 0.85f, 1f, 1f);
 
             var textGo = new GameObject("MetricsText", typeof(RectTransform), typeof(Text));
             textGo.transform.SetParent(panel.transform, false);
@@ -461,14 +378,14 @@ namespace Highfly.SkillLab
             var textRect = textGo.GetComponent<RectTransform>();
             textRect.anchorMin = Vector2.zero;
             textRect.anchorMax = Vector2.one;
-            textRect.offsetMin = new Vector2(18f, 16f);
+            textRect.offsetMin = new Vector2(22f, 16f);
             textRect.offsetMax = new Vector2(-18f, -16f);
 
             _metricsText = textGo.GetComponent<Text>();
             _metricsText.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            _metricsText.fontSize = 22;
+            _metricsText.fontSize = 20;
             _metricsText.alignment = TextAnchor.UpperLeft;
-            _metricsText.color = new Color(0.84f, 0.95f, 1f, 1f);
+            _metricsText.color = new Color(0.86f, 0.96f, 1f, 1f);
         }
     }
 }
