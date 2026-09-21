@@ -150,15 +150,19 @@ namespace Highfly.SkillLab
     public sealed class HighflySkillLabBootstrap : MonoBehaviour
     {
         private const float LabY = 120f;
+        private static readonly Vector3 LabSpawn = new Vector3(0f, LabY + 0.9f, -7.2f);
+
         private bool _setup;
         private Text _metricsText;
+        private PlayerController _player;
+        private float _nextSafetyCheck;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.3");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.4");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -174,6 +178,12 @@ namespace Highfly.SkillLab
                     SetupLab(player);
             }
 
+            if (_setup && _player != null && Time.unscaledTime >= _nextSafetyCheck)
+            {
+                _nextSafetyCheck = Time.unscaledTime + 0.10f;
+                CheckPlayerBounds();
+            }
+
             if (_metricsText != null)
             {
                 float age = HighflySkillLabMetrics.LastHitAt > 0f
@@ -181,13 +191,13 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.3\n" +
+                    "HIGHFLY • SKILL LAB v0.4\n" +
                     "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "1..5 skills | 6 esquivar | 7 parry | 8 lock | 9 poción | 0 ATQ\n\n" +
-                    "S1 DANZA GEMELA  •  S2 PASO FANTASMA\n" +
-                    "S3 GRILLETE UMBRÍO  •  S4 PACTO VITAL\n" +
-                    "S5 LLAMADO DE LA SOMBRA\n\n" +
+                    "S1 " + SkillName(0) + "  •  S2 " + SkillName(1) + "\n" +
+                    "S3 " + SkillName(2) + "  •  S4 " + SkillName(3) + "\n" +
+                    "S5 " + SkillName(4) + "   |   SKILLS = LOADOUT\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -200,6 +210,7 @@ namespace Highfly.SkillLab
         private void SetupLab(PlayerController player)
         {
             _setup = true;
+            _player = player;
             HighflySkillLabMetrics.Reset();
 
             BuildRoom();
@@ -207,7 +218,7 @@ namespace Highfly.SkillLab
             CharacterController cc = player.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
-            player.transform.position = new Vector3(0f, LabY + 0.9f, -7.2f);
+            player.transform.position = LabSpawn;
             player.transform.rotation = Quaternion.identity;
 
             if (cc != null) cc.enabled = true;
@@ -223,6 +234,7 @@ namespace Highfly.SkillLab
             CreateDummy(new Vector3(3.4f, LabY + 1.0f, 5.3f));
 
             CreateMetricsHud();
+            HighflySkillLoadoutMenu.Install(transform);
 
             Camera cam = Camera.main;
             if (cam != null)
@@ -303,6 +315,12 @@ namespace Highfly.SkillLab
                 "LAB_RIGHT_WALL",
                 new Vector3(13.7f, LabY + 4.5f, 3f),
                 new Vector3(0.55f, 9f, 28f),
+                wallMat);
+
+            CreateBlock(
+                "LAB_FRONT_WALL",
+                new Vector3(0f, LabY + 4.5f, -10.65f),
+                new Vector3(28f, 9f, 0.55f),
                 wallMat);
 
             CreateBlock(
@@ -402,6 +420,49 @@ namespace Highfly.SkillLab
                 float a = (i / 40f) * Mathf.PI * 2f;
                 lr.SetPosition(i, new Vector3(Mathf.Cos(a) * 0.90f, 0f, Mathf.Sin(a) * 0.90f));
             }
+        }
+
+        private static string SkillName(int slot)
+        {
+            HighflySkillDefinitionLite def =
+                HighflySkillCatalog.Get(HighflySkillLoadout.Get(slot));
+
+            return def != null ? def.Name : "-";
+        }
+
+        private void CheckPlayerBounds()
+        {
+            if (_player == null) return;
+
+            Vector3 p = _player.transform.position;
+
+            bool escaped =
+                p.y < LabY - 2.5f ||
+                p.y > LabY + 12f ||
+                Mathf.Abs(p.x) > 12.8f ||
+                p.z < -9.9f ||
+                p.z > 15.8f;
+
+            if (escaped)
+                ResetPlayerToLab();
+        }
+
+        private void ResetPlayerToLab()
+        {
+            if (_player == null) return;
+
+            CharacterController cc = _player.GetComponent<CharacterController>();
+            if (cc != null) cc.enabled = false;
+
+            _player.transform.position = LabSpawn;
+            _player.transform.rotation = Quaternion.identity;
+
+            if (cc != null) cc.enabled = true;
+
+            _player.SetHighflyMobileMove(Vector2.zero);
+            HighflyThirdPersonMobileCamera.Instance?.SnapBehindPlayer(13f);
+
+            HighflySkillLabMetrics.RecordAction("SISTEMA • REINGRESO AL LAB", 0);
         }
 
         private void CreateMetricsHud()
