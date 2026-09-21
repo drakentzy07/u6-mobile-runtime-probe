@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.3
+      - name: Install HIGHFLY Mobile Core v0.4
         shell: bash
         run: |
           set -euxo pipefail
@@ -80,6 +80,8 @@ jobs:
           cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
           cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
           cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
 
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
@@ -88,7 +90,12 @@ jobs:
           test -s LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
           test -s LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
           test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
-          echo "HIGHFLY_MOBILE_CORE_V03_INSTALLED=1"
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+          grep -q "SetHighflyMobileMove" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyMobileAttack" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyMobileUsePotion" LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+          echo "HIGHFLY_MOBILE_CORE_V04_INSTALLED=1"
 
       - name: Install CI build script
         shell: bash
@@ -101,9 +108,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v03-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v04-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v03-
+            lucid-6000.4.0f1-webgl-mobile-v04-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
 
       - name: Build WebGL
