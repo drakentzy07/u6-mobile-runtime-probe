@@ -130,6 +130,9 @@ namespace Highfly.SkillLab
                 stage == 3 ? 0.42f : 0.32f,
                 stage == 3 ? 0.28f : 0.20f);
 
+            // If S5 is active, both shadows mirror the hunter with staggered timing.
+            EchoTwinDance(stage);
+
             SpawnTelegraphArc(transform.position + Vector3.up * 1.0f, dir, c1, 1.5f + stage * 0.2f);
             yield return new WaitForSecondsRealtime(stage == 3 ? 0.055f : 0.075f);
 
@@ -209,8 +212,20 @@ namespace Highfly.SkillLab
                     nextEchoAt += 0.052f;
 
                     Vector3 currentFxPosition = transform.position + Vector3.up * 0.85f;
-                    HighflyPremiumFx.SpawnAfterImage(transform, ghost, 0.24f);
-                    HighflyPremiumFx.SpawnLightningSegment(lastFxPosition, currentFxPosition, ghost, 0.14f);
+                    HighflyPremiumFx.SpawnAfterImage(transform, ghost, 0.26f);
+
+                    HighflyPremiumFx.SpawnLightningSegment(
+                        lastFxPosition + Vector3.up * 0.16f,
+                        currentFxPosition + Vector3.up * 0.16f,
+                        ghost,
+                        0.18f);
+
+                    HighflyPremiumFx.SpawnLightningSegment(
+                        lastFxPosition + transform.right * 0.18f,
+                        currentFxPosition - transform.right * 0.18f,
+                        new Color(0.72f, 0.90f, 1f, 1f),
+                        0.14f);
+
                     lastFxPosition = currentFxPosition;
                 }
 
@@ -348,16 +363,25 @@ namespace Highfly.SkillLab
                 2.25f,
                 new Color(0.58f, 1f, 0.70f, 1f));
             HighflyPremiumFx.SpawnVitalAura(transform, 8f);
+            HighflyPremiumFx.SpawnVitalSigil(transform, 8f);
             StartCoroutine(VitalAuraRoutine(life));
         }
 
         private IEnumerator VitalAuraRoutine(Color c)
         {
             float end = _vitalPactUntil;
+
             while (Time.unscaledTime < end)
             {
-                SpawnOrbitSpark(c);
-                yield return new WaitForSecondsRealtime(0.32f);
+                HighflyPremiumFx.SpawnResource(
+                    "ParticlesLight",
+                    transform.position + Vector3.up * 0.95f,
+                    Quaternion.identity,
+                    0.34f,
+                    0.85f,
+                    new Color(0.68f, 1f, 0.76f, 0.78f));
+
+                yield return new WaitForSecondsRealtime(1.25f);
             }
         }
 
@@ -407,6 +431,42 @@ namespace Highfly.SkillLab
                 var minion = go.AddComponent<HighflyShadowMinion>();
                 minion.Initialize(this, transform, i == 0 ? -1f : 1f, 9.5f);
                 _summons.Add(minion);
+            }
+        }
+
+        public void EchoBasicAttack()
+        {
+            if (_summons.Count == 0) return;
+
+            CharacterStats target = FindBestTarget(8.5f, 180f);
+
+            for (int i = 0; i < _summons.Count; i++)
+            {
+                HighflyShadowMinion minion = _summons[i];
+                if (minion == null) continue;
+
+                minion.CommandMirrorAttack(
+                    target,
+                    0.045f + i * 0.055f,
+                    false);
+            }
+        }
+
+        private void EchoTwinDance(int stage)
+        {
+            if (_summons.Count == 0) return;
+
+            CharacterStats target = FindBestTarget(9.5f, 180f);
+
+            for (int i = 0; i < _summons.Count; i++)
+            {
+                HighflyShadowMinion minion = _summons[i];
+                if (minion == null) continue;
+
+                minion.CommandMirrorAttack(
+                    target,
+                    0.055f + i * 0.060f,
+                    stage >= 3);
             }
         }
 
@@ -684,25 +744,14 @@ namespace Highfly.SkillLab
 
         private void SpawnSlash(Vector3 dir, Color color, float roll, float length)
         {
-            var go = new GameObject("HF_SLASH");
-            go.transform.position = transform.position + Vector3.up * 1.05f + dir * 1.05f;
-            go.transform.rotation = Quaternion.LookRotation(dir, Vector3.up) * Quaternion.Euler(0f, 0f, roll);
-
-            var lr = go.AddComponent<LineRenderer>();
-            lr.useWorldSpace = false;
-            lr.positionCount = 5;
-            lr.widthMultiplier = 0.12f;
-            lr.numCapVertices = 4;
-            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(color);
-
-            float h = 0.72f;
-            lr.SetPosition(0, new Vector3(-length * 0.45f, -h, 0f));
-            lr.SetPosition(1, new Vector3(-length * 0.22f, h * 0.25f, 0f));
-            lr.SetPosition(2, new Vector3(0f, h, 0f));
-            lr.SetPosition(3, new Vector3(length * 0.22f, h * 0.25f, 0f));
-            lr.SetPosition(4, new Vector3(length * 0.45f, -h, 0f));
-
-            StartCoroutine(FadeLine(lr, 0.16f));
+            HighflyPremiumFx.SpawnCrescentSlash(
+                transform.position + Vector3.up * 1.05f + dir * 1.10f,
+                dir,
+                color,
+                Mathf.Max(1.25f, length * 0.72f),
+                Mathf.Max(0.28f, length * 0.22f),
+                roll,
+                0.20f);
         }
 
         private void SpawnChain(Vector3 from, Vector3 to, Color color, float life)
@@ -853,10 +902,15 @@ namespace Highfly.SkillLab
         private Transform _master;
         private float _side;
         private float _expiresAt;
-        private float _nextAttack;
         private float _phase;
+        private bool _attacking;
+        private Vector3 _formationVelocity;
 
-        public void Initialize(HighflyPremiumSkillRuntime owner, Transform master, float side, float lifeSeconds)
+        public void Initialize(
+            HighflyPremiumSkillRuntime owner,
+            Transform master,
+            float side,
+            float lifeSeconds)
         {
             _owner = owner;
             _master = master;
@@ -873,57 +927,126 @@ namespace Highfly.SkillLab
                 return;
             }
 
-            float a = Time.unscaledTime * 1.7f + _phase;
-            Vector3 desired = _master.position +
-                              _master.right * (Mathf.Cos(a) * 1.8f) +
-                              _master.forward * (Mathf.Sin(a) * 1.1f);
+            if (_attacking)
+                return;
 
-            transform.position = Vector3.Lerp(
+            // Formation instead of orbit: two shadow escorts flank the hunter.
+            Vector3 desired =
+                _master.position +
+                _master.right * (_side * 1.35f) -
+                _master.forward * 0.50f;
+
+            transform.position = Vector3.SmoothDamp(
                 transform.position,
                 desired,
-                1f - Mathf.Exp(-12f * Time.unscaledDeltaTime));
+                ref _formationVelocity,
+                0.075f,
+                25f,
+                Time.unscaledDeltaTime);
 
-            CharacterStats target = _owner.FindBestTarget(10f, 180f);
-            if (target != null)
-            {
-                Vector3 look = target.transform.position - transform.position;
-                look.y = 0f;
-                if (look.sqrMagnitude > 0.001f)
-                    transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
-
-                if (Time.unscaledTime >= _nextAttack)
-                {
-                    _nextAttack = Time.unscaledTime + 0.82f;
-                    StartCoroutine(Attack(target));
-                }
-            }
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                _master.rotation,
+                1f - Mathf.Exp(-16f * Time.unscaledDeltaTime));
         }
 
-        private IEnumerator Attack(CharacterStats target)
+        public void CommandMirrorAttack(
+            CharacterStats target,
+            float delay,
+            bool heavy)
         {
-            if (target == null) yield break;
+            if (_attacking || !isActiveAndEnabled)
+                return;
 
-            Vector3 from = transform.position + Vector3.up * 1.05f;
-            Vector3 to = target.transform.position + Vector3.up * 0.85f;
+            StartCoroutine(MirrorAttack(target, delay, heavy));
+        }
 
-            HighflyPremiumFx.SpawnLightningSegment(
-                from,
-                to,
-                new Color(0.50f, 0.18f, 0.95f, 1f),
-                0.16f);
+        private IEnumerator MirrorAttack(
+            CharacterStats target,
+            float delay,
+            bool heavy)
+        {
+            _attacking = true;
+
+            if (delay > 0f)
+                yield return new WaitForSecondsRealtime(delay);
+
+            if (_owner == null || _master == null)
+            {
+                _attacking = false;
+                yield break;
+            }
+
+            if (target == null)
+                target = _owner.FindBestTarget(9.5f, 180f);
+
+            Vector3 attackDir = _master.forward;
+
+            if (target != null)
+            {
+                Vector3 to = target.transform.position - transform.position;
+                to.y = 0f;
+                if (to.sqrMagnitude > 0.001f)
+                    attackDir = to.normalized;
+            }
+
+            transform.rotation = Quaternion.LookRotation(attackDir, Vector3.up);
+
+            Vector3 start = transform.position;
+            Vector3 lungeTarget = start + attackDir * (heavy ? 1.35f : 0.95f);
+
+            if (target != null)
+            {
+                Vector3 toTarget = target.transform.position - start;
+                toTarget.y = 0f;
+
+                if (toTarget.sqrMagnitude > 0.001f)
+                {
+                    float stop = heavy ? 1.35f : 1.55f;
+                    lungeTarget =
+                        target.transform.position -
+                        toTarget.normalized * stop;
+                    lungeTarget.y = start.y;
+                }
+            }
+
+            float begin = Time.unscaledTime;
+            const float lungeTime = 0.095f;
+
+            while (Time.unscaledTime - begin < lungeTime)
+            {
+                float t = (Time.unscaledTime - begin) / lungeTime;
+                float eased = 1f - Mathf.Pow(1f - Mathf.Clamp01(t), 3f);
+                transform.position = Vector3.Lerp(start, lungeTarget, eased);
+                yield return null;
+            }
+
+            Color shadow = heavy
+                ? new Color(0.82f, 0.42f, 1f, 1f)
+                : new Color(0.52f, 0.18f, 0.96f, 1f);
+
+            HighflyPremiumFx.SpawnCrescentSlash(
+                transform.position + Vector3.up * 1.05f + attackDir * 0.90f,
+                attackDir,
+                shadow,
+                heavy ? 1.85f : 1.45f,
+                heavy ? 0.48f : 0.34f,
+                _side > 0f ? 42f : -42f,
+                heavy ? 0.24f : 0.19f);
 
             HighflyPremiumFx.SpawnResource(
                 "Sparks",
-                from,
-                Quaternion.identity,
-                0.28f,
-                0.42f,
-                new Color(0.42f, 0.12f, 0.82f, 1f));
-
-            yield return new WaitForSecondsRealtime(0.085f);
+                transform.position + Vector3.up * 0.95f + attackDir * 0.85f,
+                Quaternion.LookRotation(attackDir),
+                heavy ? 0.50f : 0.34f,
+                0.55f,
+                shadow);
 
             if (target != null)
-                _owner.DealDirect(target, 13f, "Sombra");
+                _owner.DealDirect(target, heavy ? 22f : 12f, "Eco-Sombra");
+
+            yield return new WaitForSecondsRealtime(heavy ? 0.11f : 0.075f);
+            _attacking = false;
         }
     }
 
