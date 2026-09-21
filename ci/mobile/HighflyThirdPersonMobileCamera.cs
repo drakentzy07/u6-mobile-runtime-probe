@@ -68,6 +68,26 @@ namespace Highfly.Mobile
                 maxPitch);
         }
 
+        // LAB-only convenience API: same Golden camera, just re-seeded after a lab teleport.
+        public void SnapBehindPlayer(float pitchDegrees = 14f)
+        {
+            EnsureReady();
+            if (!_initialized || _camera == null || _player == null) return;
+
+            _yaw = _player.transform.eulerAngles.y;
+            _pitch = Mathf.Clamp(pitchDegrees, minPitch, maxPitch);
+            _positionVelocity = Vector3.zero;
+
+            Vector3 pivot = GetPivot();
+            Quaternion orbit = Quaternion.Euler(_pitch, _yaw, 0f);
+            _camera.transform.position =
+                pivot - orbit * Vector3.forward * Mathf.Clamp(distance, minDistance, maxDistance);
+
+            Vector3 lookDirection = pivot - _camera.transform.position;
+            if (lookDirection.sqrMagnitude > 0.0001f)
+                _camera.transform.rotation = Quaternion.LookRotation(lookDirection.normalized, Vector3.up);
+        }
+
         private void LateUpdate()
         {
             EnsureReady();
