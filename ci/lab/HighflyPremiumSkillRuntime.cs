@@ -12,7 +12,14 @@ namespace Highfly.SkillLab
         PhantomStep = 2,
         ShadowShackle = 3,
         VitalPact = 4,
-        ShadowCall = 5
+        ShadowCall = 5,
+
+        // Tanda II — visible in the loadout menu, implemented in the next LAB pass.
+        PhantomTwinDance = 6,
+        ShadowEcho = 7,
+        HunterRupture = 8,
+        VitalDomain = 9,
+        ShadowJudgment = 10
     }
 
     [DisallowMultipleComponent]
