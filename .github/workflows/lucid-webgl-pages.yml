@@ -72,6 +72,7 @@ jobs:
           mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
           mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Combat
           mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Lab
+          mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX
           mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
 
           cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
@@ -82,6 +83,15 @@ jobs:
           cp ci/lab/HighflySkillLabBootstrap.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           cp ci/lab/HighflyPremiumSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           cp ci/lab/HighflyLabDesktopControls.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
+          cp ci/lab/HighflyPremiumFx.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/ElectricalSparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/EnergyExplosion.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/PlasmaExplosionEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab"
+          cp "LucidHost/3D_game/Assets/Mixamo/Knight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab"
+
           cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
           cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
 
@@ -100,12 +110,21 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
-          grep -q "HIGHFLY_SKILL_LAB_v0.2" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
+          grep -q "HIGHFLY_SKILL_LAB_v0.3" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "DANZA GEMELA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "PASO FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "GRILLETE UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "PACTO VITAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "LLAMADO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "SpawnShadowKnight" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          grep -q "digit5Key" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
           grep -q "HighflyThirdPersonMobileCamera" LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           grep -q "HighflyTouchOwnership" LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           grep -q "TryDragonStep" LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
@@ -139,9 +158,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v02-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v03-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v02-
+            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v03-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
             lucid-6000.4.0f1-webgl-mobile-v06-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
