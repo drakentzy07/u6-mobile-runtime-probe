@@ -225,14 +225,6 @@ jobs:
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
 
-      - name: Upload raw WebGL artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: lucid-webgl
-          path: LucidHost/3D_game/build/WebGL
-          if-no-files-found: error
-          retention-days: 7
-
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
