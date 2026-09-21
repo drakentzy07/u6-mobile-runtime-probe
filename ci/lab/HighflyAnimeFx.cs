@@ -965,12 +965,14 @@ namespace Highfly.SkillLab
 
             transform.position = target.position + Vector3.up * 0.035f;
 
-            _rings.Add(CreateRing("Outer", radius, 0.055f, 96));
-            _rings.Add(CreateRing("Mid", radius * 0.73f, 0.035f, 80));
-            _rings.Add(CreateRing("Inner", radius * 0.42f, 0.028f, 64));
+            _rings.Add(CreateRing("Outer", radius, 0.060f, 112));
+            _rings.Add(CreateRing("Mid", radius * 0.76f, 0.032f, 96));
+            _rings.Add(CreateRing("Inner", radius * 0.46f, 0.024f, 72));
 
-            CreateStar(radius * 0.70f, 8);
-            CreateStar(radius * 0.42f, 5);
+            CreateTriangle(radius * 0.68f, 0f);
+            CreateTriangle(radius * 0.68f, 180f);
+            CreateTriangle(radius * 0.38f, 30f);
+            CreateTriangle(radius * 0.38f, 210f);
             CreateGlyphs();
         }
 
@@ -997,25 +999,32 @@ namespace Highfly.SkillLab
             return go.transform;
         }
 
-        private void CreateStar(float radius, int points)
+        private void CreateTriangle(float radius, float rotationDegrees)
         {
-            var go = new GameObject("Star_" + points);
+            var go = new GameObject("RitualTriangle_" + rotationDegrees.ToString("0"));
             go.transform.SetParent(transform, false);
 
             var lr = go.AddComponent<LineRenderer>();
             lr.loop = true;
             lr.useWorldSpace = false;
-            lr.positionCount = points * 2;
-            lr.widthMultiplier = 0.026f;
+            lr.positionCount = 3;
+            lr.widthMultiplier = 0.024f;
             lr.sharedMaterial = HighflyPremiumFx.CreateTransparentMaterial(
-                new Color(_color.r, _color.g, _color.b, 0.58f),
-                _color * 2.2f);
+                new Color(_color.r, _color.g, _color.b, 0.52f),
+                _color * 2.5f);
 
-            for (int i = 0; i < points * 2; i++)
+            for (int i = 0; i < 3; i++)
             {
-                float a = (i / (float)(points * 2)) * Mathf.PI * 2f;
-                float r = (i % 2 == 0) ? radius : radius * 0.40f;
-                lr.SetPosition(i, new Vector3(Mathf.Cos(a) * r, 0.005f, Mathf.Sin(a) * r));
+                float a =
+                    (rotationDegrees + i * 120f) *
+                    Mathf.Deg2Rad;
+
+                lr.SetPosition(
+                    i,
+                    new Vector3(
+                        Mathf.Cos(a) * radius,
+                        0.006f,
+                        Mathf.Sin(a) * radius));
             }
         }
 
@@ -1035,17 +1044,49 @@ namespace Highfly.SkillLab
 
                 var lr = rune.AddComponent<LineRenderer>();
                 lr.useWorldSpace = false;
-                lr.positionCount = 4;
-                lr.widthMultiplier = 0.026f;
+                lr.positionCount = 5;
+                lr.widthMultiplier = 0.022f;
                 lr.sharedMaterial = HighflyPremiumFx.CreateTransparentMaterial(
-                    new Color(_color.r, _color.g, _color.b, 0.78f),
-                    _color * 3f);
+                    new Color(_color.r, _color.g, _color.b, 0.72f),
+                    _color * 3.2f);
 
-                Vector3 basePos = radial * (_radius * 0.86f);
-                lr.SetPosition(0, basePos - tangent * 0.11f);
-                lr.SetPosition(1, basePos + radial * 0.16f);
-                lr.SetPosition(2, basePos + tangent * 0.11f);
-                lr.SetPosition(3, basePos - radial * 0.08f);
+                Vector3 basePos = radial * (_radius * 0.88f);
+                float size = _radius * 0.075f;
+
+                lr.SetPosition(0, basePos - tangent * size);
+                lr.SetPosition(1, basePos + radial * size * 0.65f);
+                lr.SetPosition(2, basePos + tangent * size);
+                lr.SetPosition(3, basePos - radial * size * 0.45f);
+                lr.SetPosition(4, basePos - tangent * size);
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                float a = i / 6f * Mathf.PI * 2f;
+
+                var node = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                node.name = "ArcaneNode_" + i;
+                node.transform.SetParent(_glyphRoot, false);
+                node.transform.localPosition =
+                    new Vector3(
+                        Mathf.Cos(a) * _radius * 0.58f,
+                        0.018f,
+                        Mathf.Sin(a) * _radius * 0.58f);
+                node.transform.localScale =
+                    Vector3.one * (_radius * 0.055f);
+
+                Collider col = node.GetComponent<Collider>();
+                if (col != null) Destroy(col);
+
+                Renderer r = node.GetComponent<Renderer>();
+                if (r != null)
+                {
+                    r.sharedMaterial = HighflyPremiumFx.CreateTransparentMaterial(
+                        new Color(_color.r, _color.g, _color.b, 0.82f),
+                        _color * 4.0f);
+                    r.shadowCastingMode =
+                        UnityEngine.Rendering.ShadowCastingMode.Off;
+                }
             }
         }
 
