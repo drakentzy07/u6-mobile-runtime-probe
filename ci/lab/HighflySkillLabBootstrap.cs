@@ -162,7 +162,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.4");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.5");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -191,10 +191,11 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.4\n" +
+                    "HIGHFLY • SKILL LAB v0.5\n" +
                     "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
-                    "1..5 skills | 6 esquivar | 7 parry | 8 lock | 9 poción | 0 ATQ\n\n" +
+                    "SPACE salto/doble/wall | 1..5 skills | 6 dodge | 7 parry | 8 lock | 9 poción | 0 ATQ\n" +
+                    "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "S1 " + SkillName(0) + "  •  S2 " + SkillName(1) + "\n" +
                     "S3 " + SkillName(2) + "  •  S4 " + SkillName(3) + "\n" +
                     "S5 " + SkillName(4) + "   |   SKILLS = LOADOUT\n\n" +
@@ -225,6 +226,12 @@ namespace Highfly.SkillLab
 
             if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
+
+            if (player.GetComponent<HighflyAdvancedSkillRuntime>() == null)
+                player.gameObject.AddComponent<HighflyAdvancedSkillRuntime>();
+
+            if (player.GetComponent<HighflyAerialMobility>() == null)
+                player.gameObject.AddComponent<HighflyAerialMobility>();
 
             if (player.GetComponent<HighflyLabDesktopControls>() == null)
                 player.gameObject.AddComponent<HighflyLabDesktopControls>();
@@ -301,31 +308,31 @@ namespace Highfly.SkillLab
 
             CreateBlock(
                 "LAB_BACK_WALL",
-                new Vector3(0f, LabY + 4.5f, 16.5f),
-                new Vector3(28f, 9f, 0.55f),
+                new Vector3(0f, LabY + 6.5f, 16.5f),
+                new Vector3(28f, 13f, 0.55f),
                 wallMat);
 
             CreateBlock(
                 "LAB_LEFT_WALL",
-                new Vector3(-13.7f, LabY + 4.5f, 3f),
-                new Vector3(0.55f, 9f, 28f),
+                new Vector3(-13.7f, LabY + 6.5f, 3f),
+                new Vector3(0.55f, 13f, 28f),
                 wallMat);
 
             CreateBlock(
                 "LAB_RIGHT_WALL",
-                new Vector3(13.7f, LabY + 4.5f, 3f),
-                new Vector3(0.55f, 9f, 28f),
+                new Vector3(13.7f, LabY + 6.5f, 3f),
+                new Vector3(0.55f, 13f, 28f),
                 wallMat);
 
             CreateBlock(
                 "LAB_FRONT_WALL",
-                new Vector3(0f, LabY + 4.5f, -10.65f),
-                new Vector3(28f, 9f, 0.55f),
+                new Vector3(0f, LabY + 6.5f, -10.65f),
+                new Vector3(28f, 13f, 0.55f),
                 wallMat);
 
             CreateBlock(
                 "LAB_CEILING",
-                new Vector3(0f, LabY + 8.9f, 3f),
+                new Vector3(0f, LabY + 13.0f, 3f),
                 new Vector3(28f, 0.45f, 28f),
                 wallMat);
 
@@ -351,6 +358,39 @@ namespace Highfly.SkillLab
             // Portal-like lab pylons.
             CreateBlock("LAB_PYLON_L", new Vector3(-6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), accentMat);
             CreateBlock("LAB_PYLON_R", new Vector3(6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), accentMat);
+
+            // PARKOUR TEST LANE — separated from combat dummies.
+            // Two parallel walls support alternating wall jumps; staggered platforms
+            // give clear height targets for double-jump validation.
+            CreateBlock(
+                "PARKOUR_WALL_LEFT",
+                new Vector3(-10.3f, LabY + 3.2f, 5.5f),
+                new Vector3(0.55f, 6.4f, 10.0f),
+                wallMat);
+
+            CreateBlock(
+                "PARKOUR_WALL_RIGHT",
+                new Vector3(-5.7f, LabY + 3.2f, 5.5f),
+                new Vector3(0.55f, 6.4f, 10.0f),
+                wallMat);
+
+            CreateBlock(
+                "PARKOUR_STEP_A",
+                new Vector3(-8.0f, LabY + 0.55f, -0.5f),
+                new Vector3(3.0f, 0.35f, 2.2f),
+                accentMat);
+
+            CreateBlock(
+                "PARKOUR_STEP_B",
+                new Vector3(-8.0f, LabY + 1.55f, 3.0f),
+                new Vector3(3.0f, 0.35f, 2.2f),
+                accentMat);
+
+            CreateBlock(
+                "PARKOUR_STEP_C",
+                new Vector3(-8.0f, LabY + 2.85f, 7.0f),
+                new Vector3(3.0f, 0.35f, 2.2f),
+                accentMat);
 
             var key = new GameObject("LAB_KEY_LIGHT");
             key.transform.position = new Vector3(-3f, LabY + 7f, -2f);
@@ -438,7 +478,7 @@ namespace Highfly.SkillLab
 
             bool escaped =
                 p.y < LabY - 2.5f ||
-                p.y > LabY + 12f ||
+                p.y > LabY + 15.5f ||
                 Mathf.Abs(p.x) > 12.8f ||
                 p.z < -9.9f ||
                 p.z > 15.8f;
