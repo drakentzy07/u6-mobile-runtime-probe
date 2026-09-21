@@ -44,27 +44,35 @@ namespace Highfly.Combat
                 {
                     case HighflyCombatAction.Light:
                         _player.HighflyMobileAttack();
+                        HighflyPremiumSkillRuntime.Instance.EchoBasicAttack();
                         break;
+
                     case HighflyCombatAction.Dodge:
                         _player.HighflyMobileRoll();
                         break;
+
                     case HighflyCombatAction.Parry:
                         _player.HighflyMobileParry();
                         break;
+
                     case HighflyCombatAction.Skill1:
-                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.TwinDance);
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflySkillLoadout.Get(0));
                         break;
+
                     case HighflyCombatAction.Skill2:
-                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.PhantomStep);
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflySkillLoadout.Get(1));
                         break;
+
                     case HighflyCombatAction.Skill3:
-                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.ShadowShackle);
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflySkillLoadout.Get(2));
                         break;
+
                     case HighflyCombatAction.Skill4:
-                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.VitalPact);
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflySkillLoadout.Get(3));
                         break;
+
                     case HighflyCombatAction.Ultimate:
-                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflyPremiumSkillId.ShadowCall);
+                        HighflyPremiumSkillRuntime.Instance.Trigger(HighflySkillLoadout.Get(4));
                         break;
                 }
             }
