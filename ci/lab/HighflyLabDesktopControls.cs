@@ -35,6 +35,36 @@ namespace Highfly.SkillLab
                 if (keyboard.wKey.isPressed) move.y += 1f;
                 move = Vector2.ClampMagnitude(move, 1f);
                 _player.SetHighflyMobileMove(move);
+
+                // Fast LAB keyboard: 1..5 skills, 6 dodge, 7 parry,
+                // 8 lock, 9 potion, 0 basic attack.
+                var premium = HighflyPremiumSkillRuntime.Instance;
+
+                if (keyboard.digit1Key.wasPressedThisFrame)
+                    premium?.Trigger(HighflyPremiumSkillId.TwinDance);
+                if (keyboard.digit2Key.wasPressedThisFrame)
+                    premium?.Trigger(HighflyPremiumSkillId.PhantomStep);
+                if (keyboard.digit3Key.wasPressedThisFrame)
+                    premium?.Trigger(HighflyPremiumSkillId.ShadowShackle);
+                if (keyboard.digit4Key.wasPressedThisFrame)
+                    premium?.Trigger(HighflyPremiumSkillId.VitalPact);
+                if (keyboard.digit5Key.wasPressedThisFrame)
+                    premium?.Trigger(HighflyPremiumSkillId.ShadowCall);
+
+                if (keyboard.digit6Key.wasPressedThisFrame)
+                    _player.HighflyMobileRoll();
+                if (keyboard.digit7Key.wasPressedThisFrame)
+                    _player.HighflyMobileParry();
+                if (keyboard.digit8Key.wasPressedThisFrame)
+                    _player.HighflyMobileLockOn();
+                if (keyboard.digit9Key.wasPressedThisFrame)
+                    UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
+                if (keyboard.digit0Key.wasPressedThisFrame)
+                    _player.HighflyMobileAttack();
+
+                // R = instant recenter to the approved Golden third-person framing.
+                if (keyboard.rKey.wasPressedThisFrame)
+                    HighflyThirdPersonMobileCamera.Instance?.SnapBehindPlayer(13f);
             }
 
             var mouse = Mouse.current;
