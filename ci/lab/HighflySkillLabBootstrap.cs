@@ -162,7 +162,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.6");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.7");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -191,7 +191,7 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.6\n" +
+                    "HIGHFLY • SKILL LAB v0.7\n" +
                     "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | 1..5 skills | 6 dodge | 7 parry | 8 lock | 9 poción | 0 ATQ\n" +
@@ -199,7 +199,8 @@ namespace Highfly.SkillLab
                     "S1 " + SkillName(0) + "  •  S2 " + SkillName(1) + "\n" +
                     "S3 " + SkillName(2) + "  •  S4 " + SkillName(3) + "\n" +
                     "S5 " + SkillName(4) + "   |   SKILLS / RÁPIDO = LOADOUT\n" +
-                    "13 SKILLS • cooldown radial activo • S11 multicorte • S12 reflect • S13 señuelo\n\n" +
+                    "13 SKILLS • CODEX: tocar = PREVIEW • EQUIPAR separado • cooldown radial\n" +
+                    "S1 doble corte garantizado • S3 garra 3D + cadena • S6 lock estricto\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
