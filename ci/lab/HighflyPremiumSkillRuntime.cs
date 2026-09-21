@@ -51,7 +51,7 @@ namespace Highfly.SkillLab
         private readonly Collider[] _hits = new Collider[48];
         private readonly List<HighflyShadowMinion> _summons = new List<HighflyShadowMinion>();
 
-        private const float TwinReset = 0.95f;
+        private const float TwinReset = 1.25f;
 
         public bool VitalPactActive => Time.unscaledTime < _vitalPactUntil;
 
@@ -77,6 +77,44 @@ namespace Highfly.SkillLab
                 _twinQueued = false;
                 TriggerTwinDance();
             }
+        }
+
+        public void ForcePreview(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.TwinDance:
+                    _cdTwin = -99f;
+                    _twinQueued = false;
+                    _twinStage = 0;
+                    break;
+                case HighflyPremiumSkillId.PhantomStep:
+                    _cdStep = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowShackle:
+                    _cdShackle = -99f;
+                    break;
+                case HighflyPremiumSkillId.VitalPact:
+                    _cdPact = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowCall:
+                    _cdSummon = -99f;
+                    break;
+            }
+
+            if ((int)id <= 5)
+            {
+                Trigger(id);
+                return;
+            }
+
+            if ((int)id <= 10)
+            {
+                HighflyAdvancedSkillRuntime.Instance?.ForcePreview(id);
+                return;
+            }
+
+            HighflyReferenceSkillRuntime.Instance?.ForcePreview(id);
         }
 
         public float GetCooldownRemaining(HighflyPremiumSkillId id)
@@ -164,7 +202,7 @@ namespace Highfly.SkillLab
 
             _twinStage = (_twinStage % 3) + 1;
             _lastTwinInput = Time.unscaledTime;
-            _cdTwin = Time.unscaledTime + 0.18f;
+            _cdTwin = Time.unscaledTime + 0.28f;
 
             HighflySkillLabMetrics.RecordAction("S1 • DANZA GEMELA", _twinStage);
             StartCoroutine(TwinDanceRoutine(_twinStage));
@@ -177,87 +215,127 @@ namespace Highfly.SkillLab
 
             _player.HighflyMobileAttack();
 
-            Color cyan = new Color(0.08f, 0.70f, 1f, 1f);
-            Color violet = new Color(0.52f, 0.14f, 0.92f, 1f);
+            Color cyan = new Color(0.07f, 0.74f, 1f, 1f);
+            Color violet = new Color(0.56f, 0.16f, 1f, 1f);
 
             HighflyPremiumFx.AttachWeaponTrail(
                 _player,
                 Color.white,
                 stage == 2 ? violet : cyan,
-                stage == 3 ? 0.42f : 0.34f,
-                stage == 3 ? 0.27f : 0.21f);
+                stage == 3 ? 0.52f : 0.42f,
+                stage == 3 ? 0.30f : 0.24f);
 
             EchoTwinDance(stage);
 
             if (_cc != null)
-                _cc.Move(dir * (stage == 3 ? 0.62f : 0.42f));
+                _cc.Move(dir * (stage == 3 ? 0.72f : 0.48f));
 
-            yield return new WaitForSecondsRealtime(0.045f);
+            yield return new WaitForSecondsRealtime(0.035f);
 
-            Vector3 cutOrigin = transform.position + Vector3.up * 1.05f + dir * 1.12f;
+            Vector3 origin =
+                transform.position +
+                Vector3.up * 1.02f +
+                dir * 1.22f;
 
-            if (stage == 1)
+            // Every activation is a true dual cut. No stage is allowed to look
+            // like one lonely crescent anymore.
+            float firstRoll =
+                stage == 1 ? -31f :
+                stage == 2 ? 34f :
+                -48f;
+
+            float secondRoll =
+                stage == 1 ? 31f :
+                stage == 2 ? -34f :
+                48f;
+
+            Color firstColor = stage == 2 ? violet : cyan;
+            Color secondColor = stage == 2 ? cyan : violet;
+
+            HighflyAnimeFx.SpawnBladeScar(
+                origin,
+                dir,
+                firstColor,
+                firstRoll,
+                stage == 3 ? 3.65f : 3.15f,
+                stage == 3 ? 0.34f : 0.28f,
+                stage == 3 ? 0.32f : 0.27f);
+
+            DealConeDamage(
+                stage == 3 ? 22f : 18f,
+                stage == 3 ? 3.25f : 2.85f,
+                1.30f,
+                dir,
+                "Gemela-I");
+
+            yield return new WaitForSecondsRealtime(stage == 3 ? 0.050f : 0.070f);
+
+            HighflyAnimeFx.SpawnBladeScar(
+                origin + dir * 0.10f,
+                dir,
+                secondColor,
+                secondRoll,
+                stage == 3 ? 3.70f : 3.22f,
+                stage == 3 ? 0.36f : 0.30f,
+                stage == 3 ? 0.34f : 0.29f);
+
+            DealConeDamage(
+                stage == 3 ? 24f : 20f,
+                stage == 3 ? 3.30f : 2.95f,
+                1.34f,
+                dir,
+                "Gemela-II");
+
+            // Stage 2 adds a fast central blade. Stage 3 becomes the signature
+            // four-cut X finisher so the chain escalates visually and mechanically.
+            if (stage >= 2)
             {
-                // Ida: clean left-to-right sword blade.
-                HighflyAnimeFx.SpawnBladeCut(
-                    cutOrigin,
-                    dir,
-                    cyan,
-                    -34f,
-                    3.05f,
-                    0.40f,
-                    0.19f);
+                yield return new WaitForSecondsRealtime(0.045f);
 
-                DealConeDamage(30f, 2.75f, 1.25f, dir, "Gemela-Ida");
-            }
-            else if (stage == 2)
-            {
-                // Vuelta: mirrored cut, slightly faster and stronger.
-                HighflyAnimeFx.SpawnBladeCut(
-                    cutOrigin,
-                    dir,
-                    violet,
-                    34f,
-                    3.15f,
-                    0.42f,
-                    0.18f);
-
-                DealConeDamage(36f, 2.90f, 1.30f, dir, "Gemela-Vuelta");
-            }
-            else
-            {
-                // Finisher: true X cut, two knife-like blades crossing at the target line.
-                HighflyAnimeFx.SpawnBladeCut(
-                    cutOrigin,
-                    dir,
-                    cyan,
-                    -47f,
-                    3.55f,
-                    0.48f,
-                    0.20f);
-
-                yield return new WaitForSecondsRealtime(0.035f);
-
-                HighflyAnimeFx.SpawnBladeCut(
-                    cutOrigin + dir * 0.08f,
+                HighflyAnimeFx.SpawnBladeScar(
+                    origin + dir * 0.18f,
                     dir,
                     Color.white,
-                    47f,
-                    3.55f,
-                    0.34f,
-                    0.17f);
+                    0f,
+                    stage == 3 ? 3.45f : 2.80f,
+                    stage == 3 ? 0.22f : 0.18f,
+                    0.23f);
 
-                DealConeDamage(58f, 3.20f, 1.55f, dir, "Gemela-X");
+                DealConeDamage(
+                    stage == 3 ? 20f : 16f,
+                    stage == 3 ? 3.25f : 2.80f,
+                    1.18f,
+                    dir,
+                    "Gemela-Core");
+            }
 
-                Vector3 finish = transform.position + dir * 2.15f + Vector3.up * 0.85f;
-                HighflyPremiumFx.SpawnResource(
-                    "EnergyExplosion",
+            if (stage == 3)
+            {
+                yield return new WaitForSecondsRealtime(0.040f);
+
+                HighflyAnimeFx.SpawnBladeScar(
+                    origin + dir * 0.22f,
+                    dir,
+                    new Color(0.86f, 0.64f, 1f, 1f),
+                    -8f,
+                    4.05f,
+                    0.42f,
+                    0.36f);
+
+                DealConeDamage(44f, 3.55f, 1.52f, dir, "Gemela-Final");
+
+                Vector3 finish =
+                    transform.position +
+                    dir * 2.20f +
+                    Vector3.up * 0.88f;
+
+                HighflyAnimeFx.SpawnImpactCross(
                     finish,
-                    Quaternion.identity,
-                    0.44f,
-                    1.35f);
+                    dir,
+                    violet,
+                    3.25f);
 
-                StartCoroutine(FovPunch(5.4f, 0.10f));
+                StartCoroutine(FovPunch(5.8f, 0.11f));
             }
         }
 
@@ -360,68 +438,56 @@ namespace Highfly.SkillLab
         {
             if (target == null) yield break;
 
-            Color shadow = new Color(0.42f, 0.10f, 0.78f, 1f);
+            Color shadow = new Color(0.44f, 0.08f, 0.82f, 1f);
 
-            HighflyAnimeFx.SpawnShadowHand(
-                target.transform,
-                1.10f,
-                new Color(0.32f, 0.04f, 0.58f, 1f));
-
-            HighflyAnimeFx.SpawnGrandMagicCircle(
-                target.transform,
-                new Color(0.30f, 0.04f, 0.56f, 1f),
-                1.10f,
-                1.15f);
+            // Premium identity: a solid 3D shadow claw closes around the target,
+            // then one visible segmented chain retracts it. No smoke, no cloud.
+            HighflyAnimeFx.SpawnShadowClaw(target.transform, 1.28f);
+            HighflyAnimeFx.SpawnShadowChain(transform, target.transform, 1.08f);
 
             var status = target.GetComponent<HighflyLabStatusReceiver>();
             if (status == null)
                 status = target.gameObject.AddComponent<HighflyLabStatusReceiver>();
 
-            status.ApplyRoot(2.65f);
-            status.ApplyShadowMark(5.5f);
+            status.ApplyRoot(2.80f);
+            status.ApplyShadowMark(5.8f);
 
-            Vector3[] sourceOffsets =
-            {
-                new Vector3(-0.42f, 0.95f, 0.10f),
-                new Vector3( 0.42f, 0.95f, 0.10f),
-                new Vector3(-0.22f, 0.48f, 0.20f),
-                new Vector3( 0.22f, 0.48f, 0.20f)
-            };
+            Vector3 lockPoint =
+                target.transform.position +
+                Vector3.up * 0.88f;
 
-            Vector3[] targetOffsets =
-            {
-                new Vector3(-0.28f, 1.05f, 0f),
-                new Vector3( 0.28f, 1.05f, 0f),
-                new Vector3(-0.22f, 0.45f, 0f),
-                new Vector3( 0.22f, 0.45f, 0f)
-            };
+            HighflyPremiumFx.SpawnResource(
+                "Sparks",
+                lockPoint,
+                Quaternion.identity,
+                0.34f,
+                0.38f,
+                new Color(0.62f, 0.18f, 1f, 1f));
 
-            for (int i = 0; i < 4; i++)
-            {
-                HighflyPremiumFx.SpawnShadowTether(
-                    transform,
-                    target.transform,
-                    sourceOffsets[i],
-                    targetOffsets[i],
-                    0.95f,
-                    i);
-            }
+            DealDirect(target, 24f, "Grillete-Agarre");
 
-            DealDirect(target, 28f, "Grillete");
+            // Let the claw visibly close before the pull starts.
+            yield return new WaitForSecondsRealtime(0.22f);
 
-            yield return StartCoroutine(PullTargetTowardPlayer(target, 0.46f, 2.25f));
+            yield return StartCoroutine(
+                PullTargetTowardPlayer(
+                    target,
+                    0.52f,
+                    2.05f));
 
             if (target != null)
             {
-                Vector3 end = target.transform.position + Vector3.up * 0.85f;
-                SpawnImpactRing(end, shadow, 1.55f);
-                HighflyPremiumFx.SpawnResource(
-                    "Sparks",
+                Vector3 end =
+                    target.transform.position +
+                    Vector3.up * 0.88f;
+
+                HighflyAnimeFx.SpawnImpactCross(
                     end,
-                    Quaternion.identity,
-                    0.55f,
-                    0.75f,
-                    new Color(0.64f, 0.24f, 1f, 1f));
+                    FacingDirection(),
+                    shadow,
+                    1.85f);
+
+                DealDirect(target, 18f, "Grillete-Pull");
             }
         }
 
