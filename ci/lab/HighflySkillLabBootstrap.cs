@@ -118,12 +118,13 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.2\n" +
+                    "HIGHFLY • SKILL LAB v0.3\n" +
                     "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
-                    "PC: WASD + arrastre derecho | Mobile: joystick + derecha\n\n" +
+                    "PC: WASD + arrastre derecho + R recentrar\n" +
+                    "1..5 skills | 6 esquivar | 7 parry | 8 lock | 9 poción | 0 ATQ\n\n" +
                     "S1 DANZA GEMELA  •  S2 PASO FANTASMA\n" +
                     "S3 GRILLETE UMBRÍO  •  S4 PACTO VITAL\n" +
-                    "S5 LLAMADO DE LA SOMBRA (slot ULT)\n\n" +
+                    "S5 LLAMADO DE LA SOMBRA\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -164,7 +165,7 @@ namespace Highfly.SkillLab
             if (cam != null)
             {
                 cam.clearFlags = CameraClearFlags.SolidColor;
-                cam.backgroundColor = new Color(0.008f, 0.014f, 0.028f, 1f);
+                cam.backgroundColor = new Color(0.78f, 0.80f, 0.83f, 1f);
             }
 
             if (!Application.isMobilePlatform)
@@ -202,20 +203,20 @@ namespace Highfly.SkillLab
         private static void BuildRoom()
         {
             Material floorMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.025f, 0.035f, 0.055f, 1f),
-                new Color(0.00f, 0.10f, 0.18f, 1f));
+                new Color(0.64f, 0.67f, 0.70f, 1f),
+                new Color(0.015f, 0.018f, 0.022f, 1f));
 
             Material wallMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.012f, 0.018f, 0.032f, 1f),
-                new Color(0.015f, 0.05f, 0.10f, 1f));
+                new Color(0.82f, 0.84f, 0.86f, 1f),
+                new Color(0.01f, 0.01f, 0.01f, 1f));
 
-            Material cyanMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.015f, 0.12f, 0.16f, 1f),
-                new Color(0.05f, 0.92f, 1f, 1f));
+            Material gridMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.28f, 0.30f, 0.33f, 1f),
+                new Color(0.03f, 0.03f, 0.035f, 1f));
 
-            Material violetMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.08f, 0.025f, 0.12f, 1f),
-                new Color(0.55f, 0.10f, 1f, 1f));
+            Material accentMat = HighflyLabVisuals.CreateMaterial(
+                new Color(0.42f, 0.44f, 0.47f, 1f),
+                new Color(0.04f, 0.04f, 0.05f, 1f));
 
             CreateBlock(
                 "LAB_FLOOR",
@@ -248,7 +249,7 @@ namespace Highfly.SkillLab
                     "LAB_GRID_Z_" + z,
                     new Vector3(0f, LabY + 0.025f, z),
                     new Vector3(24f, 0.03f, 0.025f),
-                    z % 4 == 0 ? cyanMat : wallMat);
+                    z % 4 == 0 ? gridMat : wallMat);
             }
 
             for (int x = -10; x <= 10; x += 2)
@@ -257,28 +258,28 @@ namespace Highfly.SkillLab
                     "LAB_GRID_X_" + x,
                     new Vector3(x, LabY + 0.026f, 4f),
                     new Vector3(0.025f, 0.03f, 20f),
-                    x == 0 ? violetMat : wallMat);
+                    x == 0 ? gridMat : wallMat);
             }
 
             // Portal-like lab pylons.
-            CreateBlock("LAB_PYLON_L", new Vector3(-6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), cyanMat);
-            CreateBlock("LAB_PYLON_R", new Vector3(6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), violetMat);
+            CreateBlock("LAB_PYLON_L", new Vector3(-6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), accentMat);
+            CreateBlock("LAB_PYLON_R", new Vector3(6.5f, LabY + 2.2f, 10f), new Vector3(0.45f, 4.4f, 0.45f), accentMat);
 
             var key = new GameObject("LAB_KEY_LIGHT");
             key.transform.position = new Vector3(-3f, LabY + 7f, -2f);
             key.transform.rotation = Quaternion.Euler(48f, 28f, 0f);
             var keyLight = key.AddComponent<Light>();
             keyLight.type = LightType.Directional;
-            keyLight.intensity = 1.15f;
-            keyLight.color = new Color(0.62f, 0.82f, 1f, 1f);
+            keyLight.intensity = 1.32f;
+            keyLight.color = new Color(1.0f, 0.985f, 0.96f, 1f);
 
             var rim = new GameObject("LAB_RIM_LIGHT");
             rim.transform.position = new Vector3(0f, LabY + 5.5f, 9f);
             var rimLight = rim.AddComponent<Light>();
             rimLight.type = LightType.Point;
             rimLight.range = 18f;
-            rimLight.intensity = 2.0f;
-            rimLight.color = new Color(0.42f, 0.18f, 1f, 1f);
+            rimLight.intensity = 0.55f;
+            rimLight.color = new Color(0.88f, 0.92f, 1f, 1f);
         }
 
         private static GameObject CreateBlock(string name, Vector3 position, Vector3 scale, Material mat)
@@ -311,8 +312,8 @@ namespace Highfly.SkillLab
             var bodyRenderer = body.GetComponent<Renderer>();
             if (bodyRenderer != null)
                 bodyRenderer.sharedMaterial = HighflyLabVisuals.CreateMaterial(
-                    new Color(0.025f, 0.065f, 0.10f, 1f),
-                    new Color(0.08f, 0.78f, 1f, 1f));
+                    new Color(0.12f, 0.13f, 0.15f, 1f),
+                    new Color(0.015f, 0.015f, 0.02f, 1f));
 
             root.AddComponent<HighflyLabDummyStats>();
 
@@ -325,7 +326,7 @@ namespace Highfly.SkillLab
             lr.useWorldSpace = false;
             lr.positionCount = 40;
             lr.widthMultiplier = 0.045f;
-            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.08f, 0.78f, 1f, 1f));
+            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.22f, 0.24f, 0.27f, 1f));
 
             for (int i = 0; i < 40; i++)
             {
@@ -358,7 +359,7 @@ namespace Highfly.SkillLab
             rect.sizeDelta = new Vector2(590f, 390f);
 
             var image = panel.GetComponent<Image>();
-            image.color = new Color(0.008f, 0.015f, 0.035f, 0.86f);
+            image.color = new Color(0.06f, 0.065f, 0.075f, 0.84f);
 
             var accent = new GameObject("Accent", typeof(RectTransform), typeof(Image));
             accent.transform.SetParent(panel.transform, false);
@@ -370,7 +371,7 @@ namespace Highfly.SkillLab
             accentRect.anchoredPosition = Vector2.zero;
             accentRect.sizeDelta = new Vector2(8f, 0f);
 
-            accent.GetComponent<Image>().color = new Color(0.05f, 0.85f, 1f, 1f);
+            accent.GetComponent<Image>().color = new Color(0.82f, 0.84f, 0.88f, 1f);
 
             var textGo = new GameObject("MetricsText", typeof(RectTransform), typeof(Text));
             textGo.transform.SetParent(panel.transform, false);
