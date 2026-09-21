@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.4
+      - name: Install HIGHFLY Mobile Core v0.5
         shell: bash
         run: |
           set -euxo pipefail
@@ -75,6 +75,7 @@ jobs:
           cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
           cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
 
           cp ci/mobile/MainMenuController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
           cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
@@ -86,6 +87,12 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
           test -s LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          test -s LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+          grep -q '"path": "<Mouse>/delta"' LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+          if grep -A6 '"name": "Look"' LucidHost/3D_game/Assets/InputSystem_Actions.inputactions | grep -q '<Pointer>/delta'; then
+            echo "ERROR: mobile camera still bound to Pointer delta"
+            exit 1
+          fi
           test -s LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
           test -s LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
           test -s LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
@@ -95,7 +102,7 @@ jobs:
           grep -q "SetHighflyMobileMove" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
           grep -q "HighflyMobileAttack" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
           grep -q "HighflyMobileUsePotion" LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
-          echo "HIGHFLY_MOBILE_CORE_V04_INSTALLED=1"
+          echo "HIGHFLY_MOBILE_CORE_V05_INSTALLED=1"
 
       - name: Install CI build script
         shell: bash
@@ -108,9 +115,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v04-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v05-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v04-
+            lucid-6000.4.0f1-webgl-mobile-v05-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
 
       - name: Build WebGL
