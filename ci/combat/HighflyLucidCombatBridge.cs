@@ -1,4 +1,5 @@
 using UnityEngine;
+using Highfly.SkillLab;
 
 namespace Highfly.Combat
 {
@@ -52,7 +53,10 @@ namespace Highfly.Combat
                     break;
 
                 case HighflyCombatAction.Skill1:
-                    _player.HighflyMobileSkill1();
+                    if (HighflySkillLabMode.IsActive && HighflySkillLabController.Instance != null)
+                        HighflySkillLabController.Instance.TriggerS1();
+                    else
+                        _player.HighflyMobileSkill1();
                     break;
 
                 case HighflyCombatAction.Skill2:
