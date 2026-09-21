@@ -56,17 +56,41 @@ namespace Highfly.SkillLab
     public sealed class HighflyLabDummyStats : CharacterStats
     {
         private Vector3 _baseScale;
+        private Renderer[] _renderers;
+        private Color[] _baseColors;
 
         public override void Start()
         {
             maxEgo = 999999f;
             currentEgo = maxEgo;
             _baseScale = transform.localScale;
+
+            _renderers = GetComponentsInChildren<Renderer>(true);
+            _baseColors = new Color[_renderers.Length];
+
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                Material mat = _renderers[i] != null ? _renderers[i].material : null;
+                if (mat == null)
+                {
+                    _baseColors[i] = Color.gray;
+                    continue;
+                }
+
+                if (mat.HasProperty("_BaseColor"))
+                    _baseColors[i] = mat.GetColor("_BaseColor");
+                else if (mat.HasProperty("_Color"))
+                    _baseColors[i] = mat.GetColor("_Color");
+                else
+                    _baseColors[i] = Color.gray;
+            }
         }
 
         public override void TakeDamage(float damage, float composureDamage = 10f, Transform attacker = null)
         {
             currentEgo = maxEgo;
+            HighflySkillLabMetrics.RecordHit(damage);
+
             StopAllCoroutines();
             StartCoroutine(HitPulse());
         }
@@ -74,12 +98,51 @@ namespace Highfly.SkillLab
         private IEnumerator HitPulse()
         {
             transform.localScale = new Vector3(
-                _baseScale.x * 1.08f,
-                _baseScale.y * 0.94f,
-                _baseScale.z * 1.08f);
+                _baseScale.x * 1.09f,
+                _baseScale.y * 0.93f,
+                _baseScale.z * 1.09f);
 
-            yield return new WaitForSecondsRealtime(0.065f);
+            SetFlash(new Color(1f, 0.32f, 0.22f, 1f));
+            yield return new WaitForSecondsRealtime(0.045f);
+
+            SetFlash(Color.white);
+            yield return new WaitForSecondsRealtime(0.035f);
+
+            RestoreColors();
             transform.localScale = _baseScale;
+        }
+
+        private void SetFlash(Color color)
+        {
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                Renderer r = _renderers[i];
+                if (r == null) continue;
+
+                Material mat = r.material;
+                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+                if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);
+                if (mat.HasProperty("_EmissionColor"))
+                {
+                    mat.EnableKeyword("_EMISSION");
+                    mat.SetColor("_EmissionColor", color * 1.8f);
+                }
+            }
+        }
+
+        private void RestoreColors()
+        {
+            for (int i = 0; i < _renderers.Length; i++)
+            {
+                Renderer r = _renderers[i];
+                if (r == null) continue;
+
+                Material mat = r.material;
+                Color color = i < _baseColors.Length ? _baseColors[i] : Color.gray;
+                if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
+                if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);
+                if (mat.HasProperty("_EmissionColor")) mat.SetColor("_EmissionColor", Color.black);
+            }
         }
     }
 
@@ -240,6 +303,12 @@ namespace Highfly.SkillLab
                 "LAB_RIGHT_WALL",
                 new Vector3(13.7f, LabY + 4.5f, 3f),
                 new Vector3(0.55f, 9f, 28f),
+                wallMat);
+
+            CreateBlock(
+                "LAB_CEILING",
+                new Vector3(0f, LabY + 8.9f, 3f),
+                new Vector3(28f, 0.45f, 28f),
                 wallMat);
 
             // Distance lanes every 2m.
