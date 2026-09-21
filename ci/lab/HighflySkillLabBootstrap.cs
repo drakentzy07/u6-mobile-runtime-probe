@@ -158,7 +158,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.2");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.3");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
