@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -41,10 +42,10 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId.TwinDance,
                 "DANZA GEMELA",
                 "ARMA / COMBO",
-                "Ida, vuelta y X finisher con buffer táctil.",
+                "Cada activación garantiza doble corte; la cadena escala a triple/X.",
                 "Base de DANZA FANTASMA.",
                 true,
-                0.18f),
+                0.28f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.PhantomStep,
@@ -59,7 +60,7 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId.ShadowShackle,
                 "GRILLETE UMBRÍO",
                 "SOMBRA / CONTROL",
-                "Mano umbría, root, cadenas y pull.",
+                "Garra 3D de sombra, cadena segmentada, root y pull.",
                 "Evoluciona a GRILLETE ABISAL.",
                 true,
                 4.5f),
@@ -240,6 +241,9 @@ namespace Highfly.SkillLab
 
         private Text _selectedInfo;
         private Text _quickTitle;
+        private Text _equipButtonText;
+        private HighflyPremiumSkillId _previewSkill = HighflyPremiumSkillId.TwinDance;
+        private bool _previewing;
 
         private readonly Text[] _slotLabels = new Text[5];
         private readonly Button[] _slotButtons = new Button[5];
@@ -374,7 +378,7 @@ namespace Highfly.SkillLab
 
             CreateLabel(
                 _panel.transform,
-                "13 skills activas • base + evolución + fusión + referencias mecánicas • mismo HIGHFLY CORE",
+                "TOCÁ UNA SKILL = PREVIEW EN VIVO • después EQUIPAR EN S1–S5 • mismo HIGHFLY CORE",
                 new Vector2(-625f, 346f),
                 new Vector2(1120f, 42f),
                 18,
@@ -462,16 +466,35 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId id = def.Id;
                 card.onClick.AddListener(() =>
                 {
-                    HighflySkillLoadout.Assign(_selectedSlot, id);
+                    _previewSkill = id;
                     UpdateSelectedInfo();
+
+                    if (!_previewing)
+                        StartCoroutine(PreviewRoutine(id));
                 });
             }
+
+            Button equip = CreateButton(
+                _panel.transform,
+                "EQUIPAR",
+                new Vector2(0.5f, 0.5f),
+                new Vector2(515f, -400f),
+                new Vector2(230f, 62f),
+                new Color(0.055f, 0.18f, 0.26f, 1f),
+                new Color(0.10f, 0.82f, 1f, 1f));
+
+            _equipButtonText = equip.GetComponentInChildren<Text>();
+            equip.onClick.AddListener(() =>
+            {
+                HighflySkillLoadout.Assign(_selectedSlot, _previewSkill);
+                Refresh();
+            });
 
             _selectedInfo = CreateLabel(
                 _panel.transform,
                 "",
                 new Vector2(-625f, -400f),
-                new Vector2(1230f, 66f),
+                new Vector2(990f, 66f),
                 17,
                 TextAnchor.MiddleLeft,
                 new Color(0.72f, 0.80f, 0.88f, 1f));
@@ -569,6 +592,85 @@ namespace Highfly.SkillLab
             }
         }
 
+        private IEnumerator PreviewRoutine(HighflyPremiumSkillId id)
+        {
+            if (_previewing)
+                yield break;
+
+            _previewing = true;
+
+            if (_panel != null)
+                _panel.SetActive(false);
+
+            if (_quickPanel != null)
+                _quickPanel.SetActive(false);
+
+            yield return new WaitForSecondsRealtime(0.08f);
+
+            HighflyPremiumSkillRuntime runtime =
+                HighflyPremiumSkillRuntime.Instance;
+
+            if (runtime != null && NeedsTarget(id))
+            {
+                CharacterStats target =
+                    runtime.FindBestTarget(12.5f, 360f);
+
+                if (target != null)
+                {
+                    Vector3 dir =
+                        target.transform.position -
+                        runtime.transform.position;
+                    dir.y = 0f;
+
+                    if (dir.sqrMagnitude > 0.001f)
+                        runtime.transform.rotation =
+                            Quaternion.LookRotation(dir.normalized, Vector3.up);
+                }
+            }
+
+            runtime?.ForcePreview(id);
+
+            yield return new WaitForSecondsRealtime(PreviewDuration(id));
+
+            _previewing = false;
+
+            if (_panel != null)
+            {
+                _panel.SetActive(true);
+                Refresh();
+            }
+        }
+
+        private static bool NeedsTarget(HighflyPremiumSkillId id)
+        {
+            return
+                id == HighflyPremiumSkillId.ShadowShackle ||
+                id == HighflyPremiumSkillId.PhantomTwinDance ||
+                id == HighflyPremiumSkillId.AbyssalShackle ||
+                id == HighflyPremiumSkillId.ShadowJudgment ||
+                id == HighflyPremiumSkillId.EclipseRend;
+        }
+
+        private static float PreviewDuration(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.ShadowCall:
+                case HighflyPremiumSkillId.ShadowLink:
+                    return 2.15f;
+
+                case HighflyPremiumSkillId.ShadowJudgment:
+                case HighflyPremiumSkillId.EclipseRend:
+                    return 1.95f;
+
+                case HighflyPremiumSkillId.VitalDomain:
+                    return 1.70f;
+
+                default:
+                    return 1.55f;
+            }
+        }
+
         private void TogglePanel()
         {
             if (_panel == null) return;
@@ -657,7 +759,7 @@ namespace Highfly.SkillLab
             if (_selectedInfo == null) return;
 
             HighflySkillDefinitionLite def =
-                HighflySkillCatalog.Get(HighflySkillLoadout.Get(_selectedSlot));
+                HighflySkillCatalog.Get(_previewSkill);
 
             if (def == null)
             {
@@ -666,8 +768,7 @@ namespace Highfly.SkillLab
             }
 
             _selectedInfo.text =
-                "S" + (_selectedSlot + 1) +
-                " • " +
+                "PREVIEW • " +
                 def.Name +
                 "  |  " +
                 def.Role +
@@ -676,6 +777,11 @@ namespace Highfly.SkillLab
                 "  |  CD " +
                 def.CooldownSeconds.ToString("0.#") +
                 "s";
+
+            if (_equipButtonText != null)
+                _equipButtonText.text =
+                    "EQUIPAR EN S" +
+                    (_selectedSlot + 1);
         }
 
         private static string CompactName(string value)
