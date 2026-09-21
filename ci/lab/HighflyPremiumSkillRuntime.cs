@@ -732,6 +732,62 @@ namespace Highfly.SkillLab
             return bestInView != null ? bestInView : nearestFallback;
         }
 
+        public CharacterStats FindBestTargetStrict(float radius, float angle)
+        {
+            CharacterStats[] all =
+                UnityEngine.Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
+
+            Vector3 viewDir = transform.forward;
+            if (_player != null && _player.cameraTransform != null)
+            {
+                viewDir = _player.cameraTransform.forward;
+                viewDir.y = 0f;
+
+                if (viewDir.sqrMagnitude > 0.001f)
+                    viewDir.Normalize();
+                else
+                    viewDir = transform.forward;
+            }
+
+            CharacterStats best = null;
+            float bestScore = float.MaxValue;
+
+            for (int i = 0; i < all.Length; i++)
+            {
+                CharacterStats stats = all[i];
+                if (!IsValidTarget(stats)) continue;
+
+                Vector3 delta =
+                    stats.transform.position -
+                    transform.position;
+                delta.y = 0f;
+
+                float distance = delta.magnitude;
+                if (distance <= 0.01f || distance > radius)
+                    continue;
+
+                float a =
+                    Vector3.Angle(
+                        viewDir,
+                        delta / distance);
+
+                if (a > angle * 0.5f)
+                    continue;
+
+                float score =
+                    a * 0.15f +
+                    distance * 0.28f;
+
+                if (score < bestScore)
+                {
+                    bestScore = score;
+                    best = stats;
+                }
+            }
+
+            return best;
+        }
+
         private bool IsValidTarget(CharacterStats stats)
         {
             if (stats == null || stats.transform == transform)
