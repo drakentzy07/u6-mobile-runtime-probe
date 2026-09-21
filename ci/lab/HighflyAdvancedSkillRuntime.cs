@@ -126,7 +126,7 @@ namespace Highfly.SkillLab
             if (!CanAct() || Time.unscaledTime < _cdPhantomDance || _premium == null)
                 return;
 
-            CharacterStats target = _premium.FindBestTarget(10.5f, 190f);
+            CharacterStats target = _premium.FindBestTargetStrict(10.5f, 140f);
             if (target == null)
             {
                 HighflySkillLabMetrics.RecordAction("S6 • DANZA FANTASMA (SIN OBJETIVO)", 0);
@@ -143,85 +143,128 @@ namespace Highfly.SkillLab
             if (target == null) yield break;
 
             var status = EnsureStatus(target);
-            status?.ApplyRoot(0.95f);
+            status?.ApplyRoot(1.20f);
 
-            Color cyan = new Color(0.12f, 0.72f, 1f, 1f);
-            Color violet = new Color(0.58f, 0.18f, 1f, 1f);
+            Color cyan = new Color(0.10f, 0.74f, 1f, 1f);
+            Color violet = new Color(0.62f, 0.20f, 1f, 1f);
 
             _player.HighflyMobileAttack();
 
+            // Snapshot the target once. The dance now orbits the SAME target
+            // instead of feeling like it re-acquires something mid-sequence.
+            Transform lockedTarget = target.transform;
+
             for (int strike = 0; strike < 3; strike++)
             {
-                if (target == null) yield break;
+                if (lockedTarget == null || target == null)
+                    yield break;
 
                 Vector3 old = transform.position;
-                Vector3 targetPos = target.transform.position;
+                Vector3 targetPos = lockedTarget.position;
 
-                Vector3 toHunter = transform.position - targetPos;
-                toHunter.y = 0f;
-                if (toHunter.sqrMagnitude < 0.01f)
-                    toHunter = -target.transform.forward;
+                Vector3 radial =
+                    transform.position -
+                    targetPos;
+                radial.y = 0f;
 
-                Vector3 radial = toHunter.normalized;
-                Vector3 side = Vector3.Cross(Vector3.up, radial).normalized;
+                if (radial.sqrMagnitude < 0.01f)
+                    radial = -lockedTarget.forward;
+
+                radial.Normalize();
+
+                Vector3 side =
+                    Vector3.Cross(Vector3.up, radial).normalized;
 
                 Vector3 desired;
                 if (strike == 0)
-                    desired = targetPos + side * 1.65f - radial * 0.25f;
+                    desired = targetPos + side * 1.85f - radial * 0.30f;
                 else if (strike == 1)
-                    desired = targetPos - side * 1.65f - radial * 0.15f;
+                    desired = targetPos - side * 1.85f - radial * 0.22f;
                 else
-                    desired = targetPos + radial * 1.75f;
+                    desired = targetPos + radial * 1.95f;
 
                 desired.y = old.y;
 
-                HighflyPremiumFx.SpawnAfterImage(transform, strike == 1 ? violet : cyan, 0.30f);
+                Color strikeColor =
+                    strike == 1 ? violet : cyan;
+
+                HighflyPremiumFx.SpawnAfterImage(
+                    transform,
+                    strikeColor,
+                    0.36f);
+
                 Warp(desired);
 
-                Vector3 fxFrom = old + Vector3.up * 0.90f;
-                Vector3 fxTo = transform.position + Vector3.up * 0.90f;
+                Vector3 fxFrom = old + Vector3.up * 0.92f;
+                Vector3 fxTo = transform.position + Vector3.up * 0.92f;
+
                 HighflyAnimeFx.SpawnLightningBurst(
                     fxFrom,
                     fxTo,
-                    strike == 1 ? violet : cyan,
-                    3,
-                    0.18f);
+                    strikeColor,
+                    4,
+                    0.22f);
 
                 FaceTarget(target);
 
-                Vector3 dir = FlatDirectionTo(target.transform.position);
-                float roll = strike == 0 ? -38f : strike == 1 ? 38f : 0f;
-                Color cutColor = strike == 1 ? violet : cyan;
+                Vector3 dir =
+                    FlatDirection(
+                        transform.position,
+                        lockedTarget.position);
+
+                float roll =
+                    strike == 0 ? -40f :
+                    strike == 1 ? 40f :
+                    0f;
 
                 HighflyPremiumFx.AttachWeaponTrail(
                     _player,
                     Color.white,
-                    cutColor,
-                    0.30f,
-                    0.23f);
+                    strikeColor,
+                    0.36f,
+                    0.24f);
 
-                HighflyAnimeFx.SpawnBladeCut(
-                    transform.position + Vector3.up * 1.0f + dir * 1.05f,
+                HighflyAnimeFx.SpawnBladeScar(
+                    transform.position + Vector3.up * 1.02f + dir * 1.04f,
                     dir,
-                    cutColor,
+                    strikeColor,
                     roll,
-                    strike == 2 ? 3.4f : 2.7f,
-                    strike == 2 ? 0.52f : 0.40f,
-                    0.18f);
+                    strike == 2 ? 3.85f : 3.10f,
+                    strike == 2 ? 0.42f : 0.30f,
+                    strike == 2 ? 0.34f : 0.29f);
 
-                _premium.DealDirect(target, strike == 2 ? 52f : 28f, "Danza-Fantasma");
+                _premium.DealDirect(
+                    target,
+                    strike == 2 ? 54f : 29f,
+                    "Danza-Fantasma");
 
-                yield return new WaitForSecondsRealtime(strike == 2 ? 0.085f : 0.115f);
+                // Slightly slower than v0.6 so every teleport/cut can actually
+                // be read on a phone screen.
+                yield return new WaitForSecondsRealtime(
+                    strike == 2 ? 0.115f : 0.155f);
             }
 
             if (target != null)
             {
-                Vector3 impact = target.transform.position + Vector3.up * 0.9f;
-                HighflyAnimeFx.SpawnImpactCross(impact, transform.forward, violet, 3.1f);
-                HighflyPremiumFx.SpawnResource("EnergyExplosion", impact, Quaternion.identity, 0.48f, 1.3f);
+                Vector3 impact =
+                    target.transform.position +
+                    Vector3.up * 0.92f;
+
+                HighflyAnimeFx.SpawnImpactCross(
+                    impact,
+                    transform.forward,
+                    violet,
+                    3.35f);
+
+                HighflyPremiumFx.SpawnResource(
+                    "EnergyExplosion",
+                    impact,
+                    Quaternion.identity,
+                    0.42f,
+                    1.18f);
             }
 
-            yield return HitStop(0.055f);
+            yield return HitStop(0.060f);
         }
 
         // ------------------------------------------------------------------
@@ -295,18 +338,8 @@ namespace Highfly.SkillLab
                 status?.ApplyRoot(3.0f);
                 status?.ApplyShadowMark(6.0f);
 
-                HighflyAnimeFx.SpawnShadowHand(target.transform, 1.20f, abyss);
-
-                for (int strand = 0; strand < 3; strand++)
-                {
-                    HighflyPremiumFx.SpawnShadowTether(
-                        transform,
-                        target.transform,
-                        new Vector3((strand - 1) * 0.22f, 0.85f, 0.10f),
-                        new Vector3((strand - 1) * 0.16f, 0.70f, 0f),
-                        1.05f,
-                        strand + i * 3);
-                }
+                HighflyAnimeFx.SpawnShadowClaw(target.transform, 1.34f);
+                HighflyAnimeFx.SpawnShadowChain(transform, target.transform, 1.12f);
 
                 _premium.DealDirect(target, 24f, "Grillete-Abisal");
             }
@@ -457,7 +490,8 @@ namespace Highfly.SkillLab
             Color shadow = new Color(0.44f, 0.08f, 0.78f, 1f);
 
             EnsureStatus(target)?.ApplyRoot(1.4f);
-            HighflyAnimeFx.SpawnShadowHand(target.transform, 1.15f, shadow);
+            HighflyAnimeFx.SpawnShadowClaw(target.transform, 1.30f);
+            HighflyAnimeFx.SpawnShadowChain(transform, target.transform, 1.05f);
 
             Vector3 targetPos = target.transform.position;
             Vector3 back = -FlatDirectionTo(targetPos);
@@ -472,14 +506,14 @@ namespace Highfly.SkillLab
                 Quaternion.LookRotation(-back, Vector3.up));
 
             HighflyPremiumFx.SpawnResource(
-                "PlasmaExplosion",
-                targetPos + Vector3.up * 0.75f,
+                "Sparks",
+                targetPos + Vector3.up * 0.78f,
                 Quaternion.identity,
-                0.34f,
-                1.0f,
+                0.36f,
+                0.46f,
                 shadow);
 
-            yield return new WaitForSecondsRealtime(0.18f);
+            yield return new WaitForSecondsRealtime(0.22f);
 
             Vector3 hunterStart = transform.position;
             Vector3 hunterEnd = targetPos - back * 1.55f;
