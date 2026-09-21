@@ -16,8 +16,8 @@ namespace Highfly.SkillLab
 
         // Tanda II — visible in the loadout menu, implemented in the next LAB pass.
         PhantomTwinDance = 6,
-        ShadowEcho = 7,
-        HunterRupture = 8,
+        ShadowLink = 7,
+        AbyssalShackle = 8,
         VitalDomain = 9,
         ShadowJudgment = 10
     }
@@ -82,6 +82,14 @@ namespace Highfly.SkillLab
                 case HighflyPremiumSkillId.ShadowCall:
                     TriggerShadowCall();
                     break;
+
+                case HighflyPremiumSkillId.PhantomTwinDance:
+                case HighflyPremiumSkillId.ShadowLink:
+                case HighflyPremiumSkillId.AbyssalShackle:
+                case HighflyPremiumSkillId.VitalDomain:
+                case HighflyPremiumSkillId.ShadowJudgment:
+                    HighflyAdvancedSkillRuntime.Instance?.Trigger(id);
+                    break;
             }
         }
 
@@ -117,52 +125,89 @@ namespace Highfly.SkillLab
             Vector3 dir = FacingDirection();
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
-            // Reuse Lucid's real sword animation ownership instead of inventing a LAB animator.
             _player.HighflyMobileAttack();
 
-            Color c1 = new Color(0.10f, 0.78f, 1f, 1f);
-            Color c2 = new Color(0.46f, 0.16f, 0.92f, 1f);
+            Color cyan = new Color(0.08f, 0.70f, 1f, 1f);
+            Color violet = new Color(0.52f, 0.14f, 0.92f, 1f);
 
             HighflyPremiumFx.AttachWeaponTrail(
                 _player,
-                stage == 2 ? c2 : c1,
-                stage == 3 ? Color.white : c2,
-                stage == 3 ? 0.42f : 0.32f,
-                stage == 3 ? 0.28f : 0.20f);
+                Color.white,
+                stage == 2 ? violet : cyan,
+                stage == 3 ? 0.42f : 0.34f,
+                stage == 3 ? 0.27f : 0.21f);
 
-            // If S5 is active, both shadows mirror the hunter with staggered timing.
             EchoTwinDance(stage);
 
-            SpawnTelegraphArc(transform.position + Vector3.up * 1.0f, dir, c1, 1.5f + stage * 0.2f);
-            yield return new WaitForSecondsRealtime(stage == 3 ? 0.055f : 0.075f);
-
             if (_cc != null)
-                _cc.Move(dir * (0.32f + 0.14f * stage));
+                _cc.Move(dir * (stage == 3 ? 0.62f : 0.42f));
+
+            yield return new WaitForSecondsRealtime(0.045f);
+
+            Vector3 cutOrigin = transform.position + Vector3.up * 1.05f + dir * 1.12f;
 
             if (stage == 1)
             {
-                SpawnSlash(dir, c1, -32f, 1.9f);
-                DealConeDamage(19f, 2.25f, 1.20f, dir, "Gemela-I");
-                yield return new WaitForSecondsRealtime(0.07f);
-                SpawnSlash(dir, c2, 34f, 2.0f);
-                DealConeDamage(21f, 2.35f, 1.20f, dir, "Gemela-II");
+                // Ida: clean left-to-right sword blade.
+                HighflyAnimeFx.SpawnBladeCut(
+                    cutOrigin,
+                    dir,
+                    cyan,
+                    -34f,
+                    3.05f,
+                    0.40f,
+                    0.19f);
+
+                DealConeDamage(30f, 2.75f, 1.25f, dir, "Gemela-Ida");
             }
             else if (stage == 2)
             {
-                SpawnSlash(dir, c2, 65f, 2.25f);
-                DealConeDamage(29f, 2.55f, 1.35f, dir, "Gemela-Cruz");
-                yield return new WaitForSecondsRealtime(0.055f);
-                SpawnImpactRing(transform.position + dir * 1.7f, c1, 1.7f);
+                // Vuelta: mirrored cut, slightly faster and stronger.
+                HighflyAnimeFx.SpawnBladeCut(
+                    cutOrigin,
+                    dir,
+                    violet,
+                    34f,
+                    3.15f,
+                    0.42f,
+                    0.18f);
+
+                DealConeDamage(36f, 2.90f, 1.30f, dir, "Gemela-Vuelta");
             }
             else
             {
-                SpawnSlash(dir, Color.white, 0f, 2.7f);
-                SpawnSlash(dir, c2, 90f, 2.55f);
-                DealConeDamage(48f, 3.05f, 1.55f, dir, "Gemela-Finisher");
-                Vector3 finishPoint = transform.position + dir * 2.0f + Vector3.up * 0.8f;
-                SpawnImpactRing(transform.position + dir * 2.0f, c2, 2.8f);
-                HighflyPremiumFx.SpawnResource("EnergyExplosion", finishPoint, Quaternion.identity, 0.55f, 1.6f);
-                StartCoroutine(FovPunch(5.5f, 0.10f));
+                // Finisher: true X cut, two knife-like blades crossing at the target line.
+                HighflyAnimeFx.SpawnBladeCut(
+                    cutOrigin,
+                    dir,
+                    cyan,
+                    -47f,
+                    3.55f,
+                    0.48f,
+                    0.20f);
+
+                yield return new WaitForSecondsRealtime(0.035f);
+
+                HighflyAnimeFx.SpawnBladeCut(
+                    cutOrigin + dir * 0.08f,
+                    dir,
+                    Color.white,
+                    47f,
+                    3.55f,
+                    0.34f,
+                    0.17f);
+
+                DealConeDamage(58f, 3.20f, 1.55f, dir, "Gemela-X");
+
+                Vector3 finish = transform.position + dir * 2.15f + Vector3.up * 0.85f;
+                HighflyPremiumFx.SpawnResource(
+                    "EnergyExplosion",
+                    finish,
+                    Quaternion.identity,
+                    0.44f,
+                    1.35f);
+
+                StartCoroutine(FovPunch(5.4f, 0.10f));
             }
         }
 
@@ -214,17 +259,12 @@ namespace Highfly.SkillLab
                     Vector3 currentFxPosition = transform.position + Vector3.up * 0.85f;
                     HighflyPremiumFx.SpawnAfterImage(transform, ghost, 0.26f);
 
-                    HighflyPremiumFx.SpawnLightningSegment(
-                        lastFxPosition + Vector3.up * 0.16f,
-                        currentFxPosition + Vector3.up * 0.16f,
+                    HighflyAnimeFx.SpawnLightningBurst(
+                        lastFxPosition,
+                        currentFxPosition,
                         ghost,
+                        4,
                         0.18f);
-
-                    HighflyPremiumFx.SpawnLightningSegment(
-                        lastFxPosition + transform.right * 0.18f,
-                        currentFxPosition - transform.right * 0.18f,
-                        new Color(0.72f, 0.90f, 1f, 1f),
-                        0.14f);
 
                     lastFxPosition = currentFxPosition;
                 }
@@ -272,13 +312,18 @@ namespace Highfly.SkillLab
 
             Color shadow = new Color(0.42f, 0.10f, 0.78f, 1f);
 
+            HighflyAnimeFx.SpawnShadowHand(
+                target.transform,
+                1.10f,
+                new Color(0.32f, 0.04f, 0.58f, 1f));
+
             Vector3 targetFx = target.transform.position + Vector3.up * 0.85f;
             HighflyPremiumFx.SpawnResource(
                 "PlasmaExplosion",
                 targetFx,
                 Quaternion.identity,
-                0.34f,
-                1.35f,
+                0.18f,
+                0.85f,
                 new Color(0.42f, 0.12f, 0.72f, 1f));
 
             var status = target.GetComponent<HighflyLabStatusReceiver>();
@@ -363,7 +408,11 @@ namespace Highfly.SkillLab
                 2.25f,
                 new Color(0.58f, 1f, 0.70f, 1f));
             HighflyPremiumFx.SpawnVitalAura(transform, 8f);
-            HighflyPremiumFx.SpawnVitalSigil(transform, 8f);
+            HighflyAnimeFx.SpawnGrandMagicCircle(
+                transform,
+                new Color(0.10f, 0.78f, 0.42f, 1f),
+                2.25f,
+                8f);
             StartCoroutine(VitalAuraRoutine(life));
         }
 
@@ -431,6 +480,50 @@ namespace Highfly.SkillLab
                 var minion = go.AddComponent<HighflyShadowMinion>();
                 minion.Initialize(this, transform, i == 0 ? -1f : 1f, 9.5f);
                 _summons.Add(minion);
+            }
+        }
+
+        public void EnsureShadowFormation()
+        {
+            bool anyActive = false;
+
+            for (int i = _summons.Count - 1; i >= 0; i--)
+            {
+                if (_summons[i] == null)
+                {
+                    _summons.RemoveAt(i);
+                    continue;
+                }
+
+                anyActive = true;
+            }
+
+            if (anyActive)
+                return;
+
+            _cdSummon = -99f;
+            TriggerShadowCall();
+        }
+
+        public void CommandShadowFormationStrike(bool heavy)
+        {
+            if (_summons.Count == 0)
+            {
+                EnsureShadowFormation();
+                return;
+            }
+
+            CharacterStats target = FindBestTarget(10.5f, 200f);
+
+            for (int i = 0; i < _summons.Count; i++)
+            {
+                HighflyShadowMinion minion = _summons[i];
+                if (minion == null) continue;
+
+                minion.CommandMirrorAttack(
+                    target,
+                    0.035f + i * 0.050f,
+                    heavy);
             }
         }
 
@@ -562,6 +655,13 @@ namespace Highfly.SkillLab
 
             if (VitalPactActive && _stats != null)
                 _stats.RestoreEgo(damage * 0.22f);
+
+            if (HighflyAdvancedSkillRuntime.Instance != null &&
+                HighflyAdvancedSkillRuntime.Instance.ShadowLinkActive &&
+                _stats != null)
+            {
+                _stats.RestoreEgo(damage * 0.18f);
+            }
 
             StartCoroutine(HitStop(0.035f));
         }
