@@ -41,6 +41,30 @@ namespace Highfly.SkillLab
             if (Instance == this) Instance = null;
         }
 
+        public void ForcePreview(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.PhantomTwinDance:
+                    _cdPhantomDance = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowLink:
+                    _cdShadowLink = -99f;
+                    break;
+                case HighflyPremiumSkillId.AbyssalShackle:
+                    _cdAbyssal = -99f;
+                    break;
+                case HighflyPremiumSkillId.VitalDomain:
+                    _cdVitalDomain = -99f;
+                    break;
+                case HighflyPremiumSkillId.ShadowJudgment:
+                    _cdJudgment = -99f;
+                    break;
+            }
+
+            Trigger(id);
+        }
+
         public float GetCooldownRemaining(HighflyPremiumSkillId id)
         {
             float now = Time.unscaledTime;
