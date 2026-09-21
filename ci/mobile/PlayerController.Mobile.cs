@@ -529,7 +529,8 @@ public class PlayerController : MonoBehaviour
 
     // --- 입력 이벤트 처리 ---
 
-    private void OnJump(InputAction.CallbackContext context) => HighflyMobileJump();\n    public void HighflyMobileJump()
+    private void OnJump(InputAction.CallbackContext context) => HighflyMobileJump();
+    public void HighflyMobileJump()
     {
         // Locomotion 상태일 때만 점프 가능
         if (currentState == PlayerState.Locomotion && _isGrounded)
@@ -539,7 +540,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnRoll(InputAction.CallbackContext context) => HighflyMobileRoll();\n    public void HighflyMobileRoll()
+    private void OnRoll(InputAction.CallbackContext context) => HighflyMobileRoll();
+    public void HighflyMobileRoll()
     {
         // 평상시(Locomotion)뿐 아니라 공격(Attack) 중에도 구르기로 캔슬 허용 → 콤보를 끊고 적 공격 회피.
         // 애니메이터는 AnyState→Roll(doRoll, Has Exit Time 0) 전이로 즉시 전환되고,
@@ -555,7 +557,8 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnAttack(InputAction.CallbackContext context) => HighflyMobileAttack();\n    public void HighflyMobileAttack()
+    private void OnAttack(InputAction.CallbackContext context) => HighflyMobileAttack();
+    public void HighflyMobileAttack()
     {
         if (!_isGrounded) return; // 공중 공격 제외
         if (currentState == PlayerState.CounterAttack || currentState == PlayerState.Skill) 
@@ -614,7 +617,8 @@ public class PlayerController : MonoBehaviour
             return multipliers[multipliers.Count - 1];
         }
     }
-    private void OnSkill(InputAction.CallbackContext context) => HighflyMobileSkill1();\n    public void HighflyMobileSkill1()
+    private void OnSkill(InputAction.CallbackContext context) => HighflyMobileSkill1();
+    public void HighflyMobileSkill1()
     {
         if (activeSkill == null) return;
         // 땅에 있고, 이동 중일 때만 가능 (공격 캔슬 스킬을 원하면 조건 완화 가능)
@@ -684,7 +688,8 @@ public class PlayerController : MonoBehaviour
         
         // CameraShake.Instance.Shake(0.5f);
     }
-    private void OnParry(InputAction.CallbackContext context) => HighflyMobileParry();\n    public void HighflyMobileParry()
+    private void OnParry(InputAction.CallbackContext context) => HighflyMobileParry();
+    public void HighflyMobileParry()
     {
         if (currentState == PlayerState.Locomotion && _isGrounded)
         {
@@ -878,7 +883,8 @@ public class PlayerController : MonoBehaviour
     public void WeaponDisable() => myWeapon?.DisableHitbox();
 
     //Lock on function
-    private void OnLockOnInput(InputAction.CallbackContext context) => HighflyMobileLockOn();\n    public void HighflyMobileLockOn()
+    private void OnLockOnInput(InputAction.CallbackContext context) => HighflyMobileLockOn();
+    public void HighflyMobileLockOn()
     {
         // ★ 내가 직접 안 찾고, 담당자에게 "락온 버튼 눌렸어"라고 전달만 함
         if (_lockOnSystem != null)
@@ -890,7 +896,8 @@ public class PlayerController : MonoBehaviour
     // ----------------------------------
     // Interact function
     // ----------------------------------
-    public void OnInteract(InputAction.CallbackContext context) { if (context.performed) HighflyMobileInteract(); }\n    public void HighflyMobileInteract()
+    public void OnInteract(InputAction.CallbackContext context) { if (context.performed) HighflyMobileInteract(); }
+    public void HighflyMobileInteract()
     {
         // 1. 상태 체크 (구르거나 공격 중엔 상호작용 불가)
         if (currentState != PlayerState.Locomotion) return;
