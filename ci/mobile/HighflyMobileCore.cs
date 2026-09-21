@@ -60,7 +60,7 @@ namespace Highfly.Mobile
         {
             if (_virtualMouse == null)
             {
-                _virtualMouse = InputSystem.AddDevice<Mouse>("HIGHFLY Virtual Camera");
+                _virtualMouse = InputSystem.AddDevice<Mouse>();
                 _virtualMouse.MakeCurrent();
             }
 
