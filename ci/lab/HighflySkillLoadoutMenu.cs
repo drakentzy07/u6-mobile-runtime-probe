@@ -78,41 +78,41 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId.PhantomTwinDance,
                 "DANZA FANTASMA",
                 "FUSIÓN / ARMA + MOVILIDAD",
-                "Cadena de cortes con desplazamiento espectral.",
-                "Fusión: Danza Gemela + Paso Fantasma.",
-                false),
+                "Tres cortes espaciales con micro-blink, afterimages y remate.",
+                "Danza Gemela + Paso Fantasma • condición de fusión.",
+                true),
 
             new HighflySkillDefinitionLite(
-                HighflyPremiumSkillId.ShadowEcho,
-                "ECO UMBRÍO",
-                "SOMBRA / ECHO / REPEAT",
-                "Una sombra repite una acción reciente.",
-                "Evolución del Llamado de la Sombra.",
-                false),
+                HighflyPremiumSkillId.ShadowLink,
+                "VÍNCULO UMBRÍO",
+                "FUSIÓN / SOMBRA + VITAL",
+                "Activa formación sombra, drenaje de vida y ataque coordinado.",
+                "Llamado de la Sombra + Pacto Vital.",
+                true),
 
             new HighflySkillDefinitionLite(
-                HighflyPremiumSkillId.HunterRupture,
-                "RUPTURA DEL CAZADOR",
-                "BREAK / STAGGER / LAUNCH",
-                "Rompe postura, lanza y abre ventanas de combo.",
-                "Familia de ruptura y ejecución.",
-                false),
+                HighflyPremiumSkillId.AbyssalShackle,
+                "GRILLETE ABISAL",
+                "EVOLUCIÓN / CONTROL + SOMBRA",
+                "Manos y grilletes atrapan hasta tres objetivos y los convergen.",
+                "Evolución de Grillete Umbrío por maestría/condición.",
+                true),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.VitalDomain,
                 "DOMINIO VITAL",
-                "DOMINIO / AURA / SUSTAIN",
-                "Zona de dominio para robo de vida y mitigación.",
+                "EVOLUCIÓN / DOMINIO + SUSTAIN",
+                "Ritual persistente: drena enemigos y restaura al cazador.",
                 "Evolución de Pacto Vital.",
-                false),
+                true),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.ShadowJudgment,
                 "JUICIO DE LA SOMBRA",
-                "FINISHER / EXECUTION / SHADOW",
-                "Marca, encadena y remata con ejecución coordinada.",
-                "Finisher de la rama Umbría.",
-                false)
+                "FINISHER / EJECUCIÓN / SOMBRA",
+                "Mano umbría + formación en V + ejecución triple sincronizada.",
+                "Finisher avanzado de la rama Umbría.",
+                true)
         };
 
         public static HighflySkillDefinitionLite Get(HighflyPremiumSkillId id)
@@ -263,7 +263,7 @@ namespace Highfly.SkillLab
 
             CreateLabel(
                 _panel.transform,
-                "HIGHFLY SYSTEM • SKILL LOADOUT",
+                "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT",
                 new Vector2(-545f, 355f),
                 new Vector2(790f, 60f),
                 30,
@@ -272,7 +272,7 @@ namespace Highfly.SkillLab
 
             CreateLabel(
                 _panel.transform,
-                "Seleccioná un slot y después una habilidad. Las habilidades equipadas se intercambian automáticamente.",
+                "10 skills activas • seleccioná S1–S5 y equipá. Base, evolución y fusión comparten el mismo CORE.",
                 new Vector2(-545f, 305f),
                 new Vector2(990f, 45f),
                 18,
