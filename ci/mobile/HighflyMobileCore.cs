@@ -17,13 +17,30 @@ namespace Highfly.Mobile
         Right
     }
 
+    public enum HighflyMobileAction
+    {
+        None,
+        Attack,
+        Skill1,
+        Skill2,
+        Skill3,
+        Skill4,
+        Ultimate,
+        Dodge,
+        Parry,
+        Interact,
+        Lock,
+        JumpClimb,
+        Potion,
+        Sprint
+    }
+
     public sealed class HighflyVirtualInput : MonoBehaviour
     {
-        private Keyboard _keyboard;
-        private Mouse _mouse;
-        private readonly Dictionary<Key, bool> _keyStates = new Dictionary<Key, bool>();
-        private bool _leftMouse;
-        private bool _rightMouse;
+        private Mouse _virtualMouse;
+        private readonly List<InputDevice> _disabledPhysicalMice = new List<InputDevice>();
+        private bool _exclusiveMobileMouse;
+        private float _nextMouseSweep;
 
         public static HighflyVirtualInput Instance { get; private set; }
 
@@ -37,104 +54,144 @@ namespace Highfly.Mobile
 
             Instance = this;
             DontDestroyOnLoad(gameObject);
-
-            _keyboard = InputSystem.AddDevice<Keyboard>();
-            _mouse = InputSystem.AddDevice<Mouse>();
         }
 
-        public void SetKey(Key key, bool pressed)
+        public void InitializeForMobile()
         {
-            if (_keyboard == null || key == Key.None) return;
+            if (_virtualMouse == null)
+                _virtualMouse = InputSystem.AddDevice<Mouse>("HIGHFLY Virtual Camera");
 
-            bool current;
-            if (_keyStates.TryGetValue(key, out current) && current == pressed) return;
-
-            _keyStates[key] = pressed;
-            InputSystem.QueueDeltaStateEvent(_keyboard[key], pressed ? 1f : 0f);
+            _exclusiveMobileMouse = true;
+            DisablePhysicalMice();
         }
 
-        public void SetMouseButton(HighflyMouseButton button, bool pressed)
+        private void Update()
         {
-            if (_mouse == null || button == HighflyMouseButton.None) return;
+            if (!_exclusiveMobileMouse) return;
+            if (Time.unscaledTime < _nextMouseSweep) return;
 
-            if (button == HighflyMouseButton.Left)
+            _nextMouseSweep = Time.unscaledTime + 0.5f;
+            DisablePhysicalMice();
+        }
+
+        private void DisablePhysicalMice()
+        {
+            foreach (var device in InputSystem.devices)
             {
-                if (_leftMouse == pressed) return;
-                _leftMouse = pressed;
-                InputSystem.QueueDeltaStateEvent(_mouse.leftButton, pressed ? 1f : 0f);
-            }
-            else if (button == HighflyMouseButton.Right)
-            {
-                if (_rightMouse == pressed) return;
-                _rightMouse = pressed;
-                InputSystem.QueueDeltaStateEvent(_mouse.rightButton, pressed ? 1f : 0f);
+                var mouse = device as Mouse;
+                if (mouse == null || mouse == _virtualMouse) continue;
+                if (!device.enabled) continue;
+
+                try
+                {
+                    InputSystem.DisableDevice(device);
+                    if (!_disabledPhysicalMice.Contains(device))
+                        _disabledPhysicalMice.Add(device);
+                }
+                catch { }
             }
         }
 
         public void Look(Vector2 screenDelta)
         {
-            if (_mouse == null) return;
-            InputSystem.QueueDeltaStateEvent(_mouse.delta, screenDelta);
-        }
-
-        public void PulseKey(Key key)
-        {
-            StartCoroutine(PulseKeyRoutine(key));
-        }
-
-        private IEnumerator PulseKeyRoutine(Key key)
-        {
-            SetKey(key, true);
-            yield return null;
-            SetKey(key, false);
+            if (_virtualMouse == null) return;
+            InputSystem.QueueDeltaStateEvent(_virtualMouse.delta, screenDelta);
         }
 
         private void OnDestroy()
         {
             if (Instance == this) Instance = null;
 
-            if (_keyboard != null)
+            for (int i = 0; i < _disabledPhysicalMice.Count; i++)
             {
-                try { InputSystem.RemoveDevice(_keyboard); } catch { }
+                try
+                {
+                    var device = _disabledPhysicalMice[i];
+                    if (device != null) InputSystem.EnableDevice(device);
+                }
+                catch { }
             }
+            _disabledPhysicalMice.Clear();
 
-            if (_mouse != null)
+            if (_virtualMouse != null)
             {
-                try { InputSystem.RemoveDevice(_mouse); } catch { }
+                try { InputSystem.RemoveDevice(_virtualMouse); } catch { }
             }
         }
     }
 
     public sealed class HighflyActionButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
-        [SerializeField] private Key key = Key.None;
-        [SerializeField] private HighflyMouseButton mouseButton = HighflyMouseButton.None;
+        [SerializeField] private HighflyMobileAction action = HighflyMobileAction.None;
 
-        public void Configure(Key keyboardKey, HighflyMouseButton virtualMouseButton)
+        public void Configure(HighflyMobileAction mobileAction)
         {
-            key = keyboardKey;
-            mouseButton = virtualMouseButton;
+            action = mobileAction;
         }
 
         public void OnPointerDown(PointerEventData eventData)
         {
-            var input = HighflyVirtualInput.Instance;
-            if (input == null) return;
+            if (action == HighflyMobileAction.Sprint)
+            {
+                var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+                player?.SetHighflyMobileSprint(true);
+                return;
+            }
 
-            if (mouseButton != HighflyMouseButton.None) input.SetMouseButton(mouseButton, true);
-            if (key != Key.None) input.SetKey(key, true);
+            ExecuteAction();
         }
 
         public void OnPointerUp(PointerEventData eventData) => Release();
         public void OnPointerExit(PointerEventData eventData) => Release();
 
+        private void ExecuteAction()
+        {
+            var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+
+            switch (action)
+            {
+                case HighflyMobileAction.Attack:
+                    player?.HighflyMobileAttack();
+                    break;
+                case HighflyMobileAction.Skill1:
+                    player?.HighflyMobileSkill1();
+                    break;
+                case HighflyMobileAction.Dodge:
+                    player?.HighflyMobileRoll();
+                    break;
+                case HighflyMobileAction.Parry:
+                    player?.HighflyMobileParry();
+                    break;
+                case HighflyMobileAction.Interact:
+                    player?.HighflyMobileInteract();
+                    break;
+                case HighflyMobileAction.Lock:
+                    player?.HighflyMobileLockOn();
+                    break;
+                case HighflyMobileAction.JumpClimb:
+                    player?.HighflyMobileJump();
+                    break;
+                case HighflyMobileAction.Potion:
+                    UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
+                    break;
+
+                // Slots S2/S3/S4/ULT are intentionally reserved for HIGHFLY Skill Core.
+                case HighflyMobileAction.Skill2:
+                case HighflyMobileAction.Skill3:
+                case HighflyMobileAction.Skill4:
+                case HighflyMobileAction.Ultimate:
+                case HighflyMobileAction.None:
+                default:
+                    break;
+            }
+        }
+
         private void Release()
         {
-            var input = HighflyVirtualInput.Instance;
-            if (input == null) return;
+            if (action != HighflyMobileAction.Sprint) return;
 
-            if (mouseButton != HighflyMouseButton.None) input.SetMouseButton(mouseButton, false);
-            if (key != Key.None) input.SetKey(key, false);
+            var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            player?.SetHighflyMobileSprint(false);
         }
 
         private void OnDisable() => Release();
@@ -198,16 +255,17 @@ namespace Highfly.Mobile
 
         private void ApplyMove(Vector2 value)
         {
-            var input = HighflyVirtualInput.Instance;
-            if (input == null) return;
+            float magnitude = value.magnitude;
+            Vector2 analog = Vector2.zero;
 
-            float x = Mathf.Abs(value.x) >= deadZone ? value.x : 0f;
-            float y = Mathf.Abs(value.y) >= deadZone ? value.y : 0f;
+            if (magnitude >= deadZone)
+            {
+                float scaled = Mathf.InverseLerp(deadZone, 1f, magnitude);
+                analog = value.normalized * scaled;
+            }
 
-            input.SetKey(Key.A, x < 0f);
-            input.SetKey(Key.D, x > 0f);
-            input.SetKey(Key.S, y < 0f);
-            input.SetKey(Key.W, y > 0f);
+            var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
+            player?.SetHighflyMobileMove(analog);
         }
 
         private void OnDisable()
@@ -297,7 +355,7 @@ namespace Highfly.Mobile
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflyMobileBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.3");
+            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.4");
             DontDestroyOnLoad(root);
 
             root.AddComponent<HighflyVirtualInput>();
@@ -324,6 +382,8 @@ namespace Highfly.Mobile
             Application.targetFrameRate = 60;
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
             Input.multiTouchEnabled = true;
+
+            HighflyVirtualInput.Instance?.InitializeForMobile();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { HF_ConfigureCanvas(); } catch { }
@@ -482,26 +542,29 @@ namespace Highfly.Mobile
 
             baseGo.GetComponent<HighflyJoystick>().Configure(knobRect, 86f);
 
-            CreateButton(parent, "CORRER", new Vector2(165f, 330f), new Vector2(130f, 58f), Key.LeftShift, HighflyMouseButton.None, 19);
+            CreateButton(parent, "CORRER", new Vector2(165f, 330f), new Vector2(130f, 58f), HighflyMobileAction.Sprint, 19);
         }
 
         private void CreateActionButtons(Transform parent)
         {
-            // Primary combat cluster
-            CreateButton(parent, "ATQ",      new Vector2(-125f, 145f), new Vector2(176f, 176f), Key.None, HighflyMouseButton.Left, 30);
-            CreateButton(parent, "S1",       new Vector2(-125f, 350f), new Vector2(122f, 122f), Key.Q, HighflyMouseButton.None, 23);
-            CreateButton(parent, "S2",       new Vector2(-270f, 390f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
-            CreateButton(parent, "S3",       new Vector2(-405f, 340f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
-            CreateButton(parent, "S4",       new Vector2(-500f, 240f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.None, 21);
-            CreateButton(parent, "ULT",      new Vector2(-315f, 525f), new Vector2(146f, 146f), Key.None, HighflyMouseButton.None, 24);
+            // Mobile-Legends-inspired combat crescent around the main attack button.
+            CreateButton(parent, "ATQ",      new Vector2(-120f, 145f), new Vector2(176f, 176f), HighflyMobileAction.Attack, 30);
 
-            // Defensive / utility cluster
-            CreateButton(parent, "ESQUIVAR", new Vector2(-320f, 145f), new Vector2(126f, 126f), Key.F, HighflyMouseButton.None, 16);
-            CreateButton(parent, "PARRY",    new Vector2(-455f, 145f), new Vector2(112f, 112f), Key.None, HighflyMouseButton.Right, 17);
-            CreateButton(parent, "USAR",     new Vector2(-585f, 125f), new Vector2(104f, 104f), Key.E, HighflyMouseButton.None, 15);
-            CreateButton(parent, "LOCK",     new Vector2(-610f, 260f), new Vector2(100f, 100f), Key.Tab, HighflyMouseButton.None, 14);
-            CreateButton(parent, "SALTAR\nESCALAR", new Vector2(-585f, 400f), new Vector2(112f, 112f), Key.Space, HighflyMouseButton.None, 13);
-            CreateButton(parent, "POCIÓN",   new Vector2(-710f, 250f), new Vector2(94f, 94f), Key.R, HighflyMouseButton.None, 13);
+            CreateButton(parent, "S1",       new Vector2(-295f, 120f), new Vector2(116f, 116f), HighflyMobileAction.Skill1, 22);
+            CreateButton(parent, "S2",       new Vector2(-265f, 265f), new Vector2(112f, 112f), HighflyMobileAction.Skill2, 21);
+            CreateButton(parent, "S3",       new Vector2(-175f, 375f), new Vector2(112f, 112f), HighflyMobileAction.Skill3, 21);
+            CreateButton(parent, "S4",       new Vector2(-55f, 355f),  new Vector2(112f, 112f), HighflyMobileAction.Skill4, 21);
+
+            // Third row / ultimate.
+            CreateButton(parent, "ULT",      new Vector2(-190f, 535f), new Vector2(146f, 146f), HighflyMobileAction.Ultimate, 24);
+
+            // Defensive and utility controls deliberately separated from the skill crescent.
+            CreateButton(parent, "ESQUIVAR", new Vector2(-450f, 105f), new Vector2(122f, 122f), HighflyMobileAction.Dodge, 15);
+            CreateButton(parent, "PARRY",    new Vector2(-570f, 165f), new Vector2(108f, 108f), HighflyMobileAction.Parry, 16);
+            CreateButton(parent, "USAR",     new Vector2(-690f, 105f), new Vector2(100f, 100f), HighflyMobileAction.Interact, 14);
+            CreateButton(parent, "LOCK",     new Vector2(-700f, 245f), new Vector2(98f, 98f), HighflyMobileAction.Lock, 14);
+            CreateButton(parent, "SALTAR\nESCALAR", new Vector2(-615f, 385f), new Vector2(108f, 108f), HighflyMobileAction.JumpClimb, 12);
+            CreateButton(parent, "POCIÓN",   new Vector2(-805f, 245f), new Vector2(92f, 92f), HighflyMobileAction.Potion, 12);
         }
 
         private void CreateButton(
@@ -509,8 +572,7 @@ namespace Highfly.Mobile
             string label,
             Vector2 anchoredPosition,
             Vector2 size,
-            Key key,
-            HighflyMouseButton mouseButton,
+            HighflyMobileAction action,
             int fontSize)
         {
             string safeName = label.Replace("\n", "_");
@@ -554,7 +616,7 @@ namespace Highfly.Mobile
             ring.color = new Color(accent.r, accent.g, accent.b, 0.82f);
             ring.raycastTarget = false;
 
-            go.GetComponent<HighflyActionButton>().Configure(key, mouseButton);
+            go.GetComponent<HighflyActionButton>().Configure(action);
 
             var text = CreateText(
                 safeName + "_Text",
