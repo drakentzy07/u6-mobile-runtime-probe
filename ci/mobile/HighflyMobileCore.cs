@@ -123,6 +123,46 @@ namespace Highfly.Mobile
         }
     }
 
+    public enum HighflyTouchOwner
+    {
+        None,
+        Movement,
+        Camera,
+        Combat
+    }
+
+    public static class HighflyTouchOwnership
+    {
+        private static readonly Dictionary<int, HighflyTouchOwner> Owners =
+            new Dictionary<int, HighflyTouchOwner>();
+
+        public static bool TryClaim(int pointerId, HighflyTouchOwner owner)
+        {
+            HighflyTouchOwner existing;
+            if (Owners.TryGetValue(pointerId, out existing))
+                return existing == owner;
+
+            Owners[pointerId] = owner;
+            return true;
+        }
+
+        public static bool IsOwnedBy(int pointerId, HighflyTouchOwner owner)
+        {
+            HighflyTouchOwner existing;
+            return Owners.TryGetValue(pointerId, out existing) && existing == owner;
+        }
+
+        public static void Release(int pointerId)
+        {
+            Owners.Remove(pointerId);
+        }
+
+        public static void ReleaseAll()
+        {
+            Owners.Clear();
+        }
+    }
+
     public sealed class HighflyActionButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         [SerializeField] private HighflyMobileAction action = HighflyMobileAction.None;
@@ -131,6 +171,7 @@ namespace Highfly.Mobile
         private Image _image;
         private Vector3 _restScale = Vector3.one;
         private Color _restColor;
+        private int _pointerId = int.MinValue;
 
         public void Configure(HighflyMobileAction mobileAction)
         {
@@ -144,6 +185,11 @@ namespace Highfly.Mobile
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (_pointerId != int.MinValue) return;
+            if (!HighflyTouchOwnership.TryClaim(eventData.pointerId, HighflyTouchOwner.Combat)) return;
+
+            _pointerId = eventData.pointerId;
+
             if (_rect != null) _rect.localScale = _restScale * 0.92f;
             if (_image != null)
             {
@@ -158,8 +204,19 @@ namespace Highfly.Mobile
             ExecuteAction();
         }
 
-        public void OnPointerUp(PointerEventData eventData) => RestoreVisual();
-        public void OnPointerExit(PointerEventData eventData) => RestoreVisual();
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (eventData.pointerId != _pointerId) return;
+            HighflyTouchOwnership.Release(_pointerId);
+            _pointerId = int.MinValue;
+            RestoreVisual();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            // Keep ownership until pointer-up, ClaudeCraft-style.
+            RestoreVisual();
+        }
 
         private void ExecuteAction()
         {
@@ -210,7 +267,15 @@ namespace Highfly.Mobile
             if (_image != null) _image.color = _restColor;
         }
 
-        private void OnDisable() => RestoreVisual();
+        private void OnDisable()
+        {
+            if (_pointerId != int.MinValue)
+            {
+                HighflyTouchOwnership.Release(_pointerId);
+                _pointerId = int.MinValue;
+            }
+            RestoreVisual();
+        }
     }
 
     public sealed class HighflyJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
@@ -237,6 +302,9 @@ namespace Highfly.Mobile
         public void OnPointerDown(PointerEventData eventData)
         {
             if (_pointerId != int.MinValue) return;
+            if (eventData.position.x > Screen.width * 0.50f) return;
+            if (!HighflyTouchOwnership.TryClaim(eventData.pointerId, HighflyTouchOwner.Movement)) return;
+
             _pointerId = eventData.pointerId;
             UpdateStick(eventData);
         }
@@ -244,12 +312,14 @@ namespace Highfly.Mobile
         public void OnDrag(PointerEventData eventData)
         {
             if (eventData.pointerId != _pointerId) return;
+            if (!HighflyTouchOwnership.IsOwnedBy(eventData.pointerId, HighflyTouchOwner.Movement)) return;
             UpdateStick(eventData);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
             if (eventData.pointerId != _pointerId) return;
+            HighflyTouchOwnership.Release(_pointerId);
             _pointerId = int.MinValue;
 
             if (knob != null) knob.anchoredPosition = Vector2.zero;
@@ -286,6 +356,8 @@ namespace Highfly.Mobile
 
         private void OnDisable()
         {
+            if (_pointerId != int.MinValue)
+                HighflyTouchOwnership.Release(_pointerId);
             _pointerId = int.MinValue;
             if (knob != null) knob.anchoredPosition = Vector2.zero;
             ApplyMove(Vector2.zero);
@@ -294,13 +366,12 @@ namespace Highfly.Mobile
 
     public sealed class HighflyLookZone : MonoBehaviour, IPointerDownHandler, IInitializePotentialDragHandler, IDragHandler, IPointerUpHandler
     {
-        [SerializeField] private float sensitivity = 0.42f;
         private int _pointerId = int.MinValue;
         private Vector2 _lastPosition;
 
-        public void Configure(float lookSensitivity)
+        public void Configure(float unusedSensitivity)
         {
-            sensitivity = lookSensitivity;
+            // Sensitivity is owned by HighflyThirdPersonMobileCamera.
         }
 
         public void OnInitializePotentialDrag(PointerEventData eventData)
@@ -311,6 +382,11 @@ namespace Highfly.Mobile
         public void OnPointerDown(PointerEventData eventData)
         {
             if (_pointerId != int.MinValue) return;
+
+            // Hard screen-space gate: a left-half touch can never become camera.
+            if (eventData.position.x < Screen.width * 0.50f) return;
+            if (!HighflyTouchOwnership.TryClaim(eventData.pointerId, HighflyTouchOwner.Camera)) return;
+
             _pointerId = eventData.pointerId;
             _lastPosition = eventData.position;
             eventData.useDragThreshold = false;
@@ -319,21 +395,29 @@ namespace Highfly.Mobile
         public void OnDrag(PointerEventData eventData)
         {
             if (eventData.pointerId != _pointerId) return;
+            if (!HighflyTouchOwnership.IsOwnedBy(eventData.pointerId, HighflyTouchOwner.Camera)) return;
 
             Vector2 current = eventData.position;
-            Vector2 delta = (current - _lastPosition) * sensitivity;
+            Vector2 delta = current - _lastPosition;
             _lastPosition = current;
 
-            var input = HighflyVirtualInput.Instance;
-            if (input != null) input.Look(delta);
+            HighflyThirdPersonMobileCamera.Instance?.AddLookDelta(delta);
         }
 
         public void OnPointerUp(PointerEventData eventData)
         {
-            if (eventData.pointerId == _pointerId) _pointerId = int.MinValue;
+            if (eventData.pointerId != _pointerId) return;
+
+            HighflyTouchOwnership.Release(_pointerId);
+            _pointerId = int.MinValue;
         }
 
-        private void OnDisable() => _pointerId = int.MinValue;
+        private void OnDisable()
+        {
+            if (_pointerId != int.MinValue)
+                HighflyTouchOwnership.Release(_pointerId);
+            _pointerId = int.MinValue;
+        }
     }
 
     public sealed class HighflyIntroTap : MonoBehaviour, IPointerDownHandler
@@ -371,11 +455,11 @@ namespace Highfly.Mobile
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflyMobileBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.4");
+            var root = new GameObject("HIGHFLY_MOBILE_CORE_v0.6");
             DontDestroyOnLoad(root);
 
-            root.AddComponent<HighflyVirtualInput>();
             root.AddComponent<HighflyMobileRuntimeLocalizer>();
+            root.AddComponent<HighflyThirdPersonMobileCamera>();
             root.AddComponent<HighflyMobileBootstrap>();
         }
 
@@ -399,7 +483,6 @@ namespace Highfly.Mobile
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
             Input.multiTouchEnabled = true;
 
-            HighflyVirtualInput.Instance?.InitializeForMobile();
 
 #if UNITY_WEBGL && !UNITY_EDITOR
             try { HF_ConfigureCanvas(); } catch { }
@@ -407,6 +490,12 @@ namespace Highfly.Mobile
 
             EnsureEventSystem();
             BuildUI();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+                HighflyTouchOwnership.ReleaseAll();
         }
 
         private void Update()
