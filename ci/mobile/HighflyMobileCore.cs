@@ -740,6 +740,14 @@ namespace Highfly.Mobile
 
             go.GetComponent<HighflyActionButton>().Configure(action);
 
+            int skillSlot = SkillSlotFor(action);
+            if (skillSlot >= 0)
+            {
+                var cooldown =
+                    go.AddComponent<HighflySkillCooldownVisual>();
+                cooldown.Configure(skillSlot, _discSprite);
+            }
+
             var text = CreateText(
                 safeName + "_Text",
                 go.transform,
@@ -748,6 +756,19 @@ namespace Highfly.Mobile
                 TextAnchor.MiddleCenter,
                 new Color(0.94f, 0.98f, 1f, 0.96f));
             Stretch(text.rectTransform);
+        }
+
+        private static int SkillSlotFor(HighflyMobileAction action)
+        {
+            switch (action)
+            {
+                case HighflyMobileAction.Skill1: return 0;
+                case HighflyMobileAction.Skill2: return 1;
+                case HighflyMobileAction.Skill3: return 2;
+                case HighflyMobileAction.Skill4: return 3;
+                case HighflyMobileAction.Ultimate: return 4;
+                default: return -1;
+            }
         }
 
         private static Color GetButtonAccent(string label)
