@@ -70,8 +70,11 @@ namespace Highfly.Combat
 
             // Phase 1 integration: requests already pass through the Dragon-inspired
             // typed buffer. Animation-window consumption is connected next.
-            HighflyBufferedAction consumed;
-            _core?.TryConsumeAny(out consumed);
+            if (_core != null)
+            {
+                HighflyBufferedAction consumed;
+                _core.TryConsumeAny(out consumed);
+            }
         }
 
         private void TryDragonStep()
