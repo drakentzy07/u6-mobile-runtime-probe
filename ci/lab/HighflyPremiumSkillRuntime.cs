@@ -865,8 +865,7 @@ namespace Highfly.SkillLab
             float a = Time.unscaledTime * 1.7f + _phase;
             Vector3 desired = _master.position +
                               _master.right * (Mathf.Cos(a) * 1.8f) +
-                              _master.forward * (Mathf.Sin(a) * 1.1f) +
-                              Vector3.up * 0.9f;
+                              _master.forward * (Mathf.Sin(a) * 1.1f);
 
             transform.position = Vector3.Lerp(
                 transform.position,
@@ -893,24 +892,27 @@ namespace Highfly.SkillLab
         {
             if (target == null) yield break;
 
-            Vector3 from = transform.position + Vector3.up * 0.45f;
-            Vector3 to = target.transform.position + Vector3.up * 0.8f;
+            Vector3 from = transform.position + Vector3.up * 1.05f;
+            Vector3 to = target.transform.position + Vector3.up * 0.85f;
 
-            var go = new GameObject("HF_SHADOW_BOLT");
-            var lr = go.AddComponent<LineRenderer>();
-            lr.positionCount = 2;
-            lr.useWorldSpace = true;
-            lr.widthMultiplier = 0.075f;
-            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.48f, 0.18f, 1f, 1f));
-            lr.SetPosition(0, from);
-            lr.SetPosition(1, to);
+            HighflyPremiumFx.SpawnLightningSegment(
+                from,
+                to,
+                new Color(0.50f, 0.18f, 0.95f, 1f),
+                0.16f);
 
-            yield return new WaitForSecondsRealtime(0.08f);
+            HighflyPremiumFx.SpawnResource(
+                "Sparks",
+                from,
+                Quaternion.identity,
+                0.28f,
+                0.42f,
+                new Color(0.42f, 0.12f, 0.82f, 1f));
+
+            yield return new WaitForSecondsRealtime(0.085f);
 
             if (target != null)
                 _owner.DealDirect(target, 13f, "Sombra");
-
-            Destroy(go, 0.10f);
         }
     }
 
