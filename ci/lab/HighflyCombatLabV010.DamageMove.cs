@@ -48,23 +48,13 @@ namespace Highfly.SkillLab
             float damage = stage == 1 ? 8f : stage == 2 ? 9f : 11f;
             string label = stage < 3 ? "DANZA GEMELA • CADENA " + stage : "DANZA GEMELA • FINISHER";
 
-            string twinClip =
-                stage == 1
-                    ? "Sword_Regular_A"
-                    : stage == 2
-                        ? "Sword_Regular_B"
-                        : "Sword_Regular_C";
-
-            bool playedTwin =
-                HighflyParkourAnimationV010.Instance != null &&
-                HighflyParkourAnimationV010.Instance.Play(
-                    twinClip,
-                    stage == 3 ? 1.14f : 1.08f,
-                    stage == 3 ? 0.62f : 0.48f);
-
-            if (!playedTwin && _animator != null)
+            // PRODUCTION PASS v0.13:
+            // Use Lucid's native Animator for sword attacks. Direct UAL2 playback was
+            // visually incompatible with this rig (the reported "break dance" issue).
+            // UAL2 stays available only after an explicit retarget/validation pass.
+            if (_animator != null)
             {
-                _animator.SetInteger("ComboStep", stage);
+                _animator.SetInteger("ComboStep", Mathf.Clamp(stage - 1, 0, 2));
                 _animator.SetTrigger("doAttack");
             }
 
@@ -135,10 +125,13 @@ namespace Highfly.SkillLab
         private IEnumerator BoundlessChainRoutine(bool preview)
         {
             FaceTarget();
-            HighflyParkourAnimationV010.Instance?.Play(
-                "Sword_Regular_Combo",
-                1.16f,
-                1.05f);
+            // PRODUCTION PASS v0.13:
+            // Keep the chain on Lucid-native attacks until donor clips are properly retargeted.
+            if (_animator != null)
+            {
+                _animator.SetInteger("ComboStep", 0);
+                _animator.SetTrigger("doAttack");
+            }
             CharacterStats target = Target(8f);
             if (target == null) yield break;
             Color c = new Color(0.58f, 0.18f, 1f, 1f);
@@ -147,6 +140,14 @@ namespace Highfly.SkillLab
             {
                 Vector3 around = Quaternion.Euler(0f, i * 137.5f, 0f) * Vector3.forward;
                 Vector3 p = target.transform.position + Vector3.up * (0.55f + (i % 4) * 0.32f) + around * (0.35f + (i % 3) * 0.16f);
+                // Advance through Lucid's native combo poses so each visible body motion
+                // matches the chain cadence instead of reusing the incompatible UAL combo.
+                if (_animator != null && i > 0 && (i % 3) == 0)
+                {
+                    _animator.SetInteger("ComboStep", (i / 3) % 3);
+                    _animator.SetTrigger("doAttack");
+                }
+
                 SpawnSlash(p, around, c, (i % 2 == 0 ? 1f : -1f) * (25f + (i % 5) * 13f), 2.5f + (i % 3) * 0.25f, 0.14f);
                 Deal(target, 7.5f, "CADENA SIN LÍMITE • " + (i + 1), 8f);
                 if ((i % 3) == 2) HighflyPremiumFx.SpawnAfterImage(transform, c, 0.13f);
