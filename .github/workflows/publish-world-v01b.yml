@@ -1,9 +1,11 @@
 name: Publish HIGHFLY World v0.1B
 
 on:
-  workflow_run:
-    workflows: ["HIGHFLY World Integration v0.1B"]
-    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-world-v01b.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,46 +19,34 @@ concurrency:
 
 jobs:
   stage:
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'world-integration-v01b' }}
-    name: Stage verified WORLD v0.1B
+    name: Reuse verified WORLD v0.1B artifact
     runs-on: ubuntu-latest
     steps:
-      - name: Download WORLD v0.1B WebGL from triggering run
-        uses: actions/download-artifact@v4
-        with:
-          name: highfly-world-v01b-webgl
-          path: world-build
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Download current verified combined Pages site
+      - name: Download verified combined Pages artifact from WORLD Run 35787916177
         uses: actions/download-artifact@v4
         with:
           name: github-pages
-          path: current-site-artifact
+          path: source-artifact
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 35783127735
+          run-id: 35787916177
 
-      - name: Merge WORLD v0.1B under /world-v01b
+      - name: Extract verified combined site
         shell: bash
         run: |
           set -euxo pipefail
           mkdir -p site
-          test -f current-site-artifact/artifact.tar
-          tar -xf current-site-artifact/artifact.tar -C site
+          test -f source-artifact/artifact.tar
+          tar -xf source-artifact/artifact.tar -C site
           test -f site/index.html
-          test -f world-build/index.html
-          mkdir -p site/world-v01b
-          cp -a world-build/. site/world-v01b/
-          echo "HIGHFLY WORLD v0.1B - SAFE ZONE BOOT FIX - PROLOGUE SKIP" > site/world-v01b/version.txt
           test -f site/world-v01b/index.html
+          echo "HIGHFLY WORLD v0.1B - DIRECT SOMNIA + PERSISTENT SAFE ZONE" > site/world-v01b/version.txt
           touch site/.nojekyll
           du -sh site site/world-v01b
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Upload combined Pages artifact
+      - name: Re-upload verified combined site as Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
