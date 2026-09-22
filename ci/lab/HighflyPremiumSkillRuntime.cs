@@ -23,7 +23,24 @@ namespace Highfly.SkillLab
 
         EclipseRend = 11,
         ReturnWall = 12,
-        VoraciousEcho = 13
+        VoraciousEcho = 13,
+
+        // v0.9 APEX PASS — distinct mechanical prototypes.
+        GravityZero = 14,
+        MomentSight = 15,
+        FormulaDrift = 16,
+        SevenSinker = 17,
+        ScrapBuild = 18,
+        VictimArts = 19,
+        BeastPossession = 20,
+        DemonStrike = 21,
+        SpiritArmament = 22,
+        ShadowCreation = 23,
+        TemporalCut = 24,
+        MemoryRelease = 25,
+        BoundlessMassacre = 26,
+        TheFool = 27,
+        ReserveSpell = 28
     }
 
     [DisallowMultipleComponent]
@@ -116,7 +133,13 @@ namespace Highfly.SkillLab
                 return;
             }
 
-            HighflyReferenceSkillRuntime.Instance?.ForcePreview(id);
+            if ((int)id <= 13)
+            {
+                HighflyReferenceSkillRuntime.Instance?.ForcePreview(id);
+                return;
+            }
+
+            HighflyApexPassSkillRuntime.Instance?.ForcePreview(id);
         }
 
         public void ClearPreviewCooldown(HighflyPremiumSkillId id)
@@ -142,8 +165,10 @@ namespace Highfly.SkillLab
                 default:
                     if ((int)id <= 10)
                         HighflyAdvancedSkillRuntime.Instance?.ClearPreviewCooldown(id);
-                    else
+                    else if ((int)id <= 13)
                         HighflyReferenceSkillRuntime.Instance?.ClearPreviewCooldown(id);
+                    else
+                        HighflyApexPassSkillRuntime.Instance?.ClearPreviewCooldown(id);
                     break;
             }
         }
@@ -201,6 +226,24 @@ namespace Highfly.SkillLab
                 case HighflyPremiumSkillId.ReturnWall:
                 case HighflyPremiumSkillId.VoraciousEcho:
                     HighflyReferenceSkillRuntime.Instance?.Trigger(id);
+                    break;
+
+                case HighflyPremiumSkillId.GravityZero:
+                case HighflyPremiumSkillId.MomentSight:
+                case HighflyPremiumSkillId.FormulaDrift:
+                case HighflyPremiumSkillId.SevenSinker:
+                case HighflyPremiumSkillId.ScrapBuild:
+                case HighflyPremiumSkillId.VictimArts:
+                case HighflyPremiumSkillId.BeastPossession:
+                case HighflyPremiumSkillId.DemonStrike:
+                case HighflyPremiumSkillId.SpiritArmament:
+                case HighflyPremiumSkillId.ShadowCreation:
+                case HighflyPremiumSkillId.TemporalCut:
+                case HighflyPremiumSkillId.MemoryRelease:
+                case HighflyPremiumSkillId.BoundlessMassacre:
+                case HighflyPremiumSkillId.TheFool:
+                case HighflyPremiumSkillId.ReserveSpell:
+                    HighflyApexPassSkillRuntime.Instance?.Trigger(id);
                     break;
             }
         }
