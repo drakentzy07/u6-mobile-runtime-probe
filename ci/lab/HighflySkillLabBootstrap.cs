@@ -8,15 +8,8 @@ namespace Highfly.SkillLab
 {
     public static class HighflySkillLabMode
     {
-        public static bool IsActive
-        {
-            get
-            {
-                string url = Application.absoluteURL ?? string.Empty;
-                return url.IndexOf("lab=1", StringComparison.OrdinalIgnoreCase) >= 0 ||
-                       url.IndexOf("skilllab", StringComparison.OrdinalIgnoreCase) >= 0;
-            }
-        }
+        // v0.10 is a dedicated LAB artifact. It must never fall through to Lucid's story/prologue.
+        public static bool IsActive => true;
     }
 
     public static class HighflySkillLabMetrics
@@ -162,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.9");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.10");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -191,17 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.9 • APEX PASS\n" +
-                    "GOLDEN CAMERA / GOLDEN MOBILE CORE\n" +
+                    "HIGHFLY • COMBAT FEEL LAB v0.10 • SLF CORE\n" +
+                    "20 CORE SKILLS • SHADOW IDENTITY • SKILL EXPRESSION\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
-                    "SPACE salto/doble/wall | 1..5 skills | 6 dodge | 7 parry | 8 lock | 9 poción | 0 ATQ\n" +
+                    "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "S1 " + SkillName(0) + "  •  S2 " + SkillName(1) + "\n" +
-                    "S3 " + SkillName(2) + "  •  S4 " + SkillName(3) + "\n" +
-                    "S5 " + SkillName(4) + "   |   SKILLS / RÁPIDO = LOADOUT\n" +
-                    HighflySkillCatalog.All.Length + " PREVIEWS ACTIVOS • " +
-                    HighflyMasterSkillTree.All.Length + " NODOS MASTER • CODEX SCROLL LATERAL\n" +
-                    "S1 combo+finisher • S3 mano 3D • v0.9 APEX PASS activo\n\n" +
+                    "Panel izquierdo: DAÑO / MOV / CONTROL / SOMBRA / BUFF / DEF / TÁCTICA\n" +
+                    "TOCÁ una skill = preview automático • PROBAR MANUAL = ejecución real\n" +
+                    "Danza Gemela exige timing • Vista del Instante sólo ante golpe letal\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -243,6 +233,9 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyAerialMobility>() == null)
                 player.gameObject.AddComponent<HighflyAerialMobility>();
 
+            if (player.GetComponent<HighflyCombatLabV010>() == null)
+                player.gameObject.AddComponent<HighflyCombatLabV010>();
+
             if (player.GetComponent<HighflyLabDesktopControls>() == null)
                 player.gameObject.AddComponent<HighflyLabDesktopControls>();
 
@@ -251,7 +244,7 @@ namespace Highfly.SkillLab
             CreateDummy(new Vector3(3.4f, LabY + 1.0f, 5.3f));
 
             CreateMetricsHud();
-            HighflySkillBrowser.Install(transform);
+            HighflyCombatLabBrowserV010.Install(transform);
 
             Camera cam = Camera.main;
             if (cam != null)
@@ -533,10 +526,10 @@ namespace Highfly.SkillLab
             panel.transform.SetParent(canvasGo.transform, false);
 
             var rect = panel.GetComponent<RectTransform>();
-            rect.anchorMin = rect.anchorMax = new Vector2(0f, 1f);
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = new Vector2(24f, -128f);
-            rect.sizeDelta = new Vector2(590f, 390f);
+            rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
+            rect.pivot = new Vector2(1f, 1f);
+            rect.anchoredPosition = new Vector2(-24f, -24f);
+            rect.sizeDelta = new Vector2(520f, 300f);
 
             var image = panel.GetComponent<Image>();
             image.color = new Color(0.06f, 0.065f, 0.075f, 0.84f);
