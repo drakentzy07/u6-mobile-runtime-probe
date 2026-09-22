@@ -1,0 +1,66 @@
+name: Publish HIGHFLY Skill Lab v0.14.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-skill-lab-v0141.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-skill-lab-v0141-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Reuse verified v0.14.1 WebGL artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified Pages artifact from Run 35794546295
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: source-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35794546295
+
+      - name: Extract verified WebGL site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          test -f source-artifact/artifact.tar
+          tar -xf source-artifact/artifact.tar -C site
+          test -f site/index.html
+          grep -q "v=0141" site/index.html
+          touch site/.nojekyll
+          du -sh site
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Re-upload verified WebGL as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy HIGHFLY Skill Lab v0.14.1
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
