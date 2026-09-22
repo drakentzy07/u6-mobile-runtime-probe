@@ -52,6 +52,8 @@ namespace Highfly.SkillLab
         private readonly List<HighflyShadowMinion> _summons = new List<HighflyShadowMinion>();
 
         private const float TwinReset = 1.25f;
+        private const float TwinCadence = 0.24f;
+        private const float TwinFinisherCooldown = 1.35f;
 
         public bool VitalPactActive => Time.unscaledTime < _vitalPactUntil;
 
@@ -231,7 +233,10 @@ namespace Highfly.SkillLab
 
             _twinStage = (_twinStage % 3) + 1;
             _lastTwinInput = Time.unscaledTime;
-            _cdTwin = Time.unscaledTime + 0.28f;
+            // Stages 1-2 use a short input cadence, not a fake full cooldown.
+            // The real cooldown starts only after the third/finisher activation.
+            _cdTwin = Time.unscaledTime +
+                (_twinStage >= 3 ? TwinFinisherCooldown : TwinCadence);
 
             HighflySkillLabMetrics.RecordAction("S1 • DANZA GEMELA", _twinStage);
             StartCoroutine(TwinDanceRoutine(_twinStage));
@@ -469,8 +474,8 @@ namespace Highfly.SkillLab
 
             Color shadow = new Color(0.44f, 0.08f, 0.82f, 1f);
 
-            // Premium identity: a solid 3D shadow claw closes around the target,
-            // then one visible segmented chain retracts it. No smoke, no cloud.
+            // Premium identity: a readable articulated five-finger shadow hand
+            // closes around the target, then one visible chain retracts it.
             HighflyAnimeFx.SpawnShadowClaw(target.transform, 1.28f);
             HighflyAnimeFx.SpawnShadowChain(transform, target.transform, 1.08f);
 
