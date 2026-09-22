@@ -1,0 +1,68 @@
+name: Publish HIGHFLY World v0.1A
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-world-v01a.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-world-v01a-publish
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Reuse verified WORLD v0.1A artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download verified combined Pages artifact from WORLD Run 35780845940
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: source-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35780845940
+
+      - name: Extract verified combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          test -f source-artifact/artifact.tar
+          tar -xf source-artifact/artifact.tar -C site
+          test -f site/index.html
+          test -f site/world-v01a/index.html
+          test -f site/world-v01a/version.txt
+          grep -q "HIGHFLY WORLD v0.1A" site/world-v01a/version.txt
+          touch site/.nojekyll
+          du -sh site site/world-v01a
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Re-upload verified combined site as Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy HIGHFLY World v0.1A
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
