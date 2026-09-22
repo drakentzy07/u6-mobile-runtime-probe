@@ -225,6 +225,11 @@ public class PlayerStats : CharacterStats
     }    
     public override void TakeDamage(float damage, float composureDamage = 10f, Transform attacker = null)
     {
+        // HIGHFLY LAB v0.10: Vista del Instante only intercepts an actually lethal hit.
+        // The attacker/world never receives global time dilation; the player must still escape.
+        if (HighflyCombatLabV010.TryInterceptLethal(this, damage, attacker))
+            return;
+
         // HIGHFLY LAB: real frontal reflect window. Stable APP behavior is untouched
         // because this state only activates when ?lab=1 is active.
         if (HighflyReflectiveWallState.TryReflect(this, damage, composureDamage, attacker))
@@ -337,5 +342,12 @@ public class PlayerStats : CharacterStats
         InvokeEgoChanged(currentEgo, maxEgo);
 
         // (선택) 회복 이펙트/사운드 재생 등
+    }
+
+    // LAB-only raw damage path used after Vista del Instante's reaction window fails.
+    // This deliberately bypasses the lethal interceptor to avoid recursive re-triggering.
+    public void HighflyLabApplyRawDamage(float damage, Transform attacker = null)
+    {
+        base.TakeDamage(damage, 50.0f, attacker);
     }
 }
