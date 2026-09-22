@@ -1,4 +1,4 @@
-# HIGHFLY — MASTER SKILL AUDIT v0.8
+# HIGHFLY — MASTER SKILL AUDIT v0.9 APEX PASS
 
 ## Regla maestra
 
@@ -42,4 +42,15 @@ La clave `MechanicKey` de `HighflyMasterSkillTree.cs` identifica la firma de jug
 
 ## v0.8 runtime
 
-Este run no pretende implementar visualmente los ~80 nodos de una vez. Implementa la **arquitectura maestra**, browser scroll y fixes sistémicos, manteniendo las 13 skills runtime de v0.7 como banco de prueba visual. Los demás nodos quedan definidos para construirlos por tandas sin volver a diseñar el árbol.
+La v0.9 congela **120 nodos mecánicos** después de la pasada APEX: protagonistas, secundarios y especialistas de las cuatro referencias. El LAB expone **28 previews runtime**: las 13 familias visuales previas + 15 prototipos mecánicos nuevos (gravedad, percepción acelerada, orbitado/blindside, formación de siete espadas, sacrificio de arma, Bond, creación de sombra, corte temporal, Weapon Release, assault continuo, rule modifier y precast).
+
+## APEX PASS añadido
+
+- Shangri-La Frontier: Gravity Zero, Formula Drift, Moment Sight, Reserve Spell / parallel casting, Seven Sinker y formation counterplay, Scrap & Build, Victim Arts, continuous assault / rule-modifier concepts.
+- Sword Art Online / Alicization: weapon-memory release, recollection-overdrive como destino, future-position temporal cut y rama temporal.
+- Solo Leveling: Ragnarok: Beast Possession, Demon Strike, Spirit Armament, Shadow Creation, Frigid Blizzard, black-flame storm, Iron Body, poison archive y trackless movement.
+- Exiled Heavy Knight: Knight's Belief / penalty cancellation, controlled low-HP madness, Doppellusion y acrobatic critical branch.
+
+## Cierre de alcance
+
+A partir de v0.9, agregar una skill nueva exige demostrar una `MechanicKey` que no exista. Un ataque con otro nombre/color no crea un nodo nuevo. La construcción visual se hace BASE → EVOLUTION → FUSION → APEX sobre estas familias, sin reabrir el árbol salvo que aparezca una interacción realmente nueva.
