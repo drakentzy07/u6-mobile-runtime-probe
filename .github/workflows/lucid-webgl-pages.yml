@@ -3,7 +3,7 @@ name: Lucid WebGL Pages
 on:
   workflow_dispatch:
   push:
-    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10, highfly/skill-lab-v0.12-donor-vertical-slice, highfly/skill-lab-v0.13-production-pass]
+    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10, highfly/skill-lab-v0.12-donor-vertical-slice, highfly/skill-lab-v0.13-production-pass, highfly/skill-lab-v0.14-all-skills-gallery]
     paths:
       - "ci/**"
       - ".github/workflows/lucid-webgl-pages.yml"
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: skill-lab-v013-production-pass
+  group: skill-lab-v014-all-skills-gallery
   cancel-in-progress: true
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.13 Production Pass
+      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.14 All Skills Gallery
         shell: bash
         run: |
           set -euxo pipefail
@@ -166,7 +166,7 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.13" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.14" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "10 SKILLS OBJETIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyCombatLabBrowserV011.Install" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
@@ -277,7 +277,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v013-production-ual2-d26d0e9f-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v014-gallery-ual2-d26d0e9f-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
