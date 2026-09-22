@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using TMPro;
 using System.Collections;
 using System.IO;
+using Highfly.SkillLab;
 
 public class MainMenuController : MonoBehaviour
 {
@@ -45,6 +46,20 @@ public class MainMenuController : MonoBehaviour
         Cursor.visible = true;
         Cursor.lockState = CursorLockMode.None;
 
+        // LAB is a development surface, not a story session:
+        // never touch the normal save/new-game flow and skip the prologue entirely.
+        if (HighflySkillLabMode.IsActive)
+        {
+            Time.timeScale = 1f;
+            if (introText != null)
+                introText.gameObject.SetActive(false);
+            if (backgroundImage != null)
+                backgroundImage.SetActive(false);
+
+            StartCoroutine(DirectLabBoot());
+            return;
+        }
+
         LocalizeHighflyMenu();
 
         string savePath = Path.Combine(Application.persistentDataPath, "save.json");
@@ -58,6 +73,13 @@ public class MainMenuController : MonoBehaviour
             introText.gameObject.SetActive(false);
 
         StartCoroutine(FadeIn());
+    }
+
+    private IEnumerator DirectLabBoot()
+    {
+        // One frame lets the bootstrap root survive the scene transition cleanly.
+        yield return null;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Somnia");
     }
 
     private void LocalizeHighflyMenu()
