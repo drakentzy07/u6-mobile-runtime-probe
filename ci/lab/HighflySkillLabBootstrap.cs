@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.14");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.14.1");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,7 +184,7 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.14 • ALL SKILLS GALLERY\n" +
+                    "HIGHFLY • SKILL LAB v0.14.1 • ALL SKILLS GALLERY\n" +
                     "ARTE DEL SACRIFICIO • THROW/EMBED/DETONATE/RECALL • 3 MONSTRUOS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
