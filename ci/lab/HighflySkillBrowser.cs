@@ -392,7 +392,15 @@ namespace Highfly.SkillLab
                 id == HighflyPremiumSkillId.PhantomTwinDance ||
                 id == HighflyPremiumSkillId.AbyssalShackle ||
                 id == HighflyPremiumSkillId.ShadowJudgment ||
-                id == HighflyPremiumSkillId.EclipseRend;
+                id == HighflyPremiumSkillId.EclipseRend ||
+                id == HighflyPremiumSkillId.FormulaDrift ||
+                id == HighflyPremiumSkillId.SevenSinker ||
+                id == HighflyPremiumSkillId.VictimArts ||
+                id == HighflyPremiumSkillId.DemonStrike ||
+                id == HighflyPremiumSkillId.ShadowCreation ||
+                id == HighflyPremiumSkillId.TemporalCut ||
+                id == HighflyPremiumSkillId.MemoryRelease ||
+                id == HighflyPremiumSkillId.BoundlessMassacre;
         }
 
         private static float PreviewDuration(HighflyPremiumSkillId id)
@@ -407,6 +415,12 @@ namespace Highfly.SkillLab
                     return 1.95f;
                 case HighflyPremiumSkillId.VitalDomain:
                     return 1.70f;
+                case HighflyPremiumSkillId.MemoryRelease:
+                case HighflyPremiumSkillId.SevenSinker:
+                case HighflyPremiumSkillId.VictimArts:
+                    return 2.20f;
+                case HighflyPremiumSkillId.BoundlessMassacre:
+                    return 2.45f;
                 default:
                     return 1.55f;
             }
