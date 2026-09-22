@@ -153,7 +153,6 @@ namespace Highfly.SkillLab
             pr.offsetMax = new Vector2(-22f, 74f);
             _preview.onClick.AddListener(PreviewSelected);
 
-            Populate();
             Select(Core10[0], false);
             SetExpanded(false);
             HighflyLabTargetsV011.SetThreeTargetMode(_threeTargets);
