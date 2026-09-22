@@ -236,6 +236,11 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyCombatLabV010>() == null)
                 player.gameObject.AddComponent<HighflyCombatLabV010>();
 
+            Animator hunterAnimator = player.animator;
+            if (hunterAnimator != null &&
+                hunterAnimator.GetComponent<HighflyParkourAnimationV010>() == null)
+                hunterAnimator.gameObject.AddComponent<HighflyParkourAnimationV010>();
+
             if (player.GetComponent<HighflyLabDesktopControls>() == null)
                 player.gameObject.AddComponent<HighflyLabDesktopControls>();
 
