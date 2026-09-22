@@ -17,8 +17,13 @@ namespace Highfly.SkillLab
                     ? HighflyAdvancedSkillRuntime.Instance.GetCooldownRemaining(id)
                     : 0f;
 
-            return HighflyReferenceSkillRuntime.Instance != null
-                ? GetReferenceRemaining(id)
+            if ((int)id <= 13)
+                return HighflyReferenceSkillRuntime.Instance != null
+                    ? GetReferenceRemaining(id)
+                    : 0f;
+
+            return HighflyApexPassSkillRuntime.Instance != null
+                ? HighflyApexPassSkillRuntime.Instance.GetCooldownRemaining(id)
                 : 0f;
         }
 
