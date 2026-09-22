@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.12");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.13");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,14 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.12 • DONOR VERTICAL SLICE\n" +
+                    "HIGHFLY • SKILL LAB v0.13 • PRODUCTION PASS\n" +
                     "ARTE DEL SACRIFICIO • THROW/EMBED/DETONATE/RECALL • 3 MONSTRUOS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "SKILLS: botón minimizable • TARGET: 1 / TARGETS: 3\n" +
                     "10 SKILLS OBJETIVO • ARTE DEL SACRIFICIO = VERTICAL SLICE ACTIVO\n" +
-                    "ARTE v0.12 = donor-first runtime real • las demás siguen en iteración\n" +
+                    "PRODUCTION PASS • donor harvest • cero skills nuevas hasta cerrar calidad\n" +
                     "Arte = patrón vertical-slice • mecánica + arma + VFX + impacto + retorno\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
