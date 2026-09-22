@@ -26,6 +26,7 @@ namespace Highfly.SkillLab
         private bool _momentRoutine;
         private bool _scrapRoutine;
         private bool _beastRoutine;
+        private float _scrapPowerUntil;
 
         public bool FoolActive => Time.unscaledTime < _foolUntil;
 
