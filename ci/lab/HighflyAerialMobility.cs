@@ -15,6 +15,8 @@ namespace Highfly.SkillLab
         [SerializeField] private float wallJumpHorizontalSpeed = 6.3f;
         [SerializeField] private float wallProbeDistance = 0.95f;
         [SerializeField] private float wallProbeRadius = 0.18f;
+        [SerializeField] private float wallTrickChance = 0.48f;
+        [SerializeField] private float wallTrickDuration = 0.34f;
 
         private PlayerController _player;
         private CharacterController _cc;
@@ -23,6 +25,9 @@ namespace Highfly.SkillLab
         private bool _wallJumpUsed;
         private float _lastGroundedAt;
         private bool _wallImpulseActive;
+        private bool _wallTrickActive;
+        private bool _wasGrounded;
+        private float _lastAirVerticalSpeed;
 
         private readonly RaycastHit[] _wallHits = new RaycastHit[16];
 
@@ -44,6 +49,7 @@ namespace Highfly.SkillLab
             Instance = this;
             _player = GetComponent<PlayerController>();
             _cc = GetComponent<CharacterController>();
+            _wasGrounded = _player != null && _player.HighflyIsGrounded;
         }
 
         private void OnDestroy()
@@ -55,12 +61,23 @@ namespace Highfly.SkillLab
         {
             if (_player == null) return;
 
-            if (_player.HighflyIsGrounded)
+            bool grounded = _player.HighflyIsGrounded;
+
+            if (grounded)
             {
                 _lastGroundedAt = Time.unscaledTime;
                 _airJumpUsed = false;
                 _wallJumpUsed = false;
+
+                if (!_wasGrounded)
+                    SoftenLightLanding(_lastAirVerticalSpeed);
             }
+            else
+            {
+                _lastAirVerticalSpeed = _player.HighflyVerticalSpeed;
+            }
+
+            _wasGrounded = grounded;
         }
 
         public void RequestJump()
@@ -164,7 +181,10 @@ namespace Highfly.SkillLab
             if (!_wallImpulseActive)
                 StartCoroutine(WallImpulse(horizontal));
 
-            HighflySkillLabMetrics.RecordAction("MOVILIDAD • WALL JUMP", 0);
+            TryWallTrick(inputWorld, tangent);
+            HighflySkillLabMetrics.RecordAction(
+                _wallTrickActive ? "MOVILIDAD • WALL TRICK" : "MOVILIDAD • WALL JUMP",
+                0);
         }
 
         private IEnumerator WallImpulse(Vector3 direction)
@@ -183,6 +203,86 @@ namespace Highfly.SkillLab
             }
 
             _wallImpulseActive = false;
+        }
+
+        private void TryWallTrick(Vector3 inputWorld, Vector3 tangent)
+        {
+            if (_wallTrickActive || Random.value > wallTrickChance)
+                return;
+
+            if (_player == null || _player.animator == null)
+                return;
+
+            Transform visual = _player.animator.transform;
+
+            // Never rotate the physics/player root: the trick is presentation only.
+            if (visual == null || visual == transform)
+                return;
+
+            float lateral =
+                tangent.sqrMagnitude > 0.01f && inputWorld.sqrMagnitude > 0.01f
+                    ? Vector3.Dot(inputWorld.normalized, tangent.normalized)
+                    : 0f;
+
+            StartCoroutine(WallTrickVisual(visual, lateral));
+        }
+
+        private IEnumerator WallTrickVisual(Transform visual, float lateral)
+        {
+            _wallTrickActive = true;
+
+            Quaternion baseRotation = visual.localRotation;
+            bool sideFlip = Mathf.Abs(lateral) > 0.45f;
+            Vector3 axis = sideFlip ? Vector3.forward : Vector3.right;
+            float direction = sideFlip && lateral < 0f ? -1f : 1f;
+
+            float start = Time.unscaledTime;
+            while (visual != null &&
+                   Time.unscaledTime - start < wallTrickDuration)
+            {
+                float t =
+                    (Time.unscaledTime - start) /
+                    Mathf.Max(0.01f, wallTrickDuration);
+
+                float eased = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t));
+                visual.localRotation =
+                    baseRotation *
+                    Quaternion.AngleAxis(360f * eased * direction, axis);
+
+                yield return null;
+            }
+
+            if (visual != null)
+                visual.localRotation = baseRotation;
+
+            _wallTrickActive = false;
+        }
+
+        private void SoftenLightLanding(float lastVerticalSpeed)
+        {
+            if (_player == null || _player.animator == null)
+                return;
+
+            float impactSpeed = Mathf.Abs(Mathf.Min(0f, lastVerticalSpeed));
+
+            // Preserve deliberate heavy-landing poses; only remove the tiny
+            // crouched residue after ordinary jumps and parkour.
+            if (impactSpeed > 8.5f)
+                return;
+
+            Animator a = _player.animator;
+            int locomotion =
+                Animator.StringToHash("Base Layer.Locomotion");
+
+            if (a.HasState(0, locomotion))
+            {
+                a.CrossFadeInFixedTime(locomotion, 0.055f, 0);
+                return;
+            }
+
+            locomotion = Animator.StringToHash("Locomotion");
+            if (a.HasState(0, locomotion))
+                a.CrossFadeInFixedTime(locomotion, 0.055f, 0);
         }
 
         private bool TryFindWall(out Vector3 normal, out Vector3 point)
