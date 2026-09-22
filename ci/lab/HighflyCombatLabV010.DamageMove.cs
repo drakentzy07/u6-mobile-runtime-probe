@@ -48,7 +48,21 @@ namespace Highfly.SkillLab
             float damage = stage == 1 ? 8f : stage == 2 ? 9f : 11f;
             string label = stage < 3 ? "DANZA GEMELA • CADENA " + stage : "DANZA GEMELA • FINISHER";
 
-            if (_animator != null)
+            string twinClip =
+                stage == 1
+                    ? "Sword_Regular_A"
+                    : stage == 2
+                        ? "Sword_Regular_B"
+                        : "Sword_Regular_C";
+
+            bool playedTwin =
+                HighflyParkourAnimationV010.Instance != null &&
+                HighflyParkourAnimationV010.Instance.Play(
+                    twinClip,
+                    stage == 3 ? 1.14f : 1.08f,
+                    stage == 3 ? 0.62f : 0.48f);
+
+            if (!playedTwin && _animator != null)
             {
                 _animator.SetInteger("ComboStep", stage);
                 _animator.SetTrigger("doAttack");
@@ -98,6 +112,10 @@ namespace Highfly.SkillLab
             FaceTarget();
             Color c = new Color(1f, 0.34f, 0.10f, 1f);
             HighflySkillLabMetrics.RecordAction("PILE BREAKER • CARGANDO", 0);
+            HighflyParkourAnimationV010.Instance?.Play(
+                "Melee_Hook",
+                0.88f,
+                0.78f);
             for (int i = 0; i < 4; i++)
             {
                 SpawnRing(transform.position + Vector3.up * 1.05f, c, 0.35f + i * 0.18f, 0.22f);
@@ -117,6 +135,10 @@ namespace Highfly.SkillLab
         private IEnumerator BoundlessChainRoutine(bool preview)
         {
             FaceTarget();
+            HighflyParkourAnimationV010.Instance?.Play(
+                "Sword_Regular_Combo",
+                1.16f,
+                1.05f);
             CharacterStats target = Target(8f);
             if (target == null) yield break;
             Color c = new Color(0.58f, 0.18f, 1f, 1f);
@@ -136,6 +158,10 @@ namespace Highfly.SkillLab
         private IEnumerator DemonStrikeRoutine()
         {
             FaceTarget();
+            HighflyParkourAnimationV010.Instance?.Play(
+                "Melee_Hook",
+                1.06f,
+                0.62f);
             Color c = new Color(1f, 0.08f, 0.12f, 1f);
             Vector3 fist = transform.position + Vector3.up * 1.15f + transform.right * 0.35f + transform.forward * 0.25f;
             for (int i = 0; i < 5; i++)
@@ -155,6 +181,10 @@ namespace Highfly.SkillLab
 
         private IEnumerator PhantomStepRoutine()
         {
+            HighflyParkourAnimationV010.Instance?.Play(
+                "Sword_Dash",
+                1.18f,
+                0.48f);
             CharacterStats target = Target(12f);
             Vector3 dir = target != null ? target.transform.position - transform.position : transform.forward;
             dir.y = 0f; if (dir.sqrMagnitude < 0.01f) dir = transform.forward; dir.Normalize();
