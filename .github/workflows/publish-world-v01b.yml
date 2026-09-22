@@ -19,40 +19,60 @@ concurrency:
 
 jobs:
   stage:
-    name: Reuse verified WORLD v0.1B artifact
+    name: Merge Skill Lab v0.14 + WORLD v0.1B
     runs-on: ubuntu-latest
     steps:
-      - name: Download verified combined Pages artifact from WORLD Run 35787916177
+      - name: Download latest Skill Lab v0.14 Pages artifact
         uses: actions/download-artifact@v4
         with:
           name: github-pages
-          path: source-artifact
+          path: skill-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35791212462
+
+      - name: Download verified WORLD v0.1B Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: world-artifact
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: 35787916177
 
-      - name: Extract verified combined site
+      - name: Build combined Pages site
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p site
-          test -f source-artifact/artifact.tar
-          tar -xf source-artifact/artifact.tar -C site
+          mkdir -p site world-source
+
+          test -f skill-artifact/artifact.tar
+          tar -xf skill-artifact/artifact.tar -C site
           test -f site/index.html
-          test -f site/world-v01b/index.html
+
+          test -f world-artifact/artifact.tar
+          tar -xf world-artifact/artifact.tar -C world-source
+          test -f world-source/world-v01b/index.html
+
+          rm -rf site/world-v01b
+          cp -a world-source/world-v01b site/world-v01b
           echo "HIGHFLY WORLD v0.1B - DIRECT SOMNIA + PERSISTENT SAFE ZONE" > site/world-v01b/version.txt
+
+          test -f site/world-v01b/index.html
+          test -f site/world-v01b/Build/WebGL.loader.js
           touch site/.nojekyll
+
+          echo "Combined site ready:"
           du -sh site site/world-v01b
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Re-upload verified combined site as Pages artifact
+      - name: Upload combined Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: site
 
   deploy:
-    name: Deploy HIGHFLY World v0.1B
+    name: Deploy Skill Lab v0.14 + WORLD v0.1B
     needs: stage
     runs-on: ubuntu-latest
     environment:
