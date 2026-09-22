@@ -166,7 +166,7 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.14" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.14.1" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "10 SKILLS OBJETIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyCombatLabBrowserV011.Install" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
@@ -192,6 +192,8 @@ jobs:
           grep -q "AnimationPlayableOutput" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           grep -q "PrepareParkourAnimations" ci/HighflyCiWebGLBuilder.cs
           grep -q "MASTER SKILL TREE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
+          grep -q "HighflySkillBrowser.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY v0.14.1 • ALL SKILLS GALLERY • 28 PREVIEWS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
           grep -q "HighflyMasterSkillTree" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
           grep -q "RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
           grep -q "GRAVEDAD CERO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
@@ -309,6 +311,14 @@ jobs:
           chmod -R u+rwX "$OUT"
           test -w "$OUT"
           touch "$OUT/.nojekyll"
+
+          # v0.14.1 cache bust: force mobile browsers to request this exact WebGL payload.
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0141"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=0141"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0141"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0141"#' "$OUT/index.html"
+          grep -q "v=0141" "$OUT/index.html"
+
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
 
