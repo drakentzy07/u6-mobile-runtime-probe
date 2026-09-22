@@ -19,6 +19,7 @@ namespace Highfly.SkillLab
             new Dictionary<HighflyPremiumSkillId, float>();
 
         private float _foolUntil;
+        private float _scrapPowerUntil;
         private bool _reserveReady;
         private Vector3 _reservePoint;
         private bool _gravityRoutine;
@@ -134,8 +135,13 @@ namespace Highfly.SkillLab
             if (target == null || target == _stats)
                 return;
 
-            target.TakeDamage(damage, composure, transform);
-            HighflySkillLabMetrics.RecordHit(damage);
+            float finalDamage =
+                Time.unscaledTime < _scrapPowerUntil
+                    ? damage * 1.42f
+                    : damage;
+
+            target.TakeDamage(finalDamage, composure, transform);
+            HighflySkillLabMetrics.RecordHit(finalDamage);
             HighflySkillLabMetrics.RecordAction(label, 0);
         }
 
@@ -372,12 +378,10 @@ namespace Highfly.SkillLab
 
             float oldMove = _player.moveSpeed;
             float oldSprint = _player.sprintSpeed;
-            PlayerWeapon weapon = _player.myWeapon;
-            float oldDamage = weapon != null ? weapon.damage : 0f;
 
             _player.moveSpeed *= 1.24f;
             _player.sprintSpeed *= 1.30f;
-            if (weapon != null) weapon.damage = oldDamage * 1.42f;
+            _scrapPowerUntil = Time.unscaledTime + 5.0f;
 
             Color color = new Color(1f, 0.52f, 0.12f, 1f);
             SpawnShardBurst(transform.position + Vector3.up * 1.0f, color, 12);
@@ -387,7 +391,7 @@ namespace Highfly.SkillLab
 
             _player.moveSpeed = oldMove;
             _player.sprintSpeed = oldSprint;
-            if (weapon != null) weapon.damage = oldDamage;
+            _scrapPowerUntil = 0f;
 
             _scrapRoutine = false;
         }
