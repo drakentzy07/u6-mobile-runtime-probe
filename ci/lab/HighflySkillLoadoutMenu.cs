@@ -153,7 +153,23 @@ namespace Highfly.SkillLab
                 "Deja un clon señuelo, reposiciona y contraataca.",
                 "Familia engaño / clon / evasión.",
                 true,
-                8f)
+                8f),
+
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.GravityZero,"GRAVEDAD CERO","MOVILIDAD / GRAVEDAD","Convierte pared/superficie en trayectoria y altera el eje del cuerpo.","Base APEX de movilidad tridimensional.",true,6f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.MomentSight,"VISTA DEL INSTANTE","PERCEPCIÓN / PRECISIÓN","Ventana de percepción acelerada con jugador compensado.","Base APEX de precisión y reacción.",true,9f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.FormulaDrift,"DRIFT DE FÓRMULA","MOVILIDAD / BLINDSIDE","Orbita al objetivo y termina en su punto ciego.","Evolución de Deriva.",true,3.8f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.SevenSinker,"SEVEN SINKER","ESPADAS REMOTAS / CONTROL","Siete espadas forman prisión gravitatoria rompible.","APEX de espadas sirvientes.",true,12f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.ScrapBuild,"SCRAP & BUILD","SACRIFICIO / BUFF","Simula sacrificar arma para convertirla en poder temporal.","APEX de riesgo con arma.",true,14f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.VictimArts,"ARTE DEL SACRIFICIO","DAGA / EXPLOSIÓN","Convierte el arma sacrificada en detonación de rareza.","APEX de daga sacrificial.",true,11f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.BeastPossession,"POSESIÓN BESTIAL","BOND / TRANSFORMACIÓN","Fusión temporal: velocidad, daño, sentidos y garras.","Rama Bond de Ragnarok.",true,16f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.DemonStrike,"GOLPE DEMONÍACO","BOND / CHARGE","Carga energía en un miembro y descarga un impacto concentrado.","Rama Bond de Ragnarok.",true,7f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.SpiritArmament,"ARMAMENTO ESPIRITUAL","SOMBRA / BOND","Los summons absorben espíritus y reciben overdrive temporal.","Fusión sombra + Bond.",true,15f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.ShadowCreation,"CREACIÓN DE SOMBRA","SOMBRA / ARMA","Materializa un arma desde una sombra y la usa como proyectil/filo.","Evolución utilitaria de Extracción.",true,6f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.TemporalCut,"CORTE FUTURO","TEMPORAL / TRAMPA","Marca una posición; el corte ocurre después aunque el blanco se mueva.","APEX temporal.",true,10f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.MemoryRelease,"LIBERACIÓN DE MEMORIA","ARMA / RELEASE","El arma libera su identidad en una fase ofensiva especial.","APEX de arma vinculada.",true,18f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.BoundlessMassacre,"MASACRE SIN LÍMITE","MULTI-HIT / RESISTENCIA","Ráfaga continua cuya identidad es sostener presión, no un número fijo de tajos.","APEX de endurance.",true,10f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.TheFool,"EL LOCO","REGLA / RIESGO","Reduce recast de la tanda v0.9 a cambio de una ventana de vulnerabilidad.","APEX de reglas/riesgo.",true,20f),
+            new HighflySkillDefinitionLite(HighflyPremiumSkillId.ReserveSpell,"RESERVA ARCANA","MAGIA / PRECAST","Primer toque almacena; segundo toque libera el hechizo ya preparado.","Base de casting paralelo.",true,5f)
         };
 
         public static HighflySkillDefinitionLite Get(HighflyPremiumSkillId id)
