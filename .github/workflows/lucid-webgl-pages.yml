@@ -187,7 +187,8 @@ jobs:
           grep -q "DAÑO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV010.cs
           grep -q "wallTrickChance = 1.0f" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           grep -q "NinjaJump_Land" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
-          grep -q "Sword_Regular_A" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.DamageMove.cs
+          grep -q 'SetTrigger("doAttack")' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.DamageMove.cs
+          if grep -q "Sword_Regular_A" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.DamageMove.cs; then echo "ERROR: v0.13 must not force incompatible UAL sword clips"; exit 1; fi
           grep -q "AnimationPlayableOutput" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           grep -q "PrepareParkourAnimations" ci/HighflyCiWebGLBuilder.cs
           grep -q "MASTER SKILL TREE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
