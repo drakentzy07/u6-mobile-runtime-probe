@@ -3,7 +3,7 @@ name: Lucid WebGL Pages
 on:
   workflow_dispatch:
   push:
-    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10]
+    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10, highfly/skill-lab-v0.12-donor-vertical-slice]
     paths:
       - "ci/**"
       - ".github/workflows/lucid-webgl-pages.yml"
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: skill-lab-v011-premium-slf10
+  group: skill-lab-v012-donor-vertical-slice
   cancel-in-progress: true
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.11 Premium SLF10
+      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.12 Donor Vertical Slice
         shell: bash
         run: |
           set -euxo pipefail
@@ -102,6 +102,7 @@ jobs:
           cp ci/lab/HighflyCombatLabBrowserV010.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV010.cs
           cp ci/lab/HighflyCombatLabBrowserV011.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           cp ci/lab/HighflyLabTargetsV011.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
+          cp ci/lab/HighflyArteSacrificioV012.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           cp ci/lab/HighflyParkourAnimationV010.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
 
           # CC0 Quaternius Universal Animation Library 2 v2.1.
@@ -155,6 +156,7 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV010.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Parkour/UAL2_Standard.fbx
           test "$(stat -c%s LucidHost/3D_game/Assets/HIGHFLY/Parkour/UAL2_Standard.fbx)" -gt 20000000
@@ -164,10 +166,13 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.11" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.12" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "10 SKILLS OBJETIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyCombatLabBrowserV011.Install" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HighflyArteSacrificioV012" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "ARTE DEL SACRIFICIO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
+          grep -q "Dragon Souls" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           grep -q "SKILLS  ☰" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           grep -q "TARGETS: 3" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           grep -q "MONSTER_SMALL_GOBLIN" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs

@@ -8,7 +8,7 @@ namespace Highfly.SkillLab
 {
     public static class HighflySkillLabMode
     {
-        // v0.11 is a dedicated LAB artifact. It must never fall through to Lucid's story/prologue.
+        // v0.12 is a dedicated LAB artifact. It must never fall through to Lucid's story/prologue.
         public static bool IsActive => true;
     }
 
@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.11");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.12");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,14 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.11 • PREMIUM SLF CORE 10\n" +
-                    "10 SKILLS OBJETIVO • 3 MONSTRUOS • PREMIUM PASS\n" +
+                    "HIGHFLY • SKILL LAB v0.12 • DONOR VERTICAL SLICE\n" +
+                    "ARTE DEL SACRIFICIO • THROW/EMBED/DETONATE/RECALL • 3 MONSTRUOS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "SKILLS: botón minimizable • TARGET: 1 / TARGETS: 3\n" +
-                    "Skills activas = preview real • grisadas = diseño aún sin runtime\n" +
-                    "Danza Gemela = skill patrón • timing + dirección + trayectoria\n\n" +
+                    "ARTE v0.12 = donor-first runtime real • las demás siguen en iteración\n" +
+                    "Arte = patrón vertical-slice • mecánica + arma + VFX + impacto + retorno\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -235,6 +235,9 @@ namespace Highfly.SkillLab
 
             if (player.GetComponent<HighflyCombatLabV010>() == null)
                 player.gameObject.AddComponent<HighflyCombatLabV010>();
+
+            if (player.GetComponent<HighflyArteSacrificioV012>() == null)
+                player.gameObject.AddComponent<HighflyArteSacrificioV012>();
 
             Animator hunterAnimator = player.animator;
             if (hunterAnimator != null &&

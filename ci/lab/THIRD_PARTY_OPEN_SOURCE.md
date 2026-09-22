@@ -39,3 +39,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+
+## Dragon Souls donor vertical slice (v0.12)
+- Source: btuhany/DragonSouls-Unity3D
+- License: MIT (repository LICENSE; code attribution retained in HighflyArteSacrificioV012.cs)
+- HIGHFLY use: throw / embed / curved return state-machine concepts and substantial control-flow adaptation.
+- Not imported wholesale: DG.Tweening, donor-specific PlayerStateMachine, Sounds, Damage and third-party raw art are intentionally excluded.
+- SubspaceHunter-SAO public skill code is used as a sequencing reference for projectile spawn / release / hit-feedback patterns; SAO/IP assets and mixed third-party raw packages are not committed.

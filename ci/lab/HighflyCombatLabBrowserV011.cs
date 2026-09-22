@@ -14,14 +14,18 @@ namespace Highfly.SkillLab
             public string Category;
             public string Status;
             public HighflyCombatSkillV010? RuntimeSkill;
+            public bool ArteV012;
 
-            public Entry(string name, string category, string status, HighflyCombatSkillV010? runtimeSkill)
+            public Entry(string name, string category, string status, HighflyCombatSkillV010? runtimeSkill, bool arteV012 = false)
             {
                 Name = name;
                 Category = category;
                 Status = status;
                 RuntimeSkill = runtimeSkill;
+                ArteV012 = arteV012;
             }
+
+            public bool Playable => RuntimeSkill.HasValue || ArteV012;
         }
 
         private static readonly Entry[] Core10 =
@@ -33,7 +37,7 @@ namespace Highfly.SkillLab
             new Entry("CADENA SIN LÍMITE", "DAÑO", "SEMI-COCINADA", HighflyCombatSkillV010.BoundlessChain),
             new Entry("SEVEN SINKER • REFORGED", "CONTROL", "PROTOTIPO+", HighflyCombatSkillV010.SevenSinkerReforged),
             new Entry("SCRAP & BUILD • REFORGED", "TÁCTICA", "EN PREPARACIÓN", null),
-            new Entry("ARTE DEL SACRIFICIO", "TÁCTICA", "EN PREPARACIÓN", null),
+            new Entry("ARTE DEL SACRIFICIO", "TÁCTICA", "VERTICAL SLICE v0.12", null, true),
             new Entry("COUNTERFORGE", "DEFENSA", "EN PREPARACIÓN", null),
             new Entry("EDGE RUNNER", "MOVIMIENTO", "PARKOUR CORE", null)
         };
@@ -55,7 +59,7 @@ namespace Highfly.SkillLab
             HighflyCombatLabBrowserV011 existing = UnityEngine.Object.FindFirstObjectByType<HighflyCombatLabBrowserV011>();
             if (existing != null) return existing;
 
-            GameObject go = new GameObject("HIGHFLY_COMBAT_BROWSER_v0.11");
+            GameObject go = new GameObject("HIGHFLY_COMBAT_BROWSER_v0.12");
             go.transform.SetParent(parent, false);
             return go.AddComponent<HighflyCombatLabBrowserV011>();
         }
@@ -98,7 +102,7 @@ namespace Highfly.SkillLab
             _panel.GetComponent<Image>().color = new Color(0.012f, 0.021f, 0.038f, 0.955f);
 
             _title = CreateLabel(_panel.transform,
-                "HIGHFLY • SKILL LAB v0.11\nSLF PREMIUM CORE 10",
+                "HIGHFLY • SKILL LAB v0.12\nDONOR VERTICAL SLICE",
                 25, TextAnchor.UpperLeft, new Color(0.89f, 0.97f, 1f, 1f));
             SetTopRect(_title.rectTransform, 22f, 18f, -22f, 72f);
 
@@ -117,7 +121,7 @@ namespace Highfly.SkillLab
             targetMode.onClick.AddListener(ToggleTargets);
 
             Text hint = CreateLabel(_panel.transform,
-                "TOCÁ UNA SKILL PARA PREVIEW • LAS GRISADAS AÚN NO SE EJECUTAN",
+                "ARTE DEL SACRIFICIO = DONOR FIRST • THROW → EMBED → DETONATE/RECALL",
                 15, TextAnchor.MiddleLeft, new Color(0.68f, 0.76f, 0.84f, 1f));
             RectTransform hr = hint.rectTransform;
             hr.anchorMin = hr.anchorMax = new Vector2(0f, 1f);
@@ -200,7 +204,7 @@ namespace Highfly.SkillLab
             for (int i = 0; i < Core10.Length; i++)
             {
                 Entry entry = Core10[i];
-                bool playable = entry.RuntimeSkill.HasValue;
+                bool playable = entry.Playable;
                 Color accent = CategoryColor(entry.Category);
                 Color bg = playable
                     ? new Color(0.028f, 0.045f, 0.072f, 0.97f)
@@ -242,7 +246,7 @@ namespace Highfly.SkillLab
         private void Select(Entry entry, bool autoPreview)
         {
             _selected = entry;
-            bool playable = entry != null && entry.RuntimeSkill.HasValue;
+            bool playable = entry != null && entry.Playable;
             if (_manual != null) _manual.interactable = playable;
             if (_preview != null) _preview.interactable = playable;
 
@@ -250,22 +254,34 @@ namespace Highfly.SkillLab
             {
                 _info.text = entry.Name + "\n" +
                              entry.Category + " • " + entry.Status + "\n" +
-                             (playable ? "RUNTIME ACTIVO • lista para iterar" : "DISEÑO BLOQUEADO • aún sin runtime v0.11");
+                             (entry.ArteV012 ? "RUNTIME v0.12 • arma real + vuelo + embed + recall + detonación" :
+                              playable ? "RUNTIME ACTIVO • lista para iterar" : "DISEÑO BLOQUEADO • aún sin runtime dedicado");
             }
 
             if (autoPreview && playable)
-                HighflyCombatLabV010.Instance?.ForcePreview(entry.RuntimeSkill.Value);
+            {
+                if (entry.ArteV012)
+                    HighflyArteSacrificioV012.Instance?.ForcePreview();
+                else if (entry.RuntimeSkill.HasValue)
+                    HighflyCombatLabV010.Instance?.ForcePreview(entry.RuntimeSkill.Value);
+            }
         }
 
         private void ManualSelected()
         {
-            if (_selected != null && _selected.RuntimeSkill.HasValue)
+            if (_selected == null) return;
+            if (_selected.ArteV012)
+                HighflyArteSacrificioV012.Instance?.TriggerManual();
+            else if (_selected.RuntimeSkill.HasValue)
                 HighflyCombatLabV010.Instance?.TriggerManual(_selected.RuntimeSkill.Value);
         }
 
         private void PreviewSelected()
         {
-            if (_selected != null && _selected.RuntimeSkill.HasValue)
+            if (_selected == null) return;
+            if (_selected.ArteV012)
+                HighflyArteSacrificioV012.Instance?.ForcePreview();
+            else if (_selected.RuntimeSkill.HasValue)
                 HighflyCombatLabV010.Instance?.ForcePreview(_selected.RuntimeSkill.Value);
         }
 
