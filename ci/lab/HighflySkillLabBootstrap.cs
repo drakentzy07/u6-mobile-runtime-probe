@@ -8,7 +8,7 @@ namespace Highfly.SkillLab
 {
     public static class HighflySkillLabMode
     {
-        // v0.10 is a dedicated LAB artifact. It must never fall through to Lucid's story/prologue.
+        // v0.11 is a dedicated LAB artifact. It must never fall through to Lucid's story/prologue.
         public static bool IsActive => true;
     }
 
@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.10");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.11");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,14 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • COMBAT FEEL LAB v0.10 • SLF CORE\n" +
-                    "20 CORE SKILLS • SHADOW IDENTITY • SKILL EXPRESSION\n" +
+                    "HIGHFLY • SKILL LAB v0.11 • PREMIUM SLF CORE 10\n" +
+                    "10 SKILLS OBJETIVO • 3 MONSTRUOS • PREMIUM PASS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "Panel izquierdo: DAÑO / MOV / CONTROL / SOMBRA / BUFF / DEF / TÁCTICA\n" +
-                    "TOCÁ una skill = preview automático • PROBAR MANUAL = ejecución real\n" +
-                    "Danza Gemela exige timing • Vista del Instante sólo ante golpe letal\n\n" +
+                    "SKILLS: botón minimizable • TARGET: 1 / TARGETS: 3\n" +
+                    "Skills activas = preview real • grisadas = diseño aún sin runtime\n" +
+                    "Danza Gemela = skill patrón • timing + dirección + trayectoria\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -244,12 +244,10 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyLabDesktopControls>() == null)
                 player.gameObject.AddComponent<HighflyLabDesktopControls>();
 
-            CreateDummy(new Vector3(0f, LabY + 1.0f, 3.5f));
-            CreateDummy(new Vector3(-3.4f, LabY + 1.0f, 5.3f));
-            CreateDummy(new Vector3(3.4f, LabY + 1.0f, 5.3f));
+            HighflyLabTargetsV011.BuildThreeTargetRange(LabY);
 
             CreateMetricsHud();
-            HighflyCombatLabBrowserV010.Install(transform);
+            HighflyCombatLabBrowserV011.Install(transform);
 
             Camera cam = Camera.main;
             if (cam != null)
