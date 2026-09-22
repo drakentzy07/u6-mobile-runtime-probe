@@ -990,10 +990,8 @@ namespace Highfly.SkillLab
             if (_hitStopRunning) yield break;
             _hitStopRunning = true;
 
-            float previous = Time.timeScale;
-            Time.timeScale = 0.08f;
+            HighflyTimeDilationManager.RequestHitStop(duration, 0.08f);
             yield return new WaitForSecondsRealtime(duration);
-            Time.timeScale = previous <= 0f ? 1f : previous;
             _hitStopRunning = false;
         }
 
