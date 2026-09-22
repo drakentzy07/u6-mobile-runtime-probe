@@ -70,7 +70,13 @@ namespace Highfly.SkillLab
                 _wallJumpUsed = false;
 
                 if (!_wasGrounded)
+                {
+                    HighflyParkourAnimationV010.Instance?.Play(
+                        "NinjaJump_Land",
+                        1.18f,
+                        0.30f);
                     SoftenLightLanding(_lastAirVerticalSpeed);
+                }
             }
             else
             {
@@ -87,6 +93,10 @@ namespace Highfly.SkillLab
 
             if (_player.HighflyIsGrounded)
             {
+                HighflyParkourAnimationV010.Instance?.Play(
+                    "NinjaJump_Start",
+                    1.10f,
+                    0.42f);
                 _player.HighflyPerformBaseJump();
                 SpawnJumpRing(
                     transform.position + Vector3.up * 0.04f,
@@ -114,7 +124,11 @@ namespace Highfly.SkillLab
         private void PerformDoubleJump()
         {
             _airJumpUsed = true;
-            _player.HighflyLabSetVerticalSpeed(doubleJumpSpeed, true);
+            HighflyParkourAnimationV010.Instance?.Play(
+                "NinjaJump_Start",
+                1.18f,
+                0.38f);
+            _player.HighflyLabSetVerticalSpeed(doubleJumpSpeed, false);
 
             Color air = new Color(0.18f, 0.72f, 1f, 1f);
 
@@ -159,7 +173,11 @@ namespace Highfly.SkillLab
             transform.rotation =
                 Quaternion.LookRotation(horizontal, Vector3.up);
 
-            _player.HighflyLabSetVerticalSpeed(wallJumpVerticalSpeed, true);
+            HighflyParkourAnimationV010.Instance?.Play(
+                "NinjaJump_Start",
+                1.22f,
+                0.42f);
+            _player.HighflyLabSetVerticalSpeed(wallJumpVerticalSpeed, false);
 
             Color wall = new Color(0.72f, 0.32f, 1f, 1f);
 
