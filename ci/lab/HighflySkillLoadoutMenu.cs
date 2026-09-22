@@ -42,10 +42,10 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId.TwinDance,
                 "DANZA GEMELA",
                 "ARMA / COMBO",
-                "Cada activación garantiza doble corte; la cadena escala a triple/X.",
+                "Doble corte por activación; CD real sólo después del finisher.",
                 "Base de DANZA FANTASMA.",
                 true,
-                0.28f),
+                1.35f),
 
             new HighflySkillDefinitionLite(
                 HighflyPremiumSkillId.PhantomStep,
@@ -60,7 +60,7 @@ namespace Highfly.SkillLab
                 HighflyPremiumSkillId.ShadowShackle,
                 "GRILLETE UMBRÍO",
                 "SOMBRA / CONTROL",
-                "Garra 3D de sombra, cadena segmentada, root y pull.",
+                "Mano 3D articulada, cadena segmentada, root y pull.",
                 "Evoluciona a GRILLETE ABISAL.",
                 true,
                 4.5f),
