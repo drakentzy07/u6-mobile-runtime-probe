@@ -1,4 +1,4 @@
-name: HIGHFLY World Integration v0.1A
+name: HIGHFLY World Integration v0.1B
 
 on:
   workflow_dispatch:
@@ -9,7 +9,7 @@ on:
       - "ci/mobile/**"
       - "ci/combat/**"
       - "ci/lab/**"
-      - "ci/HighflyCiWebGLBuilder.cs"
+      - "ci/world/HighflyWorldCiWebGLBuilder.cs"
       - ".github/workflows/world-integration-v01a.yml"
 
 permissions:
@@ -18,12 +18,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: highfly-world-v01a-pages
+  group: highfly-world-v01b-pages
   cancel-in-progress: false
 
 jobs:
   build:
-    name: Build HIGHFLY World v0.1A
+    name: Build HIGHFLY World v0.1B
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -69,7 +69,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Golden Core + World v0.1A
+      - name: Install HIGHFLY Golden Core + World v0.1B
         shell: bash
         run: |
           set -euxo pipefail
@@ -119,7 +119,7 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
-          grep -q "HIGHFLY_WORLD_v0.1A" LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
+          grep -q "HIGHFLY_WORLD_v0.1B" LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyCombatCore.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
@@ -199,15 +199,15 @@ jobs:
         run: |
           set -euxo pipefail
           mkdir -p LucidHost/3D_game/Assets/Editor
-          cp ci/HighflyCiWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyCiWebGLBuilder.cs
+          cp ci/world/HighflyWorldCiWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyCiWebGLBuilder.cs
 
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-world-v01a-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**', 'ci/world/**') }}
+          key: lucid-6000.4.0f1-world-v01b-${{ hashFiles('ci/world/HighflyWorldCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**', 'ci/world/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-world-v01a-
+            lucid-6000.4.0f1-world-v01b-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v07-preview-rework-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
             lucid-6000.4.0f1-webgl-mobile-v06-
@@ -223,7 +223,7 @@ jobs:
           projectPath: LucidHost/3D_game
           unityVersion: 6000.4.0f1
           targetPlatform: WebGL
-          buildMethod: Highfly.CI.WebGLBuilder.Build
+          buildMethod: Highfly.CI.WorldWebGLBuilder.Build
           allowDirtyBuild: true
 
       - name: Verify WebGL output
@@ -247,7 +247,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: 35776071753
 
-      - name: Merge WORLD v0.1A under /world-v01a
+      - name: Merge WORLD v0.1B under /world-v01b
         shell: bash
         run: |
           set -euxo pipefail
@@ -255,12 +255,12 @@ jobs:
           test -f root-artifact/artifact.tar
           tar -xf root-artifact/artifact.tar -C site
           test -f site/index.html
-          mkdir -p site/world-v01a
-          cp -a LucidHost/3D_game/build/WebGL/. site/world-v01a/
-          echo "HIGHFLY WORLD v0.1A - SAFE ZONE" > site/world-v01a/version.txt
-          test -f site/world-v01a/index.html
+          mkdir -p site/world-v01b
+          cp -a LucidHost/3D_game/build/WebGL/. site/world-v01b/
+          echo "HIGHFLY WORLD v0.1B - SAFE ZONE" > site/world-v01b/version.txt
+          test -f site/world-v01b/index.html
           touch site/.nojekyll
-          du -sh site site/world-v01a
+          du -sh site site/world-v01b
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
@@ -271,7 +271,7 @@ jobs:
           path: site
 
   deploy:
-    name: Deploy HIGHFLY World v0.1A
+    name: Deploy HIGHFLY World v0.1B
     needs: build
     runs-on: ubuntu-latest
     environment:
