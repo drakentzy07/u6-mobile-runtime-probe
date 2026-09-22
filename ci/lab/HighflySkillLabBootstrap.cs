@@ -190,6 +190,7 @@ namespace Highfly.SkillLab
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "SKILLS: botón minimizable • TARGET: 1 / TARGETS: 3\n" +
+                    "10 SKILLS OBJETIVO • ARTE DEL SACRIFICIO = VERTICAL SLICE ACTIVO\n" +
                     "ARTE v0.12 = donor-first runtime real • las demás siguen en iteración\n" +
                     "Arte = patrón vertical-slice • mecánica + arma + VFX + impacto + retorno\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
