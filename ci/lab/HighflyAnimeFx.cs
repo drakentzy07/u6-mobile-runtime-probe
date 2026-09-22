@@ -196,7 +196,7 @@ namespace Highfly.SkillLab
         {
             if (target == null) return null;
 
-            var go = new GameObject("HF_SHADOW_CLAW_PREMIUM");
+            var go = new GameObject("HF_SHADOW_HAND_PREMIUM");
             var fx = go.AddComponent<HighflyShadowClawFx>();
             fx.Initialize(target, duration);
             return fx;
@@ -403,6 +403,7 @@ namespace Highfly.SkillLab
         private float _start;
         private float _duration;
         private Transform _palm;
+        private Transform _wrist;
         private Transform[,] _segments;
         private Material _dark;
         private Material _core;
@@ -422,6 +423,7 @@ namespace Highfly.SkillLab
                 new Color(0.72f, 0.16f, 1f, 1f) * 4.0f);
 
             _palm = CreateCube("Palm", _dark);
+            _wrist = CreateCube("Wrist", _dark);
             _segments = new Transform[5, 3];
 
             for (int f = 0; f < 5; f++)
@@ -491,7 +493,14 @@ namespace Highfly.SkillLab
             {
                 _palm.position = palmCenter;
                 _palm.rotation = Quaternion.LookRotation(-back, Vector3.up);
-                _palm.localScale = new Vector3(1.25f, 0.18f, 0.88f);
+                _palm.localScale = new Vector3(1.34f, 0.30f, 0.92f);
+            }
+
+            if (_wrist != null)
+            {
+                _wrist.position = palmCenter + back * 0.50f - Vector3.up * 0.02f;
+                _wrist.rotation = Quaternion.LookRotation(-back, Vector3.up);
+                _wrist.localScale = new Vector3(0.72f, 0.34f, 0.64f);
             }
 
             for (int f = 0; f < 5; f++)
@@ -528,6 +537,7 @@ namespace Highfly.SkillLab
         private void DestroyParts()
         {
             if (_palm != null) Destroy(_palm.gameObject);
+            if (_wrist != null) Destroy(_wrist.gameObject);
 
             if (_segments != null)
             {
@@ -634,6 +644,8 @@ namespace Highfly.SkillLab
     {
         private Transform _owner;
         private float _end;
+        private Transform _barrierBody;
+        private Material _barrierMaterial;
         private readonly List<Transform> _layers = new List<Transform>();
 
         public void Initialize(Transform owner, Color color, float duration)
@@ -645,11 +657,51 @@ namespace Highfly.SkillLab
             transform.localPosition = new Vector3(0f, 1.05f, 1.45f);
             transform.localRotation = Quaternion.identity;
 
+            CreateBarrierBody(color);
+
             _layers.Add(CreateArc("Outer", color, 1.65f, 0.080f, 54, 145f));
             _layers.Add(CreateArc("Mid", Color.white, 1.28f, 0.036f, 46, 138f));
             _layers.Add(CreateArc("Inner", color, 0.88f, 0.030f, 38, 132f));
 
             CreateSpokes(color);
+        }
+
+        private void CreateBarrierBody(Color color)
+        {
+            var root = new GameObject("BarrierBody");
+            root.transform.SetParent(transform, false);
+            _barrierBody = root.transform;
+
+            _barrierMaterial =
+                HighflyPremiumFx.CreateTransparentMaterial(
+                    new Color(color.r, color.g, color.b, 0.20f),
+                    color * 1.85f);
+
+            CreateBarrierPlate("Core", Vector3.zero, new Vector3(3.05f, 2.18f, 0.16f));
+            CreateBarrierPlate("LeftWing", new Vector3(-1.52f, -0.02f, 0.07f), new Vector3(0.18f, 2.48f, 0.26f));
+            CreateBarrierPlate("RightWing", new Vector3(1.52f, -0.02f, 0.07f), new Vector3(0.18f, 2.48f, 0.26f));
+            CreateBarrierPlate("Base", new Vector3(0f, -1.08f, 0.07f), new Vector3(3.18f, 0.16f, 0.28f));
+            CreateBarrierPlate("Crown", new Vector3(0f, 1.08f, 0.07f), new Vector3(3.18f, 0.16f, 0.28f));
+        }
+
+        private void CreateBarrierPlate(string name, Vector3 localPosition, Vector3 localScale)
+        {
+            GameObject plate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            plate.name = name;
+            plate.transform.SetParent(_barrierBody, false);
+            plate.transform.localPosition = localPosition;
+            plate.transform.localRotation = Quaternion.identity;
+            plate.transform.localScale = localScale;
+
+            Collider col = plate.GetComponent<Collider>();
+            if (col != null) Destroy(col);
+
+            Renderer r = plate.GetComponent<Renderer>();
+            if (r != null)
+            {
+                r.sharedMaterial = _barrierMaterial;
+                r.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
         }
 
         private Transform CreateArc(
@@ -722,7 +774,11 @@ namespace Highfly.SkillLab
                 return;
             }
 
-            float dt = Time.unscaledDeltaTime;
+            if (_barrierBody != null)
+            {
+                float pulse = 1f + Mathf.Sin(Time.unscaledTime * 6.5f) * 0.012f;
+                _barrierBody.localScale = new Vector3(pulse, pulse, 1f);
+            }
 
             for (int i = 0; i < _layers.Count; i++)
             {
@@ -737,6 +793,12 @@ namespace Highfly.SkillLab
                     0f,
                     Mathf.Sin(Time.unscaledTime * 4.5f) * 1.6f,
                     0f);
+        }
+
+        private void OnDestroy()
+        {
+            if (_barrierMaterial != null)
+                Destroy(_barrierMaterial);
         }
     }
 
