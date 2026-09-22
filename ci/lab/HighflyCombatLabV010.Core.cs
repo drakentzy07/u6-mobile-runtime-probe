@@ -213,6 +213,13 @@ namespace Highfly.SkillLab
                 case HighflyCombatSkillV010.ShadowCallMirror:
                     yield return StartCoroutine(ShadowCallMirrorRoutine());
                     break;
+                case HighflyCombatSkillV010.ShadowRelay:
+                    _cooldowns[id] = -99f;
+                    yield return StartCoroutine(ExecuteOnce(id));
+                    yield return new WaitForSecondsRealtime(0.42f);
+                    _cooldowns[id] = -99f;
+                    yield return StartCoroutine(ExecuteOnce(id));
+                    break;
                 case HighflyCombatSkillV010.ReserveArcana:
                     _reserveReady = false;
                     TriggerReserveArcana();
@@ -247,6 +254,7 @@ namespace Highfly.SkillLab
                 case HighflyCombatSkillV010.SovereignLift: yield return StartCoroutine(SovereignLiftRoutine()); break;
                 case HighflyCombatSkillV010.AbyssalShackleReforged: yield return StartCoroutine(AbyssalShackleRoutine()); break;
                 case HighflyCombatSkillV010.SevenSinkerReforged: yield return StartCoroutine(SevenSinkerRoutine()); break;
+                case HighflyCombatSkillV010.ShadowCallMirror: yield return StartCoroutine(ShadowCallMirrorRoutine()); break;
                 case HighflyCombatSkillV010.ShadowRelay: yield return StartCoroutine(ShadowRelayRoutine()); break;
                 case HighflyCombatSkillV010.ShadowCreationBlade: yield return StartCoroutine(ShadowCreationBladeRoutine()); break;
                 case HighflyCombatSkillV010.VitalPactReforged: yield return StartCoroutine(VitalPactRoutine()); break;
