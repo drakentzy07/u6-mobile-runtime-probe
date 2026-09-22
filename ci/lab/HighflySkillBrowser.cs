@@ -83,17 +83,30 @@ namespace Highfly.SkillLab
 
             Button open = CreateButton(
                 canvasGo.transform,
-                "CODEX",
+                "CODEX • 28",
                 new Vector2(1f, 1f),
-                new Vector2(-92f, -58f),
-                new Vector2(154f, 64f),
+                new Vector2(-238f, -58f),
+                new Vector2(238f, 70f),
                 new Color(0.055f, 0.075f, 0.11f, 0.94f),
                 new Color(0.15f, 0.82f, 1f, 1f));
 
             open.onClick.AddListener(Toggle);
 
+            Text versionStamp = CreateLabel(
+                canvasGo.transform,
+                "HIGHFLY v0.14.1 • ALL SKILLS GALLERY • 28 PREVIEWS",
+                Vector2.zero,
+                new Vector2(720f, 44f),
+                18,
+                TextAnchor.MiddleCenter,
+                new Color(0.82f, 0.96f, 1f, 1f),
+                false);
+            RectTransform stampRect = versionStamp.rectTransform;
+            stampRect.anchorMin = stampRect.anchorMax = new Vector2(0.5f, 1f);
+            stampRect.anchoredPosition = new Vector2(0f, -24f);
+
             BuildPanel(canvasGo.transform);
-            _panel.SetActive(false);
+            _panel.SetActive(true);
             RefreshSlots();
         }
 
@@ -117,7 +130,7 @@ namespace Highfly.SkillLab
 
             Text title = CreateLabel(
                 _panel.transform,
-                "HIGHFLY • MASTER SKILL TREE",
+                "HIGHFLY v0.14.1 • 28 PREVIEWS • MASTER SKILL TREE",
                 new Vector2(0f, -20f),
                 new Vector2(-150f, 48f),
                 25,
