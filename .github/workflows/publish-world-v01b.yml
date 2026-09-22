@@ -1,0 +1,77 @@
+name: Publish HIGHFLY World v0.1B
+
+on:
+  workflow_run:
+    workflows: ["HIGHFLY World Integration v0.1B"]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-world-v01b-publish
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'world-integration-v01b' }}
+    name: Stage verified WORLD v0.1B
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download WORLD v0.1B WebGL from triggering run
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-world-v01b-webgl
+          path: world-build
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Download current verified combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-site-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35783127735
+
+      - name: Merge WORLD v0.1B under /world-v01b
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          test -f current-site-artifact/artifact.tar
+          tar -xf current-site-artifact/artifact.tar -C site
+          test -f site/index.html
+          test -f world-build/index.html
+          mkdir -p site/world-v01b
+          cp -a world-build/. site/world-v01b/
+          echo "HIGHFLY WORLD v0.1B - SAFE ZONE BOOT FIX - PROLOGUE SKIP" > site/world-v01b/version.txt
+          test -f site/world-v01b/index.html
+          touch site/.nojekyll
+          du -sh site site/world-v01b
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy HIGHFLY World v0.1B
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
