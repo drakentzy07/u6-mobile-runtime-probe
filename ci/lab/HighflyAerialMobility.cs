@@ -11,12 +11,12 @@ namespace Highfly.SkillLab
 
         [Header("LAB aerial movement")]
         [SerializeField] private float doubleJumpSpeed = 8.2f;
-        [SerializeField] private float wallJumpVerticalSpeed = 8.8f;
-        [SerializeField] private float wallJumpHorizontalSpeed = 6.3f;
-        [SerializeField] private float wallProbeDistance = 0.95f;
+        [SerializeField] private float wallJumpVerticalSpeed = 9.4f;
+        [SerializeField] private float wallJumpHorizontalSpeed = 7.2f;
+        [SerializeField] private float wallProbeDistance = 1.18f;
         [SerializeField] private float wallProbeRadius = 0.18f;
-        [SerializeField] private float wallTrickChance = 0.48f;
-        [SerializeField] private float wallTrickDuration = 0.34f;
+        [SerializeField] private float wallTrickChance = 1.0f;
+        [SerializeField] private float wallTrickDuration = 0.42f;
 
         private PlayerController _player;
         private CharacterController _cc;
@@ -150,8 +150,11 @@ namespace Highfly.SkillLab
             if (tangent.sqrMagnitude > 0.01f)
                 tangent.Normalize();
 
+            // Input along the wall is preserved so the move reads as parkour,
+            // not as an automatic bounce. No input = strong rebound.
+            float tangentWeight = tangent.sqrMagnitude > 0.01f ? 0.58f : 0f;
             Vector3 horizontal =
-                (outward * 0.82f + tangent * 0.35f).normalized;
+                (outward * 0.82f + tangent * tangentWeight).normalized;
 
             transform.rotation =
                 Quaternion.LookRotation(horizontal, Vector3.up);
@@ -207,7 +210,9 @@ namespace Highfly.SkillLab
 
         private void TryWallTrick(Vector3 inputWorld, Vector3 tangent)
         {
-            if (_wallTrickActive || Random.value > wallTrickChance)
+            // v0.10: parkour is deterministic. Reaching a valid wall should never
+            // randomly decide whether the hunter performs the trick.
+            if (_wallTrickActive || wallTrickChance <= 0f)
                 return;
 
             if (_player == null || _player.animator == null)
@@ -267,7 +272,7 @@ namespace Highfly.SkillLab
 
             // Preserve deliberate heavy-landing poses; only remove the tiny
             // crouched residue after ordinary jumps and parkour.
-            if (impactSpeed > 8.5f)
+            if (impactSpeed > 13.5f)
                 return;
 
             Animator a = _player.animator;
@@ -276,13 +281,13 @@ namespace Highfly.SkillLab
 
             if (a.HasState(0, locomotion))
             {
-                a.CrossFadeInFixedTime(locomotion, 0.055f, 0);
+                a.CrossFadeInFixedTime(locomotion, 0.035f, 0);
                 return;
             }
 
             locomotion = Animator.StringToHash("Locomotion");
             if (a.HasState(0, locomotion))
-                a.CrossFadeInFixedTime(locomotion, 0.055f, 0);
+                a.CrossFadeInFixedTime(locomotion, 0.035f, 0);
         }
 
         private bool TryFindWall(out Vector3 normal, out Vector3 point)
