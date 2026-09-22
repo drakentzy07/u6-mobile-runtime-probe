@@ -3,7 +3,7 @@ name: Lucid WebGL Pages
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, highfly/skill-lab-v0.8-master-skill-tree]
     paths:
       - "ci/**"
       - ".github/workflows/lucid-webgl-pages.yml"
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.7
+      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.8 Master Tree
         shell: bash
         run: |
           set -euxo pipefail
@@ -90,6 +90,9 @@ jobs:
           cp ci/lab/HighflyAerialMobility.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           cp ci/lab/HighflySkillLoadoutMenu.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           cp ci/lab/HighflySkillCooldownUI.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
+          cp ci/lab/HighflyMasterSkillTree.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
+          cp ci/lab/HighflySkillBrowser.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
+          cp ci/lab/HighflyTimeDilationManager.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
 
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/ElectricalSparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab"
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/EnergyExplosion.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab"
@@ -124,13 +127,25 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.7" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.8" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "MASTER SKILL TREE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
+          grep -q "HighflyMasterSkillTree" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
+          grep -q "RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
+          grep -q "HighflyTimeDilationManager.RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "HighflyTimeDilationManager.RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          grep -q "HighflyTimeDilationManager.RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          if grep -q "float previous = Time.timeScale" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs; then exit 1; fi
+          if grep -q "float old = Time.timeScale" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs; then exit 1; fi
+          if grep -q "float oldScale = Time.timeScale" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs; then exit 1; fi
           grep -q "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "DANZA FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "VÍNCULO UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
@@ -143,6 +158,10 @@ jobs:
           grep -q "CooldownRadial" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
           grep -q "SELECCIÓN RÁPIDA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "SpawnShadowClaw" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "HF_SHADOW_HAND_PREMIUM" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "BarrierBody" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "wallTrickChance" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          grep -q "DirectLabBoot" LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
           grep -q "SpawnShadowChain" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
           grep -q "SpawnBladeScar" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
           grep -q "PREVIEW EN VIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
@@ -197,9 +216,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v07-preview-rework-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v08-master-tree-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v07-preview-rework-
+            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v08-master-tree-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
             lucid-6000.4.0f1-webgl-mobile-v06-
             lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
