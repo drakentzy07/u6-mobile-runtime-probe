@@ -1,0 +1,286 @@
+name: HIGHFLY World Integration v0.1A
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [world-integration-v01a]
+    paths:
+      - "ci/world/**"
+      - "ci/mobile/**"
+      - "ci/combat/**"
+      - "ci/lab/**"
+      - "ci/HighflyCiWebGLBuilder.cs"
+      - ".github/workflows/world-integration-v01a.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-world-v01a-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build HIGHFLY World v0.1A
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout probe repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid with Git LFS
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git lfs version
+
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+
+          test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+          cat LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+          ASSET="LucidHost/3D_game/Assets/FourEvilDragonsPBR/Animations/DragonUsurper/idle01.fbx"
+          test -f "$ASSET"
+          test "$(stat -c%s "$ASSET")" -gt 100000
+          if head -n 1 "$ASSET" | grep -q "git-lfs.github.com"; then
+            echo "ERROR: LFS pointer detected instead of real asset"
+            exit 1
+          fi
+          echo "LFS_OK size=$(stat -c%s "$ASSET")"
+
+      - name: Install HIGHFLY Golden Core + World v0.1A
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Combat
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Lab
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/World
+          mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX
+          mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
+
+          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
+          cp ci/mobile/HighflyThirdPersonMobileCamera.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
+          cp ci/world/HighflyWorldSafeZone.cs LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
+          cp ci/combat/HighflyCombatCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyCombatCore.cs
+          cp ci/combat/HighflyLucidCombatBridge.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
+          cp ci/lab/HighflySkillLabBootstrap.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          cp ci/lab/HighflyPremiumSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          cp ci/lab/HighflyLabDesktopControls.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
+          cp ci/lab/HighflyPremiumFx.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          cp ci/lab/HighflyAnimeFx.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          cp ci/lab/HighflyAdvancedSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          cp ci/lab/HighflyReferenceSkillRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          cp ci/lab/HighflyAerialMobility.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          cp ci/lab/HighflySkillLoadoutMenu.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          cp ci/lab/HighflySkillCooldownUI.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
+
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/ElectricalSparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/EnergyExplosion.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/PlasmaExplosionEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab"
+          cp "LucidHost/3D_game/Assets/Mixamo/Knight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab"
+
+          cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+
+          cp ci/mobile/MainMenuController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
+          cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
+          cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
+          cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
+          grep -q "HIGHFLY_WORLD_v0.1A" LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldSafeZone.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyCombatCore.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/EnergyExplosion.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
+          grep -q "HIGHFLY_SKILL_LAB_v0.7" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "DANZA FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "VÍNCULO UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "GRILLETE ABISAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "JUICIO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
+          grep -q "DESGARRO ECLIPSE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          grep -q "MURALLA DE RETORNO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          grep -q "ECO VORAZ" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
+          grep -q "TryReflect" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          grep -q "CooldownRadial" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
+          grep -q "SELECCIÓN RÁPIDA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "SpawnShadowClaw" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "SpawnShadowChain" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "SpawnBladeScar" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "PREVIEW EN VIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "EQUIPAR EN S" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
+          grep -q "FindBestTargetStrict" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "SpawnGrandMagicCircle" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
+          grep -q "DOBLE SALTO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          grep -q "WALL JUMP" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
+          grep -q "PARKOUR_WALL_LEFT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "CheckPlayerBounds" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "DANZA GEMELA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "PASO FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "GRILLETE UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "PACTO VITAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "LLAMADO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "SpawnShadowKnight" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          grep -q "SpawnCrescentSlash" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          grep -q "SpawnVitalSigil" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
+          grep -q "CommandMirrorAttack" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "digit5Key" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabDesktopControls.cs
+          grep -q "HighflyThirdPersonMobileCamera" LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          grep -q "HighflyTouchOwnership" LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          grep -q "TryDragonStep" LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
+          grep -q "TryArcPulse" LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
+          test -s LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          test -s LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+          grep -q '"path": "<Mouse>/delta"' LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+          if grep -A6 '"name": "Look"' LucidHost/3D_game/Assets/InputSystem_Actions.inputactions | grep -q '<Pointer>/delta'; then
+            echo "ERROR: mobile camera still bound to Pointer delta"
+            exit 1
+          fi
+          test -s LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          test -s LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+          grep -q "SetHighflyMobileMove" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyMobileAttack" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyMobileUsePotion" LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+          echo "HIGHFLY_MOBILE_CORE_V06_INSTALLED=1"
+
+      - name: Install CI build script
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p LucidHost/3D_game/Assets/Editor
+          cp ci/HighflyCiWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyCiWebGLBuilder.cs
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: lucid-6000.4.0f1-world-v01a-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**', 'ci/world/**') }}
+          restore-keys: |
+            lucid-6000.4.0f1-world-v01a-
+            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v07-preview-rework-
+            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
+            lucid-6000.4.0f1-webgl-mobile-v06-
+            lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.4.0f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.CI.WebGLBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify WebGL output
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          test -f "$OUT/index.html"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          test -w "$OUT"
+          touch "$OUT/.nojekyll"
+          du -sh "$OUT"
+          find "$OUT" -maxdepth 2 -type f | head -n 40
+
+      - name: Reuse verified Skill Lab root site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: root-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35776071753
+
+      - name: Merge WORLD v0.1A under /world-v01a
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          test -f root-artifact/artifact.tar
+          tar -xf root-artifact/artifact.tar -C site
+          test -f site/index.html
+          mkdir -p site/world-v01a
+          cp -a LucidHost/3D_game/build/WebGL/. site/world-v01a/
+          echo "HIGHFLY WORLD v0.1A - SAFE ZONE" > site/world-v01a/version.txt
+          test -f site/world-v01a/index.html
+          touch site/.nojekyll
+          du -sh site site/world-v01a
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy HIGHFLY World v0.1A
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
