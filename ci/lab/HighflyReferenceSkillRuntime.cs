@@ -183,6 +183,14 @@ namespace Highfly.SkillLab
         {
             if (target == null) yield break;
 
+            HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
+            int actionToken = guard != null
+                ? guard.Begin("S11 DESGARRO ECLIPSE", 1.65f, true)
+                : 0;
+
+            if (guard != null && actionToken == 0)
+                yield break;
+
             HighflyLabStatusReceiver status =
                 target.GetComponent<HighflyLabStatusReceiver>();
 
@@ -272,6 +280,8 @@ namespace Highfly.SkillLab
             }
 
             yield return HitStop(0.070f);
+            _player.HighflyLabForceLocomotion();
+            guard?.End(actionToken, "seven-cut complete");
         }
 
         // --------------------------------------------------------------
