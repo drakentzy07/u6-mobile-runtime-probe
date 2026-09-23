@@ -624,6 +624,13 @@ public class PlayerController : MonoBehaviour
     // --- 루트 모션 처리 (Locomotion 아닐 때만 작동) ---
     private void OnAnimatorMove()
     {
+        // v2.6: a LAB skill with explicit movement owns the body completely.
+        // Prevent Lucid root motion from being applied on top of CharacterController.Move.
+        if (HighflySkillLabMode.IsActive &&
+            HighflyLabActionGuardV026.Instance != null &&
+            HighflyLabActionGuardV026.Instance.IsLocked)
+            return;
+
         // Locomotion 상태가 아닐 때(공격, 구르기 등)는 애니메이션이 이동을 주도
         if (currentState != PlayerState.Locomotion && _controller != null && animator != null)
         {
@@ -649,6 +656,11 @@ public class PlayerController : MonoBehaviour
     private void OnJump(InputAction.CallbackContext context) => HighflyMobileJump();
     public void HighflyMobileJump()
     {
+        if (HighflySkillLabMode.IsActive &&
+            HighflyLabActionGuardV026.Instance != null &&
+            HighflyLabActionGuardV026.Instance.BlocksManualInput("JUMP"))
+            return;
+
         // LAB-only aerial layer. The stable APP still uses Lucid's original jump.
         if (HighflySkillLabMode.IsActive && HighflyAerialMobility.Instance != null)
         {
@@ -674,6 +686,11 @@ public class PlayerController : MonoBehaviour
     private void OnRoll(InputAction.CallbackContext context) => HighflyMobileRoll();
     public void HighflyMobileRoll()
     {
+        if (HighflySkillLabMode.IsActive &&
+            HighflyLabActionGuardV026.Instance != null &&
+            HighflyLabActionGuardV026.Instance.BlocksManualInput("ROLL / DODGE"))
+            return;
+
         // 평상시(Locomotion)뿐 아니라 공격(Attack) 중에도 구르기로 캔슬 허용 → 콤보를 끊고 적 공격 회피.
         // 애니메이터는 AnyState→Roll(doRoll, Has Exit Time 0) 전이로 즉시 전환되고,
         // Attack 종료 블록이 무기 히트박스/배율을, Roll 진입 블록이 콤보 상태를 정리한다.
@@ -691,6 +708,11 @@ public class PlayerController : MonoBehaviour
     private void OnAttack(InputAction.CallbackContext context) => HighflyMobileAttack();
     public void HighflyMobileAttack()
     {
+        if (HighflySkillLabMode.IsActive &&
+            HighflyLabActionGuardV026.Instance != null &&
+            HighflyLabActionGuardV026.Instance.BlocksManualInput("BASIC COMBO"))
+            return;
+
         if (!_isGrounded) return; // 공중 공격 제외
         if (currentState == PlayerState.CounterAttack || currentState == PlayerState.Skill) 
             return;
@@ -822,6 +844,11 @@ public class PlayerController : MonoBehaviour
     private void OnParry(InputAction.CallbackContext context) => HighflyMobileParry();
     public void HighflyMobileParry()
     {
+        if (HighflySkillLabMode.IsActive &&
+            HighflyLabActionGuardV026.Instance != null &&
+            HighflyLabActionGuardV026.Instance.BlocksManualInput("PARRY"))
+            return;
+
         if (currentState == PlayerState.Locomotion && _isGrounded)
         {
             ChangeState(PlayerState.Parry);
