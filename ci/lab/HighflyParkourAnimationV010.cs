@@ -22,6 +22,24 @@ namespace Highfly.SkillLab
             _animator = GetComponent<Animator>();
         }
 
+        public static HighflyParkourAnimationV010 BindTo(Animator animator)
+        {
+            if (animator == null) return null;
+
+            if (Instance != null && Instance._animator != animator)
+                Instance.StopNow();
+
+            HighflyParkourAnimationV010 component =
+                animator.GetComponent<HighflyParkourAnimationV010>();
+
+            if (component == null)
+                component = animator.gameObject.AddComponent<HighflyParkourAnimationV010>();
+
+            component._animator = animator;
+            Instance = component;
+            return component;
+        }
+
         private void OnDestroy()
         {
             StopGraph();
