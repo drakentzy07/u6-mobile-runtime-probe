@@ -170,7 +170,7 @@ namespace Highfly.SkillLab
             Color cyan = new Color(0.10f, 0.74f, 1f, 1f);
             Color violet = new Color(0.62f, 0.20f, 1f, 1f);
 
-            _player.HighflyMobileAttack();
+            _player.HighflyLabPlayMeleePulse();
 
             // Snapshot the target once. The dance now orbits the SAME target
             // instead of feeling like it re-acquires something mid-sequence.
