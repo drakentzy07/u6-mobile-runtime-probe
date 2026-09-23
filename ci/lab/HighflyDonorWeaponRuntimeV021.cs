@@ -230,14 +230,14 @@ namespace Highfly.SkillLab
             _dragonReturning = false;
             _dragonEmbeddedTarget = null;
 
-            Vector3 direction = Camera.main != null ? Camera.main.HighflyCombatFacingV027.Forward(transform) : HighflyCombatFacingV027.Forward(transform);
+            Vector3 direction = Camera.main != null ? Camera.main.transform.forward : HighflyCombatFacingV027.Forward(transform);
             direction.Normalize();
 
             RaycastHit hitInfo;
             if (Camera.main != null &&
                 Physics.Raycast(
                     Camera.main.transform.position,
-                    Camera.main.HighflyCombatFacingV027.Forward(transform),
+                    Camera.main.transform.forward,
                     out hitInfo,
                     DragonMaxRange,
                     ~0,
