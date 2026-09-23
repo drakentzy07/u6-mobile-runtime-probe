@@ -11,7 +11,11 @@ namespace Highfly.SkillLab
         private Text _info;
         private Text _status;
         private GameObject _panel;
+        private RectTransform _panelRect;
+        private RectTransform _toggleRect;
         private Text _toggleText;
+        private int _lastScreenW = -1;
+        private int _lastScreenH = -1;
         private readonly List<GameObject> _rows = new List<GameObject>();
 
         public static HighflyDonorBrowserV022 Install(Transform parent)
@@ -26,6 +30,12 @@ namespace Highfly.SkillLab
 
         private void Awake() => Build();
 
+        private void Update()
+        {
+            if (Screen.width == _lastScreenW && Screen.height == _lastScreenH) return;
+            ApplyResponsiveLayout();
+        }
+
         private void Build()
         {
             var cg = new GameObject("SkillVaultCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -38,14 +48,15 @@ namespace Highfly.SkillLab
             var scaler = cg.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.35f;
+            scaler.matchWidthOrHeight = 0.50f;
 
             _panel = new GameObject("SKILL_VAULT_PANEL", typeof(RectTransform), typeof(Image), typeof(Outline));
             _panel.transform.SetParent(cg.transform, false);
 
             var pr = _panel.GetComponent<RectTransform>();
+            _panelRect = pr;
             pr.anchorMin = new Vector2(0f, 0f);
-            pr.anchorMax = new Vector2(0.38f, 1f);
+            pr.anchorMax = new Vector2(0.30f, 1f);
             pr.offsetMin = new Vector2(10f, 12f);
             pr.offsetMax = new Vector2(-8f, -12f);
 
@@ -55,28 +66,27 @@ namespace Highfly.SkillLab
             BuildPersistentToggle(cg.transform);
 
             var title = Label(_panel.transform,
-                "HIGHFLY • DONOR LAB 2.3 • SKILL VAULT",
-                24,
+                "HIGHFLY • DONOR LAB 2.4 • PRESENTATION",
+                20,
                 TextAnchor.UpperLeft,
                 Color.white);
             SetTop(title.rectTransform, 18f, 14f, 18f, 44f);
 
             _status = Label(_panel.transform,
-                "33 ENTRADAS TESTEABLES • SCROLL • TOCÁ = PREVIEW",
-                14,
+                "33 ENTRADAS • SCROLL • TOCÁ = PREVIEW",
+                12,
                 TextAnchor.MiddleLeft,
                 new Color(0.35f, 0.84f, 1f, 1f));
             SetTop(_status.rectTransform, 18f, 57f, 18f, 32f);
 
-            BuildCharacterSwitch(_panel.transform);
             BuildScroll(_panel.transform);
 
             _info = Label(
                 _panel.transform,
-                "VAULT 2.3: mecánicas únicas, sin inflar variantes.\n" +
-                "A/B comparte PlayerController + AnimatorController.\n" +
-                "Project-X = referencia mecánica, implementación HIGHFLY independiente.",
-                13,
+                "V2.4: mecánica donor + presentación HIGHFLY.\n" +
+                "Sin sólidos neón de proxy. A/B arriba, compartiendo runtime.\n" +
+                "Project-X sigue siendo referencia mecánica, no asset transplant.",
+                11,
                 TextAnchor.UpperLeft,
                 new Color(0.80f, 0.87f, 0.94f, 1f));
 
@@ -84,10 +94,11 @@ namespace Highfly.SkillLab
             ir.anchorMin = new Vector2(0f, 0f);
             ir.anchorMax = new Vector2(1f, 0f);
             ir.pivot = new Vector2(0.5f, 0f);
-            ir.offsetMin = new Vector2(18f, 14f);
-            ir.offsetMax = new Vector2(-18f, 132f);
+            ir.offsetMin = new Vector2(18f, 12f);
+            ir.offsetMax = new Vector2(-18f, 88f);
 
             Populate();
+            ApplyResponsiveLayout();
         }
 
         private void BuildPersistentToggle(Transform canvasParent)
@@ -95,15 +106,16 @@ namespace Highfly.SkillLab
             var b = Button(canvasParent, "SKILLS -");
             b.gameObject.name = "SkillVault_Minimize";
             var r = b.GetComponent<RectTransform>();
-            r.anchorMin = r.anchorMax = new Vector2(0.38f, 1f);
+            _toggleRect = r;
+            r.anchorMin = r.anchorMax = new Vector2(0.30f, 1f);
             r.pivot = new Vector2(1f, 1f);
-            r.anchoredPosition = new Vector2(-18f, -18f);
-            r.sizeDelta = new Vector2(132f, 46f);
+            r.anchoredPosition = new Vector2(-12f, -14f);
+            r.sizeDelta = new Vector2(118f, 42f);
 
             _toggleText = b.GetComponentInChildren<Text>();
             if (_toggleText != null)
             {
-                _toggleText.fontSize = 14;
+                _toggleText.fontSize = 12;
                 _toggleText.alignment = TextAnchor.MiddleCenter;
             }
 
@@ -117,6 +129,20 @@ namespace Highfly.SkillLab
             _panel.SetActive(next);
             if (_toggleText != null)
                 _toggleText.text = next ? "SKILLS -" : "SKILLS +";
+        }
+
+        private void ApplyResponsiveLayout()
+        {
+            _lastScreenW = Screen.width;
+            _lastScreenH = Screen.height;
+            if (_panelRect == null || Screen.height <= 0) return;
+
+            float aspect = Screen.width / (float)Screen.height;
+            float width = aspect >= 2.0f ? 0.30f : (aspect >= 1.65f ? 0.33f : 0.39f);
+
+            _panelRect.anchorMax = new Vector2(width, 1f);
+            if (_toggleRect != null)
+                _toggleRect.anchorMin = _toggleRect.anchorMax = new Vector2(width, 1f);
         }
 
         private void BuildCharacterSwitch(Transform parent)
@@ -164,8 +190,8 @@ namespace Highfly.SkillLab
             var vr = viewport.GetComponent<RectTransform>();
             vr.anchorMin = new Vector2(0f, 0f);
             vr.anchorMax = new Vector2(1f, 1f);
-            vr.offsetMin = new Vector2(16f, 142f);
-            vr.offsetMax = new Vector2(-16f, -164f);
+            vr.offsetMin = new Vector2(20f, 96f);
+            vr.offsetMax = new Vector2(-18f, -100f);
 
             viewport.GetComponent<Image>().color = new Color(0.004f, 0.010f, 0.020f, 0.82f);
 
@@ -183,8 +209,8 @@ namespace Highfly.SkillLab
             _content.anchoredPosition = Vector2.zero;
 
             var layout = content.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(7, 7, 8, 8);
-            layout.spacing = 7f;
+            layout.padding = new RectOffset(14, 8, 8, 8);
+            layout.spacing = 5f;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -297,7 +323,7 @@ namespace Highfly.SkillLab
         {
             var t = Label(_content, text, 14, TextAnchor.MiddleLeft, new Color(0.47f, 0.82f, 1f, 1f));
             var e = t.gameObject.AddComponent<LayoutElement>();
-            e.preferredHeight = 36f;
+            e.preferredHeight = 28f;
             _rows.Add(t.gameObject);
         }
 
@@ -305,7 +331,7 @@ namespace Highfly.SkillLab
         {
             var b = Button(_content, "●  " + name + "\n    " + note);
             var e = b.gameObject.AddComponent<LayoutElement>();
-            e.preferredHeight = 72f;
+            e.preferredHeight = 58f;
 
             b.onClick.AddListener(() =>
             {
@@ -338,15 +364,15 @@ namespace Highfly.SkillLab
             var t = Label(
                 go.transform,
                 value,
-                14,
+                12,
                 TextAnchor.MiddleLeft,
                 new Color(0.93f, 0.97f, 1f, 1f));
 
             var tr = t.rectTransform;
             tr.anchorMin = Vector2.zero;
             tr.anchorMax = Vector2.one;
-            tr.offsetMin = new Vector2(13f, 5f);
-            tr.offsetMax = new Vector2(-10f, -5f);
+            tr.offsetMin = new Vector2(17f, 4f);
+            tr.offsetMax = new Vector2(-10f, -4f);
 
             return go.GetComponent<Button>();
         }
