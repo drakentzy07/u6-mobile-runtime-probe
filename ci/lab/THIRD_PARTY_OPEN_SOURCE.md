@@ -47,3 +47,42 @@ SOFTWARE.
 - HIGHFLY use: throw / embed / curved return state-machine concepts and substantial control-flow adaptation.
 - Not imported wholesale: DG.Tweening, donor-specific PlayerStateMachine, Sounds, Damage and third-party raw art are intentionally excluded.
 - SubspaceHunter-SAO public skill code is used as a sequencing reference for projectile spawn / release / hit-feedback patterns; SAO/IP assets and mixed third-party raw packages are not committed.
+
+
+## Donor Lab v2.3 Skill Vault references
+
+### Sigil Combat / Sigil GAS
+- Source: https://github.com/forestlii/sigil-combat
+- License: MIT.
+- HIGHFLY use: combat/ability architecture reference and verified sample mechanics (melee trace, ranged shot, Flash, charged Fireball).
+- Integration rule: HIGHFLY CORE remains authoritative; Sigil is not installed wholesale.
+
+### Dragon Souls
+- Source: https://github.com/btuhany/DragonSouls-Unity3D
+- License: MIT.
+- HIGHFLY use: sword throw / embed / recall state-machine concepts.
+- Third-party raw art/animation/audio from the donor is not redistributed.
+
+### Ashwalker
+- Source: https://github.com/HoleInWater/Ashwalker
+- License: MIT.
+- HIGHFLY use: force push/pull and haste/slow field mechanic study.
+- v2.3 uses independent HIGHFLY visuals/runtime wiring.
+
+### Adaptive Boss Arena
+- Source: https://github.com/Shadow-46/adaptive-boss-arena
+- License: MIT.
+- HIGHFLY use: focus special, execution/posture-break presentation and hyper-armour mechanic study.
+- v2.3 uses independent HIGHFLY visuals/runtime wiring.
+
+### SubspaceHunter-SAO
+- Source: https://github.com/whx-prog/SubspaceHunter-SAO
+- License: MIT for the public code repository; repository documentation identifies additional third-party package dependencies.
+- HIGHFLY use: fire/electric/ice/meteor/shield/heal sequencing reference.
+- SAO/IP-specific raw assets and mixed third-party packages are excluded.
+
+### Project-X
+- Source: https://github.com/khoido2003/Project-X
+- GitHub repository metadata does not expose a machine-readable root license as of the v2.3 audit.
+- HIGHFLY therefore does NOT copy Project-X source code or raw assets in this build.
+- Only abstract combat-mechanic ideas are independently reimplemented under HIGHFLY naming/logic for private laboratory comparison.
