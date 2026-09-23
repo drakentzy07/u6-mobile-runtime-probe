@@ -236,7 +236,128 @@ namespace Highfly.SkillLab
                 false,
                 false,
                 "Gameplay Ability System sample",
-                "Complete gameplay examples with FX, but cross-engine port means logic/timing translation rather than literal Unity file copy.")
+                "Complete gameplay examples with FX, but cross-engine port means logic/timing translation rather than literal Unity file copy."),
+
+            new(
+                "Mage Arena / DTF Hackathon",
+                "Charged Fireball",
+                "Unity",
+                "MIT",
+                HighflyDonorTierV020.Full,
+                false,
+                false,
+                "DTF/Assets/Prefabs/Fireball.prefab + Scripts/Magic/Fireball.cs + VisualEffects/Fireball.vfx",
+                "Compact end-to-end donor: hold-to-charge gameplay, prefab, script and original VFX path are present in the repo."),
+
+            new(
+                "Mage Arena / DTF Hackathon",
+                "Particle Shield",
+                "Unity",
+                "MIT",
+                HighflyDonorTierV020.Full,
+                false,
+                false,
+                "DTF/Assets/Prefabs/Shield.prefab + Scripts/Magic/Shield.cs + VisualEffects/Shield.vfx",
+                "Compact end-to-end defensive donor with prefab, script and VFX path present."),
+
+            new(
+                "ArenaGame",
+                "Teleport Bolt / Teleport",
+                "Unity",
+                "GPL-3.0 code; imported presentation assets excluded",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "MageThrowTeleportBolt.cs + MageTeleportBolt.cs + MageTeleport.cs",
+                "Excellent mechanic donor: throw a marker/bolt and teleport to it. Literal code reuse requires GPL-compatible distribution; otherwise translate behavior."),
+
+            new(
+                "ArenaGame",
+                "Thunderbolt / Thunderstrike / Storm Shield",
+                "Unity",
+                "GPL-3.0 code; imported presentation assets excluded",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "MageThunderbolt.cs + MageThunderstrike.cs + MageStormShield.cs",
+                "Distinct mage mechanics exist as concrete ability classes; replace imported visuals/audio with HIGHFLY-owned/free dependencies."),
+
+            new(
+                "ArenaGame",
+                "Mechanical Hook",
+                "Unity",
+                "GPL-3.0 code; imported presentation assets excluded",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "WarriorShootMechanicalHook.cs + WarriorMechanicalHook.cs",
+                "Hook pulls an enemy on hit or pulls the caster toward world geometry. Strong HIGHFLY mobility/CC donor."),
+
+            new(
+                "ArenaGame",
+                "Warrior Charge / Slash / Upward Slash / Boomerang",
+                "Unity",
+                "GPL-3.0 code; imported presentation assets excluded",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "Assets/Scripts/entity/actors/actorAbility/Warrior*.cs",
+                "Several distinct executable ability classes; presentation dependencies require replacement and GPL rules forbid casual copy-paste into unrelated licensing."),
+
+            new(
+                "ArenaGame",
+                "Archer Trap / Clawhook / Dancing Arrows / Hound",
+                "Unity",
+                "GPL-3.0 code; imported presentation assets excluded",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "Assets/Scripts/entity/actors/actorAbility/Archer*.cs",
+                "Useful trap, grappling and multi-projectile/summon-style mechanics; audit each dependency separately."),
+
+            new(
+                "Matchstick Mage",
+                "Spell / Bomb combat blocks",
+                "Unity",
+                "MIT",
+                HighflyDonorTierV020.Candidate,
+                false,
+                false,
+                "Assets/Scripts/Player/Spell.cs + Scripts/Bomb + Prefabs/Attacks/Bombs",
+                "Project contains playable spell/bomb logic, throw animation, explosion prefab and custom shaders. Verify the complete RAW scenes before promoting to FULL."),
+
+            new(
+                "Shades SpellSystem",
+                "Large spell library",
+                "Unity",
+                "CC BY-SA 4.0 project components; Invector dependency and per-asset audit required",
+                HighflyDonorTierV020.SemiFull,
+                false,
+                false,
+                "ShadesSpellSystem",
+                "Teleport, summons, homing projectiles, status effects, heal, Raise Dead, physics spells and more. ShareAlike/dependency constraints require isolation and careful translation."),
+
+            new(
+                "Magic Mayhem",
+                "Chain Lightning / Fireball / Heal / Ice Block / Ice Cone / Magic Missile / Meteor / Shield",
+                "Unity",
+                "NOASSERTION repository license; mixed Asset Store/Mixamo dependencies",
+                HighflyDonorTierV020.Blocked,
+                false,
+                false,
+                "Assets/Prefabs/Player/Abilities",
+                "Extremely rich structural reference with many complete prefabs and upgrade variants, but do not transplant until project-level and per-asset permissions are clear."),
+
+            new(
+                "Warcraft Arena Unity",
+                "Mage/Support spell kit",
+                "Unity",
+                "license verification pending; franchise-named presentation excluded",
+                HighflyDonorTierV020.Candidate,
+                false,
+                false,
+                "spell system / ability definitions",
+                "Potentially large combat donor set including teleport, barriers, CC, direct damage, AoE and support. Must clear license and presentation provenance before any transplant.")
         };
     }
 }
