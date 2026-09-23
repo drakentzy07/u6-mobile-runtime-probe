@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.1_WEAPON_RAW");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.2_GALLERY_CHARACTER_AB");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,14 +184,15 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.1 • WEAPON RAW\n" +
-                    "2 KEEP + 2 DONOR TRANSPLANTS • 3 MONSTRUOS\n" +
+                    "HIGHFLY • DONOR LAB 2.2 • GALLERY + CHARACTER A/B\n" +
+                    "2 KEEP + 6 DONOR SKILLS • 3 TARGETS • LUCID vs KAYKIT\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "KEEP previos: Drift de Fórmula • Jump Smash\n" +
-                    "DONORS: Sigil Dash • Dragon Throw/Recall\n" +
-                    "SEMI-FULL = mecánica donor preservada + sólo dependencia reemplazada\n\n" +
+                    "KEEP: Drift de Fórmula • Jump Smash\n" +
+                    "SIGIL: Melee • Dash • Ranged • Flash • Fireball\n" +
+                    "DRAGON SOULS: Sword Throw / Embed / Recall\n" +
+                    "Browser izquierdo: tocá skill = preview inmediato\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -233,16 +234,18 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyDonorWeaponRuntimeV021>() == null)
                 player.gameObject.AddComponent<HighflyDonorWeaponRuntimeV021>();
 
+            if (player.GetComponent<HighflyDonorExpandedRuntimeV022>() == null)
+                player.gameObject.AddComponent<HighflyDonorExpandedRuntimeV022>();
+
             Animator hunterAnimator = player.animator;
-            if (hunterAnimator != null &&
-                hunterAnimator.GetComponent<HighflyParkourAnimationV010>() == null)
-                hunterAnimator.gameObject.AddComponent<HighflyParkourAnimationV010>();
+            if (hunterAnimator != null)
+                HighflyParkourAnimationV010.BindTo(hunterAnimator);
 
             HighflyLabTargetsV011.BuildThreeTargetRange(LabY);
 
             CreateMetricsHud();
-            HighflyAcceptedGalleryV016.Install(transform);
-            HighflyDonorWeaponGalleryV021.Install(transform);
+            HighflyDonorBrowserV022.Install(transform);
+            HighflyCharacterCompareV022.Install(player, transform);
 
             Camera cam = Camera.main;
             if (cam != null)
