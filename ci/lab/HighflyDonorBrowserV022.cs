@@ -75,8 +75,8 @@ namespace Highfly.SkillLab
             _info = Label(
                 _panel.transform,
                 "LUCID y KAYKIT = candidatos A/B reales.\n" +
-                "FULL DONOR = fuente + licencia + animación/VFX verificables.\n" +
-                "MECH+HF = mecánica donor con presentación HIGHFLY; no se etiqueta como FULL.",
+                "FULL DONOR audiovisual = sólo cuando importemos la cadena original verificable.\n" +
+                "PORT HF = mecánica donor conectada a cuerpo/VFX HIGHFLY; nunca se etiqueta como FULL.",
                 12,
                 TextAnchor.UpperLeft,
                 new Color(0.80f, 0.87f, 0.94f, 1f));
@@ -210,11 +210,8 @@ namespace Highfly.SkillLab
                 () => Premium(HighflyPremiumSkillId.PhantomTwinDance));
             Add("DESGARRO ECLIPSE", "siete cortes + confirmación final",
                 () => Premium(HighflyPremiumSkillId.EclipseRend));
-            Add("GRILLETE ABISAL", "control / convergencia + VFX",
-                () => Premium(HighflyPremiumSkillId.AbyssalShackle));
-
-            Section("FULL SYSTEM DONOR • LICENCIA LIMPIA");
-            Add("FOCUS SPECIAL", "ADAPTIVE • MIT + UAL/UAL2 CC0 • cuerpo + hit + VFX",
+            Section("DONOR SOURCE CLEAN • PORT HIGHFLY");
+            Add("FOCUS SPECIAL", "ADAPTIVE • fuente MIT + UAL/UAL2 CC0 • port conectado",
                 () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveFocusSpecial));
             Add("EXECUTION", "ADAPTIVE • postura rota → ejecución • cuerpo + hit",
                 () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveExecution));
