@@ -60,7 +60,7 @@ namespace Highfly.SkillLab
                     Vector3 d = target.transform.position - transform.position;
                     d.y = 0f;
                     if (d.sqrMagnitude > 0.001f)
-                        transform.rotation = Quaternion.LookRotation(d.normalized, Vector3.up);
+                        HighflyCombatFacingV027.FaceVisual(d.normalized);
                 }
 
                 HighflySkillLabMetrics.RecordAction("JUMP SMASH • KEEP", 0);
@@ -75,7 +75,7 @@ namespace Highfly.SkillLab
 
                 yield return new WaitForSecondsRealtime(0.58f);
 
-                Vector3 impact = transform.position + transform.forward * 1.25f;
+                Vector3 impact = transform.position + HighflyCombatFacingV027.Forward(transform) * 1.25f;
                 Spawn("HIGHFLY/AcceptedVFX/EarthShatter", impact, 0.88f, 2.0f);
                 Spawn("HIGHFLY/AcceptedVFX/EnergyExplosion", impact, 0.60f, 1.5f);
 
