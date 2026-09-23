@@ -384,7 +384,7 @@ namespace Highfly.SkillLab
             SpawnPulse(transform.position + Vector3.up, 0.8f, new Color(0.45f, 0.15f, 0.8f, 1f), 0.25f);
             yield return new WaitForSecondsRealtime(0.55f);
 
-            Vector3 behind = target.transform.position - target.HighflyCombatFacingV027.Forward(transform) * 1.35f;
+            Vector3 behind = target.transform.position - target.transform.forward * 1.35f;
             behind.y = transform.position.y;
             SafeMove(behind);
 
