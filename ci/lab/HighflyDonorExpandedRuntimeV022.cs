@@ -245,7 +245,7 @@ namespace Highfly.SkillLab
             float end = Time.unscaledTime + 0.30f;
             while (Time.unscaledTime < end)
             {
-                Vector3 socket = transform.position + Vector3.up * 1f + transform.forward * 1.2f;
+                Vector3 socket = transform.position + Vector3.up * 1f + HighflyCombatFacingV027.Forward(transform) * 1.2f;
                 Collider[] cols = Physics.OverlapSphere(socket, 1f, ~0, QueryTriggerInteraction.Ignore);
                 ApplyUniqueHits(cols, hit, 18f, 1.5f, 1f);
                 yield return null;
@@ -261,7 +261,7 @@ namespace Highfly.SkillLab
             HighflyParkourAnimationV010.Instance?.Play("OverhandThrow", 1.35f, 0.42f);
             yield return new WaitForSecondsRealtime(0.12f);
 
-            Vector3 muzzle = transform.position + Vector3.up * 1.4f + transform.forward * 0.6f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.4f + HighflyCombatFacingV027.Forward(transform) * 0.6f;
             SpawnProjectile(
                 "SIGIL_RANGED",
                 muzzle,
@@ -310,7 +310,7 @@ namespace Highfly.SkillLab
             FaceNearestTarget(16f);
             HighflySkillLabMetrics.RecordAction("SIGIL • FIREBALL • CARGA 1.2s", 0);
             GameObject charge = SpawnPulse(
-                transform.position + Vector3.up * 1.35f + transform.forward * 0.65f,
+                transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f,
                 0.40f,
                 new Color(1f, 0.38f, 0.06f, 1f),
                 1.35f);
@@ -322,13 +322,13 @@ namespace Highfly.SkillLab
                 {
                     float u = Mathf.Clamp01((Time.unscaledTime - start) / 1.2f);
                     charge.transform.localScale = Vector3.one * Mathf.Lerp(0.4f, 1.15f, u);
-                    charge.transform.position = transform.position + Vector3.up * 1.35f + transform.forward * 0.65f;
+                    charge.transform.position = transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
                 }
                 yield return null;
             }
 
             if (charge != null) Destroy(charge);
-            Vector3 muzzle = transform.position + Vector3.up * 1.4f + transform.forward * 0.65f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.4f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
             SpawnProjectile(
                 "SIGIL_FIREBALL",
                 muzzle,
@@ -384,7 +384,7 @@ namespace Highfly.SkillLab
             SpawnPulse(transform.position + Vector3.up, 0.8f, new Color(0.45f, 0.15f, 0.8f, 1f), 0.25f);
             yield return new WaitForSecondsRealtime(0.55f);
 
-            Vector3 behind = target.transform.position - target.transform.forward * 1.35f;
+            Vector3 behind = target.transform.position - target.HighflyCombatFacingV027.Forward(transform) * 1.35f;
             behind.y = transform.position.y;
             SafeMove(behind);
 
@@ -405,7 +405,7 @@ namespace Highfly.SkillLab
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • BURST ARROW • EXPLOSIVE PROJECTILE", 0);
             HighflyParkourAnimationV010.Instance?.Play("OverhandThrow", 1.2f, 0.35f);
             yield return new WaitForSecondsRealtime(0.15f);
-            Vector3 muzzle = transform.position + Vector3.up * 1.35f + transform.forward * 0.65f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
             yield return ExplosiveProjectile(
                 "BURST_ARROW",
                 muzzle,
@@ -529,7 +529,7 @@ namespace Highfly.SkillLab
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • BARRAGE • 5 SHOTS", 0);
             for (int i = 0; i < 5; i++)
             {
-                Vector3 muzzle = transform.position + Vector3.up * 1.35f + transform.forward * 0.65f;
+                Vector3 muzzle = transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
                 SpawnProjectile(
                     "BARRAGE_" + i,
                     muzzle,
@@ -591,14 +591,14 @@ namespace Highfly.SkillLab
             FaceNearestTarget(35f);
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • RAIL SHOT • CHARGE 1s", 0);
             GameObject charge = SpawnPulse(
-                transform.position + Vector3.up * 1.45f + transform.forward * 0.55f,
+                transform.position + Vector3.up * 1.45f + HighflyCombatFacingV027.Forward(transform) * 0.55f,
                 0.30f,
                 new Color(0.85f, 0.95f, 1f, 1f),
                 1.1f);
             yield return new WaitForSecondsRealtime(1f);
             if (charge != null) Destroy(charge);
 
-            Vector3 muzzle = transform.position + Vector3.up * 1.45f + transform.forward * 0.65f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.45f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
             SpawnProjectile(
                 "RAIL_SHOT",
                 muzzle,
@@ -720,7 +720,7 @@ namespace Highfly.SkillLab
         private IEnumerator EmberBolt()
         {
             FaceNearestTarget(20f);
-            Vector3 muzzle = transform.position + Vector3.up * 1.35f + transform.forward * 0.65f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
             SpawnProjectile(
                 "SUB_EMBER_BOLT",
                 muzzle,
@@ -750,7 +750,7 @@ namespace Highfly.SkillLab
         private IEnumerator FrostLance()
         {
             FaceNearestTarget(20f);
-            Vector3 muzzle = transform.position + Vector3.up * 1.35f + transform.forward * 0.65f;
+            Vector3 muzzle = transform.position + Vector3.up * 1.35f + HighflyCombatFacingV027.Forward(transform) * 0.65f;
             SpawnProjectile(
                 "SUB_FROST_LANCE",
                 muzzle,
@@ -765,7 +765,7 @@ namespace Highfly.SkillLab
         private IEnumerator MeteorBreak()
         {
             CharacterStats target = FindNearestTarget(22f);
-            Vector3 impact = target != null ? TargetCenter(target) : transform.position + transform.forward * 8f;
+            Vector3 impact = target != null ? TargetCenter(target) : transform.position + HighflyCombatFacingV027.Forward(transform) * 8f;
             Vector3 start = impact + Vector3.up * 8f;
             GameObject meteor = SpawnPulse(start, 1.2f, new Color(1f, 0.25f, 0.04f, 1f), 2f);
 
@@ -819,8 +819,8 @@ namespace Highfly.SkillLab
             HighflySkillLabMetrics.RecordAction("ADAPTIVE • FOCUS SPECIAL • FULL-METER PREVIEW", 0);
             HighflyParkourAnimationV010.Instance?.Play("Sword_Heavy_Combo", 1.25f, 0.60f);
             yield return new WaitForSecondsRealtime(0.42f);
-            int hits = AreaDamageAt(transform.position + transform.forward * 1.5f, 4f, 72f, 70f, 3f);
-            SpawnRing(transform.position + transform.forward * 1.5f, 4f, new Color(0.70f, 0.25f, 1f, 0.9f), 0.35f);
+            int hits = AreaDamageAt(transform.position + HighflyCombatFacingV027.Forward(transform) * 1.5f, 4f, 72f, 70f, 3f);
+            SpawnRing(transform.position + HighflyCombatFacingV027.Forward(transform) * 1.5f, 4f, new Color(0.70f, 0.25f, 1f, 0.9f), 0.35f);
             HighflyTimeDilationManager.RequestHitStop(0.11f, 0.045f);
             HighflySkillLabMetrics.RecordAction("ADAPTIVE • FOCUS SPECIAL • HITS " + hits, hits);
         }
@@ -851,8 +851,8 @@ namespace Highfly.SkillLab
             HighflySkillLabMetrics.RecordAction("ADAPTIVE • HYPER ARMOR HEAVY • 1.25s", 0);
             HighflyParkourAnimationV010.Instance?.Play("Sword_Heavy_Combo", 0.9f, 0.75f);
             yield return new WaitForSecondsRealtime(0.48f);
-            AreaDamageAt(transform.position + transform.forward * 1.25f, 2.6f, 55f, 60f, 2.2f);
-            SpawnImpact(transform.position + transform.forward * 1.5f + Vector3.up * 0.7f, 1.4f, new Color(1f, 0.50f, 0.10f, 1f));
+            AreaDamageAt(transform.position + HighflyCombatFacingV027.Forward(transform) * 1.25f, 2.6f, 55f, 60f, 2.2f);
+            SpawnImpact(transform.position + HighflyCombatFacingV027.Forward(transform) * 1.5f + Vector3.up * 0.7f, 1.4f, new Color(1f, 0.50f, 0.10f, 1f));
             HighflyTimeDilationManager.RequestHitStop(0.09f, 0.06f);
         }
 
@@ -871,7 +871,7 @@ namespace Highfly.SkillLab
         {
             GameObject projectile = CreateProjectile(label, start, 0.45f, color);
             Vector3 direction = aim - start;
-            if (direction.sqrMagnitude < 0.001f) direction = transform.forward;
+            if (direction.sqrMagnitude < 0.001f) direction = HighflyCombatFacingV027.Forward(transform);
             direction.Normalize();
 
             float maxLife = 3f;
@@ -1052,7 +1052,7 @@ namespace Highfly.SkillLab
                 if (target == null || target == owner || hit.Contains(target)) continue;
                 hit.Add(target);
                 target.TakeDamage(damage, poise, transform);
-                ApplyKnockback(target.transform, transform.forward, knockback);
+                ApplyKnockback(target.transform, HighflyCombatFacingV027.Forward(transform), knockback);
                 HighflySkillLabMetrics.RecordHit(damage);
             }
         }
@@ -1090,7 +1090,7 @@ namespace Highfly.SkillLab
             Vector3 dir = target.transform.position - transform.position;
             dir.y = 0f;
             if (dir.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+                HighflyCombatFacingV027.FaceVisual(dir.normalized);
         }
 
         private Vector3 AimDirection(Vector3 origin, float maxDistance)
@@ -1128,7 +1128,7 @@ namespace Highfly.SkillLab
         {
             if (target == null || distance <= 0f) return;
             direction.y = 0f;
-            if (direction.sqrMagnitude < 0.001f) direction = transform.forward;
+            if (direction.sqrMagnitude < 0.001f) direction = HighflyCombatFacingV027.Forward(transform);
             direction.Normalize();
 
             CharacterController targetCc = target.GetComponent<CharacterController>();
@@ -1140,7 +1140,7 @@ namespace Highfly.SkillLab
 
         private Vector3 ForwardFlat()
         {
-            Vector3 dir = transform.forward;
+            Vector3 dir = HighflyCombatFacingV027.Forward(transform);
             dir.y = 0f;
             if (dir.sqrMagnitude < 0.001f) dir = Vector3.forward;
             return dir.normalized;
