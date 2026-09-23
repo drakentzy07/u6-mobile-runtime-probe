@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.5_COMBAT_LINK");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.6_MELEE_STABILITY");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,11 +184,11 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.5 • COMBAT LINK\n" +
+                    "HIGHFLY • DONOR LAB 2.6 • MELEE STABILITY\n" +
                     "LUCID / KAYKIT • FINALISTAS A/B • 3 TARGETS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
-                    "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
+                    "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n" +\n                    "Motion owner: " + (HighflyLabMotionGuardV026.Instance != null ? HighflyLabMotionGuardV026.Instance.Owner : "-") +\n                    " • TEST warnings: " + HighflyLabTestHistoryV026.WarningCount + "\n\n" +
                     "CORE: Danza Gemela • Danza Fantasma • Desgarro Eclipse\n" +
                     "LAB: sin costo/CD • recovery garantizado • sólo skills conectadas\n" +
                     "SKILLS +/- minimiza • RESET MOV recupera locomoción\n\n" +
@@ -218,7 +218,7 @@ namespace Highfly.SkillLab
 
             if (cc != null) cc.enabled = true;
 
-            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
+            HighflyLabTestHistoryV026.Install(player);\n            HighflyLabMotionGuardV026.Install(player);\n\n            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
 
             if (player.GetComponent<HighflyAerialMobility>() == null)
