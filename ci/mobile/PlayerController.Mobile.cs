@@ -132,7 +132,9 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
-        initialDamage = myWeapon.damage; // 초기 데미지 저장
+        initialDamage = myWeapon != null ? myWeapon.damage : 0f;
+        if (myWeapon == null)
+            Debug.LogWarning("[HIGHFLY] PlayerWeapon missing at Start; combat will be limited until WORLD bootstrap restores it.");
 
         if (activeSkill?.impactVFX != null && VFXPoolManager.Instance != null)
             VFXPoolManager.Instance.WarmUp(activeSkill.impactVFX, 3);
