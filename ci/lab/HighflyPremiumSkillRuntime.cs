@@ -329,7 +329,7 @@ namespace Highfly.SkillLab
             Color firstColor = stage == 2 ? violet : cyan;
             Color secondColor = stage == 2 ? cyan : violet;
 
-            HighflyAnimeFx.SpawnBladeScar(
+            HighflyFinalFxV024.SpawnSlash(
                 origin,
                 dir,
                 firstColor,
@@ -347,7 +347,7 @@ namespace Highfly.SkillLab
 
             yield return new WaitForSecondsRealtime(stage == 3 ? 0.050f : 0.070f);
 
-            HighflyAnimeFx.SpawnBladeScar(
+            HighflyFinalFxV024.SpawnSlash(
                 origin + dir * 0.10f,
                 dir,
                 secondColor,
@@ -369,7 +369,7 @@ namespace Highfly.SkillLab
             {
                 yield return new WaitForSecondsRealtime(0.045f);
 
-                HighflyAnimeFx.SpawnBladeScar(
+                HighflyFinalFxV024.SpawnSlash(
                     origin + dir * 0.18f,
                     dir,
                     Color.white,
@@ -390,7 +390,7 @@ namespace Highfly.SkillLab
             {
                 yield return new WaitForSecondsRealtime(0.040f);
 
-                HighflyAnimeFx.SpawnBladeScar(
+                HighflyFinalFxV024.SpawnSlash(
                     origin + dir * 0.22f,
                     dir,
                     new Color(0.86f, 0.64f, 1f, 1f),
@@ -1088,13 +1088,13 @@ namespace Highfly.SkillLab
 
         private void SpawnSlash(Vector3 dir, Color color, float roll, float length)
         {
-            HighflyPremiumFx.SpawnCrescentSlash(
+            HighflyFinalFxV024.SpawnSlash(
                 transform.position + Vector3.up * 1.05f + dir * 1.10f,
                 dir,
                 color,
+                roll,
                 Mathf.Max(1.25f, length * 0.72f),
                 Mathf.Max(0.28f, length * 0.22f),
-                roll,
                 0.20f);
         }
 
