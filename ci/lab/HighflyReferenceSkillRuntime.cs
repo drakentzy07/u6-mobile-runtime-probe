@@ -185,7 +185,7 @@ namespace Highfly.SkillLab
 
             HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
             int actionToken = guard != null
-                ? guard.Begin("S11 DESGARRO ECLIPSE", 1.65f, true)
+                ? guard.Begin("S11 DESGARRO ECLIPSE", 1.65f, false)
                 : 0;
 
             if (guard != null && actionToken == 0)
