@@ -95,10 +95,10 @@ namespace Highfly.SkillLab
             var b = Button(canvasParent, "SKILLS -");
             b.gameObject.name = "SkillVault_Minimize";
             var r = b.GetComponent<RectTransform>();
-            r.anchorMin = r.anchorMax = new Vector2(0f, 1f);
-            r.pivot = new Vector2(0f, 1f);
-            r.anchoredPosition = new Vector2(18f, -18f);
-            r.sizeDelta = new Vector2(142f, 48f);
+            r.anchorMin = r.anchorMax = new Vector2(0.38f, 1f);
+            r.pivot = new Vector2(1f, 1f);
+            r.anchoredPosition = new Vector2(-18f, -18f);
+            r.sizeDelta = new Vector2(132f, 46f);
 
             _toggleText = b.GetComponentInChildren<Text>();
             if (_toggleText != null)
