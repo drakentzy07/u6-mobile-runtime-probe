@@ -86,7 +86,6 @@ namespace Highfly.CI
             Directory.CreateDirectory(Path.GetDirectoryName(OutputScene));
 
             Scene scene = EditorSceneManager.OpenScene(SourceScene, OpenSceneMode.Single);
-            scene.name = "HIGHFLY_CITY01";
 
             RemoveSceneCameras(scene);
             RemoveHostiles(scene);
