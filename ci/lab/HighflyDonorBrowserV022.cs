@@ -134,7 +134,7 @@ namespace Highfly.SkillLab
             bar.GetComponent<Image>().color = new Color(0.018f, 0.035f, 0.060f, 0.98f);
             bar.GetComponent<Outline>().effectColor = new Color(0.16f, 0.70f, 1f, 0.95f);
 
-            var a = Button(bar.transform, "A • LUCID");
+            var a = Button(bar.transform, "PERSONAJE A • LUCID");
             var ar = a.GetComponent<RectTransform>();
             ar.anchorMin = new Vector2(0f, 0f);
             ar.anchorMax = new Vector2(0.49f, 1f);
@@ -142,7 +142,7 @@ namespace Highfly.SkillLab
             ar.offsetMax = new Vector2(-3f, -4f);
             a.onClick.AddListener(() => HighflyCharacterCompareV022.Instance?.UseLucid());
 
-            var b = Button(bar.transform, "B • KAYKIT");
+            var b = Button(bar.transform, "PERSONAJE B • KAYKIT");
             var rr = b.GetComponent<RectTransform>();
             rr.anchorMin = new Vector2(0.51f, 0f);
             rr.anchorMax = new Vector2(1f, 1f);
