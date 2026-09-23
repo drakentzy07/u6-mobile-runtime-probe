@@ -1,0 +1,89 @@
+name: Publish HIGHFLY World City 01 v0.2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-world-city01-v02.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-world-city01-v02-publish
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Skill root + WORLD City 01
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current Skill Lab Pages root
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: skill-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35796229260
+
+      - name: Download verified WORLD City 01 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-world-city01-v02-webgl
+          path: world-webgl
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35805655401
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+
+          test -f skill-pages/artifact.tar
+          tar -xf skill-pages/artifact.tar -C site
+          test -f site/index.html
+
+          rm -rf site/world-lab
+          mkdir -p site/world-lab
+          cp -a world-webgl/. site/world-lab/
+
+          test -f site/world-lab/index.html
+          test -f site/world-lab/Build/WebGL.loader.js
+          test -f site/world-lab/world-version.txt
+
+          echo "HIGHFLY WORLD CITY 01 v0.2 • VERIFIED RUN 35805655401" > site/world-lab/published-version.txt
+          touch site/.nojekyll
+
+          echo "Root:"
+          ls -la site | head -n 30
+          echo "WORLD:"
+          find site/world-lab -maxdepth 2 -type f | head -n 40
+          du -sh site site/world-lab
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy Skill root + WORLD City 01
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
