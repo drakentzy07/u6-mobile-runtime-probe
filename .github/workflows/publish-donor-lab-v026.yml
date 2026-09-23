@@ -1,0 +1,92 @@
+name: Publish HIGHFLY Donor Lab v2.6
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-donor-lab-v026.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-donor-lab-v026-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Pages + DONOR Lab 2.6
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35913630507
+
+      - name: Download verified DONOR Lab 2.6 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: donor-v26-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35919327715
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site donor-v26-extracted
+
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+
+          test -f site/index.html
+          test -f site/donor-lab-v25/index.html
+
+          test -f donor-v26-pages/artifact.tar
+          tar -xf donor-v26-pages/artifact.tar -C donor-v26-extracted
+          test -f donor-v26-extracted/index.html
+          grep -q "v=0260" donor-v26-extracted/index.html
+          grep -q "highfly-desktop-fit" donor-v26-extracted/index.html
+
+          rm -rf site/donor-lab-v26
+          mkdir -p site/donor-lab-v26
+          cp -a donor-v26-extracted/. site/donor-lab-v26/
+
+          test -f site/donor-lab-v26/index.html
+          test -f site/donor-lab-v26/Build/WebGL.loader.js
+          test -f site/donor-lab-v26/Build/WebGL.wasm
+          test -f site/donor-lab-v26/Build/WebGL.data
+
+          echo "HIGHFLY DONOR LAB 2.6 • VERIFIED BUILD RUN 35919327715 • MELEE STABILITY" > site/donor-lab-v26/published-version.txt
+          touch site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy current Pages + DONOR Lab 2.6
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
