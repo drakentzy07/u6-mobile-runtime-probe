@@ -1,0 +1,103 @@
+name: Publish HIGHFLY Donor Lab v2.2
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-donor-lab-v022.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-donor-lab-v022-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Pages + DONOR Lab 2.2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35869126319
+
+      - name: Download verified DONOR Lab 2.2 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: donor-v22-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35872223390
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site donor-v22-extracted
+
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+
+          # Preserve all current routes.
+          test -f site/index.html
+          test -f site/world-lab/index.html
+          test -f site/donor-lab-v21/index.html
+
+          test -f donor-v22-pages/artifact.tar
+          tar -xf donor-v22-pages/artifact.tar -C donor-v22-extracted
+          test -f donor-v22-extracted/index.html
+          grep -q "v=0220" donor-v22-extracted/index.html
+
+          rm -rf site/donor-lab-v22
+          mkdir -p site/donor-lab-v22
+          cp -a donor-v22-extracted/. site/donor-lab-v22/
+
+          test -f site/donor-lab-v22/index.html
+          test -f site/donor-lab-v22/Build/WebGL.loader.js
+          test -f site/donor-lab-v22/Build/WebGL.wasm
+          test -f site/donor-lab-v22/Build/WebGL.data
+
+          echo "HIGHFLY DONOR LAB 2.2 • VERIFIED BUILD RUN 35872223390 • SIGIL RAW SUITE RUN 35872353910" > site/donor-lab-v22/published-version.txt
+          touch site/.nojekyll
+
+          echo "PRESERVED ROOT:"
+          test -f site/index.html
+          echo "PRESERVED WORLD:"
+          test -f site/world-lab/index.html
+          echo "PRESERVED DONOR 2.1:"
+          test -f site/donor-lab-v21/index.html
+          echo "ADDED DONOR 2.2:"
+          find site/donor-lab-v22 -maxdepth 2 -type f | head -n 40
+          du -sh site site/world-lab site/donor-lab-v21 site/donor-lab-v22
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy current Pages + DONOR Lab 2.2
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
