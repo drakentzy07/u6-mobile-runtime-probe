@@ -313,7 +313,7 @@ namespace Highfly.SkillLab
         private IEnumerator TwinDanceRoutine(int stage)
         {
             Vector3 dir = FacingDirection();
-            transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            HighflyCombatFacingV027.FaceVisual(dir);
 
             _player.HighflyLabPlayMeleePulse();
 
@@ -459,7 +459,7 @@ namespace Highfly.SkillLab
         private IEnumerator PhantomStepRoutine()
         {
             Vector3 dir = FacingDirection();
-            transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+            HighflyCombatFacingV027.FaceVisual(dir);
 
             // Lucid Roll supplies the real i-frame contract.
             _player.HighflyLabPlayRollPulse();
@@ -674,7 +674,7 @@ namespace Highfly.SkillLab
                 Vector3 spawnPos =
                     transform.position +
                     transform.right * (i == 0 ? -1.45f : 1.45f) +
-                    transform.forward * 1.65f;
+                    HighflyCombatFacingV027.Forward(transform) * 1.65f;
 
                 HighflyPremiumFx.SpawnResource(
                     "Sparks",
@@ -788,7 +788,7 @@ namespace Highfly.SkillLab
             CharacterStats[] all =
                 UnityEngine.Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
 
-            Vector3 viewDir = transform.forward;
+            Vector3 viewDir = HighflyCombatFacingV027.Forward(transform);
             if (_player != null && _player.cameraTransform != null)
             {
                 viewDir = _player.cameraTransform.forward;
@@ -796,7 +796,7 @@ namespace Highfly.SkillLab
                 if (viewDir.sqrMagnitude > 0.001f)
                     viewDir.Normalize();
                 else
-                    viewDir = transform.forward;
+                    viewDir = HighflyCombatFacingV027.Forward(transform);
             }
 
             CharacterStats bestInView = null;
@@ -844,7 +844,7 @@ namespace Highfly.SkillLab
             CharacterStats[] all =
                 UnityEngine.Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
 
-            Vector3 viewDir = transform.forward;
+            Vector3 viewDir = HighflyCombatFacingV027.Forward(transform);
             if (_player != null && _player.cameraTransform != null)
             {
                 viewDir = _player.cameraTransform.forward;
@@ -853,7 +853,7 @@ namespace Highfly.SkillLab
                 if (viewDir.sqrMagnitude > 0.001f)
                     viewDir.Normalize();
                 else
-                    viewDir = transform.forward;
+                    viewDir = HighflyCombatFacingV027.Forward(transform);
             }
 
             CharacterStats best = null;
@@ -1007,7 +1007,7 @@ namespace Highfly.SkillLab
 
             Vector3 end =
                 transform.position +
-                (delta.sqrMagnitude > 0.001f ? delta.normalized : transform.forward) *
+                (delta.sqrMagnitude > 0.001f ? delta.normalized : HighflyCombatFacingV027.Forward(transform)) *
                 stopDistance;
 
             end.y = start.y;
@@ -1060,7 +1060,7 @@ namespace Highfly.SkillLab
                     return lockDir.normalized;
             }
 
-            return transform.forward;
+            return HighflyCombatFacingV027.Forward(transform);
         }
 
         private IEnumerator HitStop(float duration)
