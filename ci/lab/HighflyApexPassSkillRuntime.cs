@@ -179,7 +179,7 @@ namespace Highfly.SkillLab
             float start = Time.unscaledTime;
             const float duration = 0.82f;
 
-            Vector3 forward = transform.forward;
+            Vector3 forward = HighflyCombatFacingV027.Forward(transform);
             forward.y = 0f;
             if (forward.sqrMagnitude < 0.01f) forward = Vector3.forward;
             forward.Normalize();
@@ -282,7 +282,7 @@ namespace Highfly.SkillLab
             startDelta.y = 0f;
             float radius = Mathf.Clamp(startDelta.magnitude, 2.2f, 4.2f);
             if (startDelta.sqrMagnitude < 0.01f)
-                startDelta = -target.transform.forward * radius;
+                startDelta = -target.HighflyCombatFacingV027.Forward(transform) * radius;
             else
                 startDelta = startDelta.normalized * radius;
 
@@ -304,7 +304,7 @@ namespace Highfly.SkillLab
                 Vector3 face = target.transform.position - transform.position;
                 face.y = 0f;
                 if (face.sqrMagnitude > 0.001f)
-                    transform.rotation = Quaternion.LookRotation(face.normalized, Vector3.up);
+                    HighflyCombatFacingV027.FaceVisual(face.normalized);
 
                 if (Random.value < 0.36f)
                     HighflyPremiumFx.SpawnAfterImage(transform, color, 0.13f);
@@ -418,7 +418,7 @@ namespace Highfly.SkillLab
             Vector3 destination =
                 target != null
                     ? target.transform.position + Vector3.up * 0.8f
-                    : transform.position + transform.forward * 5.5f + Vector3.up * 0.8f;
+                    : transform.position + HighflyCombatFacingV027.Forward(transform) * 5.5f + Vector3.up * 0.8f;
 
             Color color = new Color(1f, 0.22f, 0.10f, 1f);
             GameObject blade = SpawnBlade(transform.position + Vector3.up * 1.0f, transform.rotation, color, 1.2f, 0.12f);
@@ -494,14 +494,14 @@ namespace Highfly.SkillLab
 
             for (int i = 0; i < 4; i++)
             {
-                SpawnRing(transform.position + transform.forward * 0.7f + Vector3.up * (0.55f + i * 0.18f), color, 0.45f + i * 0.16f, 0.55f);
+                SpawnRing(transform.position + HighflyCombatFacingV027.Forward(transform) * 0.7f + Vector3.up * (0.55f + i * 0.18f), color, 0.45f + i * 0.16f, 0.55f);
                 yield return new WaitForSecondsRealtime(0.09f);
             }
 
             _player.HighflyLabPlayMeleePulse();
 
             CharacterStats target = Target(4.0f, 120f);
-            Vector3 impact = transform.position + transform.forward * 1.55f + Vector3.up * 0.9f;
+            Vector3 impact = transform.position + HighflyCombatFacingV027.Forward(transform) * 1.55f + Vector3.up * 0.9f;
             HighflyPremiumFx.SpawnResource("EnergyExplosion", impact, Quaternion.identity, 0.72f, 0.9f, color);
             SpawnRing(impact, color, 1.8f, 0.45f);
 
@@ -576,7 +576,7 @@ namespace Highfly.SkillLab
             Vector3 end =
                 target != null
                     ? target.transform.position + Vector3.up * 0.9f
-                    : transform.position + transform.forward * 7f + Vector3.up;
+                    : transform.position + HighflyCombatFacingV027.Forward(transform) * 7f + Vector3.up;
 
             float start = Time.unscaledTime;
             Vector3 from = weapon.transform.position;
@@ -619,8 +619,8 @@ namespace Highfly.SkillLab
 
             yield return new WaitForSecondsRealtime(0.88f);
 
-            HighflyAnimeFx.SpawnBladeScar(mark + Vector3.up * 1.0f, transform.forward, color, 46f, 2.7f, 0.9f);
-            HighflyAnimeFx.SpawnBladeScar(mark + Vector3.up * 1.0f, transform.forward, Color.white, -46f, 2.45f, 0.9f);
+            HighflyAnimeFx.SpawnBladeScar(mark + Vector3.up * 1.0f, HighflyCombatFacingV027.Forward(transform), color, 46f, 2.7f, 0.9f);
+            HighflyAnimeFx.SpawnBladeScar(mark + Vector3.up * 1.0f, HighflyCombatFacingV027.Forward(transform), Color.white, -46f, 2.45f, 0.9f);
             DamageArea(mark + Vector3.up * 0.8f, 2.0f, 58f, "APEX • CORTE FUTURO / IMPACTO");
             HighflyTimeDilationManager.RequestHitStop(0.070f, 0.05f);
         }
@@ -655,7 +655,7 @@ namespace Highfly.SkillLab
             Vector3 destination =
                 target != null
                     ? target.transform.position + Vector3.up * 0.9f
-                    : transform.position + transform.forward * 6f + Vector3.up;
+                    : transform.position + HighflyCombatFacingV027.Forward(transform) * 6f + Vector3.up;
 
             float start = Time.unscaledTime;
             while (Time.unscaledTime - start < 0.42f)
@@ -701,7 +701,7 @@ namespace Highfly.SkillLab
                 Vector3 center = target.transform.position + Vector3.up * (0.75f + (i % 3) * 0.18f);
                 Vector3 dir = target.transform.position - transform.position;
                 dir.y = 0f;
-                if (dir.sqrMagnitude < 0.001f) dir = transform.forward;
+                if (dir.sqrMagnitude < 0.001f) dir = HighflyCombatFacingV027.Forward(transform);
 
                 HighflyAnimeFx.SpawnBladeScar(
                     center,
@@ -720,7 +720,7 @@ namespace Highfly.SkillLab
 
             if (target != null)
             {
-                HighflyAnimeFx.SpawnImpactCross(target.transform.position + Vector3.up, transform.forward, Color.white, 2.8f);
+                HighflyAnimeFx.SpawnImpactCross(target.transform.position + Vector3.up, HighflyCombatFacingV027.Forward(transform), Color.white, 2.8f);
                 Hit(target, 30f, "APEX • MASACRE / FINISHER", 30f);
                 HighflyTimeDilationManager.RequestHitStop(0.075f, 0.045f);
             }
@@ -751,7 +751,7 @@ namespace Highfly.SkillLab
                 _reservePoint =
                     target != null
                         ? target.transform.position + Vector3.up * 0.8f
-                        : transform.position + transform.forward * 6f + Vector3.up * 0.8f;
+                        : transform.position + HighflyCombatFacingV027.Forward(transform) * 6f + Vector3.up * 0.8f;
 
                 _reserveReady = true;
                 HighflySkillLabMetrics.RecordAction("APEX • RESERVA ARCANA / ALMACENADA", 0);
@@ -826,7 +826,7 @@ namespace Highfly.SkillLab
             Vector3 origin = transform.position + Vector3.up * 1.0f;
             Vector3[] directions =
             {
-                transform.forward,
+                HighflyCombatFacingV027.Forward(transform),
                 transform.right,
                 -transform.right
             };
