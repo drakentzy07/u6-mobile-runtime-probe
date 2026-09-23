@@ -110,6 +110,7 @@ namespace Highfly.CI
             player.name = "HIGHFLY_PLAYER";
             player.transform.SetPositionAndRotation(Spawn, Quaternion.Euler(0f, 155f, 0f));
             RestoreLucidPlayerSceneOverrides(player);
+            EnsureLivingWorldPlayerInteraction(player);
 
             var runtime = new GameObject("HIGHFLY_CITY01_RUNTIME");
             SceneManager.MoveGameObjectToScene(runtime, scene);
@@ -119,6 +120,7 @@ namespace Highfly.CI
             BindPlayerCamera(player);
             ReplaceWaterForWebGL(scene);
             CreateWorldBoundaryFallback(scene);
+            ConfigureLivingWorld(scene);
 
             LogLandmark("Inn");
             LogLandmark("Smithy");
@@ -135,6 +137,203 @@ namespace Highfly.CI
 
             Debug.Log("[HF-WORLD] HIGHFLY_CITY01 prepared at " + OutputScene);
             Debug.Log("[HF-WORLD] Player spawn = " + Spawn);
+        }
+
+        private static void EnsureLivingWorldPlayerInteraction(GameObject player)
+        {
+            var interaction = player.GetComponent<PlayerInteraction>();
+            if (interaction == null)
+                interaction = player.AddComponent<PlayerInteraction>();
+
+            interaction.interactRange = 3.25f;
+            interaction.interactLayer = 1 << 7;
+
+            Debug.Log("[HF-WORLD] Player interaction enabled on layer 7 with mobile USAR.");
+        }
+
+        private static void ConfigureLivingWorld(Scene scene)
+        {
+            ConfigureLandmark(scene, "Inn", "city01_inn", "Posada", Highfly.World.HighflyLandmarkType.Inn);
+            ConfigureLandmark(scene, "Smithy", "city01_smithy", "Herrería", Highfly.World.HighflyLandmarkType.Smithy);
+            ConfigureLandmark(scene, "Market Stall 1", "city01_market_1", "Mercado", Highfly.World.HighflyLandmarkType.Market);
+            ConfigureLandmark(scene, "Market Stall 2", "city01_market_2", "Mercado", Highfly.World.HighflyLandmarkType.Market);
+            ConfigureLandmark(scene, "Market Stall 3", "city01_market_3", "Mercado", Highfly.World.HighflyLandmarkType.Market);
+
+            int wood = ConfigureResourceNodes(scene, Highfly.World.HighflyResourceType.Wood, new[] { "Tree" }, 5, 28f, 120f);
+            int ore = ConfigureResourceNodes(scene, Highfly.World.HighflyResourceType.Ore, new[] { "Rock", "Stone" }, 4, 32f, 135f);
+            int herb = ConfigureResourceNodes(scene, Highfly.World.HighflyResourceType.Herb, new[] { "Mushroom", "Flower", "Plant" }, 5, 20f, 110f);
+            int livingAnimals = ConfigureAmbientLife(scene);
+
+            Debug.Log($"[HF-WORLD] Living World configured: wood={wood}, ore={ore}, herb={herb}, animated-life={livingAnimals}");
+        }
+
+        private static void ConfigureLandmark(
+            Scene scene,
+            string objectName,
+            string id,
+            string display,
+            Highfly.World.HighflyLandmarkType type)
+        {
+            GameObject root = FindSceneObject(scene, objectName);
+            if (root == null)
+            {
+                Debug.LogWarning("[HF-WORLD] Living landmark missing: " + objectName);
+                return;
+            }
+
+            Transform interactionPoint = FindNamedChild(root.transform, "Door");
+            GameObject target = interactionPoint != null ? interactionPoint.gameObject : root;
+
+            target.layer = 7;
+
+            Collider col = target.GetComponent<Collider>();
+            if (col == null)
+            {
+                var sphere = target.AddComponent<SphereCollider>();
+                sphere.radius = interactionPoint != null ? 1.6f : 3.0f;
+                sphere.isTrigger = true;
+            }
+
+            var interactable = target.GetComponent<Highfly.World.HighflyLandmarkInteractable>();
+            if (interactable == null)
+                interactable = target.AddComponent<Highfly.World.HighflyLandmarkInteractable>();
+
+            interactable.landmarkId = id;
+            interactable.displayName = display;
+            interactable.type = type;
+
+            Debug.Log($"[HF-WORLD] Landmark interactive: {display} @ {target.transform.position}");
+        }
+
+        private static int ConfigureResourceNodes(
+            Scene scene,
+            Highfly.World.HighflyResourceType type,
+            string[] nameTokens,
+            int maxCount,
+            float minDistance,
+            float maxDistance)
+        {
+            var candidates = new List<GameObject>();
+            foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (go == null || go.scene != scene) continue;
+                if (go.GetComponentInChildren<Renderer>(true) == null) continue;
+
+                bool nameMatch = false;
+                foreach (string token in nameTokens)
+                {
+                    if (go.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        nameMatch = true;
+                        break;
+                    }
+                }
+                if (!nameMatch) continue;
+
+                float distance = Vector3.Distance(go.transform.position, Spawn);
+                if (distance < minDistance || distance > maxDistance) continue;
+
+                candidates.Add(go);
+            }
+
+            candidates.Sort((a, b) =>
+                Vector3.Distance(a.transform.position, Spawn)
+                    .CompareTo(Vector3.Distance(b.transform.position, Spawn)));
+
+            int count = 0;
+            var usedPositions = new List<Vector3>();
+            foreach (var visual in candidates)
+            {
+                if (count >= maxCount) break;
+
+                bool tooClose = false;
+                foreach (var used in usedPositions)
+                {
+                    if (Vector3.Distance(used, visual.transform.position) < 5.0f)
+                    {
+                        tooClose = true;
+                        break;
+                    }
+                }
+                if (tooClose) continue;
+
+                var nodeGo = new GameObject($"HIGHFLY_RESOURCE_{type}_{count + 1}");
+                SceneManager.MoveGameObjectToScene(nodeGo, scene);
+                nodeGo.transform.SetParent(visual.transform, false);
+                nodeGo.transform.localPosition = Vector3.up * (type == Highfly.World.HighflyResourceType.Wood ? 1.0f : 0.55f);
+                nodeGo.layer = 7;
+
+                var sphere = nodeGo.AddComponent<SphereCollider>();
+                sphere.isTrigger = true;
+                sphere.radius = type == Highfly.World.HighflyResourceType.Wood ? 1.4f : 1.0f;
+
+                var node = nodeGo.AddComponent<Highfly.World.HighflyResourceNode>();
+                node.nodeId = $"city01_{type.ToString().ToLowerInvariant()}_{count + 1}";
+                node.resourceType = type;
+                node.yieldAmount = type == Highfly.World.HighflyResourceType.Herb ? 1 : 2;
+                node.respawnSeconds = type == Highfly.World.HighflyResourceType.Ore ? 120f : 75f;
+                node.visualRoot = visual.transform;
+
+                usedPositions.Add(visual.transform.position);
+                count++;
+            }
+
+            return count;
+        }
+
+        private static int ConfigureAmbientLife(Scene scene)
+        {
+            int count = 0;
+            string[] animalTokens = { "Sheep", "Pig", "Horse", "Cow", "Chicken" };
+
+            foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None))
+            {
+                if (go == null || go.scene != scene) continue;
+
+                bool animal = false;
+                foreach (string token in animalTokens)
+                {
+                    if (go.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        animal = true;
+                        break;
+                    }
+                }
+                if (!animal) continue;
+
+                if (go.GetComponentInChildren<Animator>(true) == null) continue;
+                if (go.GetComponent<Highfly.World.HighflyAmbientWander>() != null) continue;
+
+                var wander = go.AddComponent<Highfly.World.HighflyAmbientWander>();
+                wander.radius = 3.5f;
+                wander.speed = 0.65f;
+                wander.turnSpeed = 2.5f;
+                count++;
+            }
+
+            return count;
+        }
+
+        private static GameObject FindSceneObject(Scene scene, string exactName)
+        {
+            foreach (var go in UnityEngine.Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (go != null && go.scene == scene && string.Equals(go.name, exactName, StringComparison.Ordinal))
+                    return go;
+            }
+            return null;
+        }
+
+        private static Transform FindNamedChild(Transform root, string token)
+        {
+            if (root == null) return null;
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true))
+            {
+                if (child == root) continue;
+                if (child.name.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return child;
+            }
+            return null;
         }
 
         private static void RestoreLucidPlayerSceneOverrides(GameObject player)
