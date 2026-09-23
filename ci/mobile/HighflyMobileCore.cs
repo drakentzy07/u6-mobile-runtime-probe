@@ -485,6 +485,9 @@ namespace Highfly.Mobile
             _mobileMode = Application.isMobilePlatform || HighflySkillLabMode.IsActive;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
+            // WORLD/Skill WebGL must expose the same mobile topology on desktop too,
+            // so browser testing matches the S23 HUD and button wiring.
+            _mobileMode = true;
             try { _mobileMode = _mobileMode || HF_IsTouchDevice() != 0; } catch { }
 #endif
 
