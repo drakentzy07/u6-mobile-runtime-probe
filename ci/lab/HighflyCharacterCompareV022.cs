@@ -56,7 +56,7 @@ namespace Highfly.SkillLab
 
             _lucidRenderers = player.GetComponentsInChildren<Renderer>(true);
             BuildUi(uiParent);
-            RefreshStatus("LUCID");
+            RefreshStatus("LUCID MAIN");
         }
 
         public void UseLucid()
@@ -76,8 +76,8 @@ namespace Highfly.SkillLab
             _player.animator = _lucidAnimator;
             HighflyParkourAnimationV010.BindTo(_lucidAnimator);
 
-            RefreshStatus("LUCID");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID", 0);
+            RefreshStatus("LUCID MAIN");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID MAIN", 0);
         }
 
         public void UseKayKit()
@@ -107,8 +107,8 @@ namespace Highfly.SkillLab
             _player.animator = _kayAnimator;
             HighflyParkourAnimationV010.BindTo(_kayAnimator);
 
-            RefreshStatus("KAYKIT KNIGHT");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT KNIGHT", 0);
+            RefreshStatus("KAYKIT TEST");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT TEST", 0);
         }
 
         private void EnsureKayKit()
@@ -203,7 +203,7 @@ namespace Highfly.SkillLab
             bar.GetComponent<Image>().color = new Color(0.010f, 0.016f, 0.028f, 0.94f);
             bar.GetComponent<Outline>().effectColor = new Color(0.18f, 0.72f, 1f, 0.92f);
 
-            Button lucid = Button(bar.transform, "PERSONAJE A • LUCID");
+            Button lucid = Button(bar.transform, "A • LUCID MAIN");
             RectTransform lr = lucid.GetComponent<RectTransform>();
             lr.anchorMin = lr.anchorMax = new Vector2(0f, 1f);
             lr.pivot = new Vector2(0f, 1f);
@@ -211,7 +211,7 @@ namespace Highfly.SkillLab
             lr.sizeDelta = new Vector2(230f, 52f);
             lucid.onClick.AddListener(UseLucid);
 
-            Button kay = Button(bar.transform, "PERSONAJE B • KAYKIT");
+            Button kay = Button(bar.transform, "B • KAYKIT TEST");
             RectTransform kr = kay.GetComponent<RectTransform>();
             kr.anchorMin = kr.anchorMax = new Vector2(0f, 1f);
             kr.pivot = new Vector2(0f, 1f);
@@ -219,7 +219,7 @@ namespace Highfly.SkillLab
             kr.sizeDelta = new Vector2(230f, 52f);
             kay.onClick.AddListener(UseKayKit);
 
-            _status = Label(bar.transform, "PERSONAJE: LUCID", 14, TextAnchor.UpperLeft);
+            _status = Label(bar.transform, "PRINCIPAL: LUCID", 14, TextAnchor.UpperLeft);
             RectTransform sr = _status.rectTransform;
             sr.anchorMin = sr.anchorMax = new Vector2(0f, 1f);
             sr.pivot = new Vector2(0f, 1f);
