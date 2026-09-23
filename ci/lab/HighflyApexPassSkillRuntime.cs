@@ -282,7 +282,7 @@ namespace Highfly.SkillLab
             startDelta.y = 0f;
             float radius = Mathf.Clamp(startDelta.magnitude, 2.2f, 4.2f);
             if (startDelta.sqrMagnitude < 0.01f)
-                startDelta = -target.HighflyCombatFacingV027.Forward(transform) * radius;
+                startDelta = -target.transform.forward * radius;
             else
                 startDelta = startDelta.normalized * radius;
 
