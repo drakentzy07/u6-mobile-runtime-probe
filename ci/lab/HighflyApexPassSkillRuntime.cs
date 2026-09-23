@@ -306,7 +306,7 @@ namespace Highfly.SkillLab
                 yield return null;
             }
 
-            _player.HighflyMobileAttack();
+            _player.HighflyLabPlayMeleePulse();
             Hit(target, 26f, "APEX • DRIFT / BLINDSIDE", 18f);
         }
 
@@ -492,7 +492,7 @@ namespace Highfly.SkillLab
                 yield return new WaitForSecondsRealtime(0.09f);
             }
 
-            _player.HighflyMobileAttack();
+            _player.HighflyLabPlayMeleePulse();
 
             CharacterStats target = Target(4.0f, 120f);
             Vector3 impact = transform.position + transform.forward * 1.55f + Vector3.up * 0.9f;
