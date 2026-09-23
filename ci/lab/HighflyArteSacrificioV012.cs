@@ -197,28 +197,16 @@ namespace Highfly.SkillLab
                 _weaponCollider.enabled = false;
             }
 
+            // v0.15: never create synthetic TrailRenderer geometry.
+            // Reuse a real weapon trail only when the donor/player weapon already owns one.
             _trail = _weapon.GetComponentInChildren<TrailRenderer>(true);
-            if (_trail == null)
+            _trailCreatedByUs = false;
+            if (_trail != null)
             {
-                _trail = _weapon.gameObject.AddComponent<TrailRenderer>();
-                _trailCreatedByUs = true;
-                _trail.time = 0.20f;
-                _trail.minVertexDistance = 0.035f;
-                _trail.widthMultiplier = 0.12f;
-                _trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-                _trail.receiveShadows = false;
-            }
-            else
-            {
-                _trailCreatedByUs = false;
                 _trailWasEnabled = _trail.enabled;
+                _trail.enabled = true;
+                _trail.Clear();
             }
-
-            _trail.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(OutboundColor);
-            _trail.startColor = OutboundColor;
-            _trail.endColor = new Color(OutboundColor.r, OutboundColor.g, OutboundColor.b, 0f);
-            _trail.enabled = true;
-            _trail.Clear();
 
             Vector3 worldPos = _weapon.position;
             Quaternion worldRot = _weapon.rotation;
@@ -252,7 +240,7 @@ namespace Highfly.SkillLab
 
             _weapon.position = start;
             SpawnResource("HIGHFLY/SkillVFX/ElectricalSparks", start, 0.55f, 1.1f);
-            SpawnArcRing(start, OutboundColor, 0.50f, 0.22f);
+            SpawnResource("HIGHFLY/DonorVFX/ParticlesLight", start, 0.42f, 0.8f);
 
             const float duration = 0.34f;
             float t = 0f;
@@ -309,17 +297,14 @@ namespace Highfly.SkillLab
             Vector3 center = _weapon != null ? _weapon.position : transform.position + transform.forward * 3f;
             HighflySkillLabMetrics.RecordAction("ARTE DEL SACRIFICIO • CARGA DE DETONACIÓN", 2);
 
-            for (int i = 0; i < 4; i++)
-            {
-                SpawnArcRing(center, DetonateColor, 0.65f + i * 0.22f, 0.32f);
-                if (i == 1)
-                    SpawnResource("HIGHFLY/SkillVFX/ParticlesLight", center, 0.75f, 1.15f);
-                yield return new WaitForSecondsRealtime(0.075f);
-            }
+            SpawnResource("HIGHFLY/DonorVFX/ParticlesLight", center, 0.82f, 1.25f);
+            yield return new WaitForSecondsRealtime(0.09f);
+            SpawnResource("HIGHFLY/DonorVFX/ElectricalSparks", center + Vector3.up * 0.45f, 1.05f, 1.3f);
+            yield return new WaitForSecondsRealtime(0.09f);
 
-            SpawnResource("HIGHFLY/SkillVFX/EnergyExplosion", center, 1.25f, 1.8f);
-            SpawnResource("HIGHFLY/SkillVFX/PlasmaExplosion", center, 0.92f, 1.6f);
-            SpawnArcRing(center, new Color(1f, 0.84f, 0.28f, 1f), 2.8f, 0.28f);
+            SpawnResource("HIGHFLY/DonorVFX/BigExplosion", center, 1.05f, 2.0f);
+            SpawnResource("HIGHFLY/DonorVFX/PlasmaExplosion", center, 0.95f, 1.7f);
+            SpawnResource("HIGHFLY/DonorVFX/EarthShatter", center, 0.82f, 2.0f);
 
             CharacterStats[] all = Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
             for (int i = 0; i < all.Length; i++)
@@ -403,8 +388,8 @@ namespace Highfly.SkillLab
                 yield return null;
             }
 
-            SpawnResource("HIGHFLY/SkillVFX/ParticlesLight", end, 0.56f, 0.9f);
-            SpawnArcRing(end, new Color(0.84f, 0.96f, 1f, 1f), 0.42f, 0.18f);
+            SpawnResource("HIGHFLY/DonorVFX/ParticlesLight", end, 0.56f, 0.9f);
+            SpawnResource("HIGHFLY/DonorVFX/Sparks", end, 0.38f, 0.8f);
             HighflyTimeDilationManager.RequestHitStop(0.028f, 0.20f);
             RestoreWeaponImmediate();
             HighflySkillLabMetrics.RecordAction("ARTE DEL SACRIFICIO • CATCH", 5);
@@ -483,9 +468,9 @@ namespace Highfly.SkillLab
 
         private void SpawnImpact(Vector3 point)
         {
-            SpawnResource("HIGHFLY/SkillVFX/Sparks", point, 0.60f, 1.0f);
-            SpawnResource("HIGHFLY/SkillVFX/ElectricalSparks", point, 0.48f, 1.0f);
-            SpawnArcRing(point, new Color(0.90f, 0.96f, 1f, 1f), 0.78f, 0.18f);
+            SpawnResource("HIGHFLY/DonorVFX/Sparks", point, 0.72f, 1.0f);
+            SpawnResource("HIGHFLY/DonorVFX/ElectricalSparks", point + Vector3.up * 0.20f, 0.58f, 1.0f);
+            SpawnResource("HIGHFLY/DonorVFX/SmallExplosion", point, 0.46f, 1.1f);
         }
 
         private static void SpawnResource(string resourcePath, Vector3 position, float scale, float life)
@@ -500,24 +485,7 @@ namespace Highfly.SkillLab
 
         private static void SpawnArcRing(Vector3 center, Color color, float radius, float life)
         {
-            GameObject go = new GameObject("HF_ARTE_RUNE_RING");
-            go.transform.position = center + Vector3.up * 0.025f;
-
-            LineRenderer lr = go.AddComponent<LineRenderer>();
-            lr.loop = true;
-            lr.useWorldSpace = false;
-            lr.positionCount = 64;
-            lr.widthMultiplier = Mathf.Clamp(radius * 0.035f, 0.025f, 0.085f);
-            lr.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(color);
-
-            for (int i = 0; i < 64; i++)
-            {
-                float a = (i / 64f) * Mathf.PI * 2f;
-                float wobble = 1f + Mathf.Sin(a * 6f) * 0.055f;
-                lr.SetPosition(i, new Vector3(Mathf.Cos(a) * radius * wobble, 0f, Mathf.Sin(a) * radius * wobble));
-            }
-
-            Object.Destroy(go, life);
+            // v0.15: intentionally disabled. No procedural LineRenderer rings in curated builds.
         }
 
         private void RestoreWeaponImmediate()
