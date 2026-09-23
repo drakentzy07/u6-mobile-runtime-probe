@@ -286,8 +286,10 @@ namespace Highfly.SkillLab
                     dist = Mathf.Max(0f, hit.distance - 0.4f);
             }
 
+            HighflyPremiumFx.SpawnAfterImage(transform, new Color(0.20f, 0.75f, 1f, 0.82f), 0.24f);
             SpawnPulse(transform.position + Vector3.up, 0.65f, new Color(0.25f, 0.75f, 1f, 1f), 0.20f);
             SafeMove(transform.position + dir * dist);
+            HighflyPremiumFx.SpawnAfterImage(transform, new Color(0.62f, 0.30f, 1f, 0.74f), 0.20f);
             SpawnPulse(transform.position + Vector3.up, 0.65f, new Color(0.65f, 0.35f, 1f, 1f), 0.20f);
             HighflySkillLabMetrics.RecordAction("SIGIL • FLASH • 5m", 0);
             yield return new WaitForSecondsRealtime(0.10f);
@@ -342,6 +344,7 @@ namespace Highfly.SkillLab
         private IEnumerator VortexEdge()
         {
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • VORTEX EDGE • SPIN AOE", 1);
+            HighflyPremiumFx.AttachWeaponTrail(_player, new Color(0.20f, 0.80f, 1f, 1f), Color.white, 2.1f, 0.28f);
             float end = Time.unscaledTime + 2f;
             float nextTick = 0f;
             while (Time.unscaledTime < end)
@@ -351,6 +354,8 @@ namespace Highfly.SkillLab
                 {
                     nextTick = Time.unscaledTime + 0.25f;
                     AreaDamageAt(transform.position, 3f, 6f, 4f, 0.35f);
+                    Vector3 cutOrigin = transform.position + Vector3.up * 1.0f + transform.forward * 0.8f;
+                    HighflyPremiumFx.SpawnCrescentSlash(cutOrigin, transform.forward, new Color(0.25f, 0.78f, 1f, 1f), 2.4f, 0.22f, 20f, 0.20f);
                     SpawnRing(transform.position + Vector3.up * 0.15f, 3f, new Color(0.25f, 0.75f, 1f, 0.75f), 0.18f);
                 }
                 yield return null;
@@ -375,6 +380,7 @@ namespace Highfly.SkillLab
             }
 
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • VEIL STRIKE • CLOAK", 0);
+            HighflyPremiumFx.SpawnAfterImage(transform, new Color(0.50f, 0.14f, 0.92f, 0.68f), 0.32f);
             SpawnPulse(transform.position + Vector3.up, 0.8f, new Color(0.45f, 0.15f, 0.8f, 1f), 0.25f);
             yield return new WaitForSecondsRealtime(0.55f);
 
@@ -420,29 +426,26 @@ namespace Highfly.SkillLab
             }
 
             Face(target);
-            GameObject lineGo = new GameObject("HUNTER_CLAW_LINE");
-            LineRenderer line = lineGo.AddComponent<LineRenderer>();
-            line.positionCount = 2;
-            line.startWidth = 0.10f;
-            line.endWidth = 0.04f;
-            line.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.25f, 0.85f, 1f, 1f));
-
             Vector3 start = transform.position;
             Vector3 goal = target.transform.position - (target.transform.position - transform.position).normalized * 1.25f;
             goal.y = transform.position.y;
+
+            HighflyPremiumFx.SpawnShadowTether(
+                transform,
+                target.transform,
+                new Vector3(0f, 1.15f, 0f),
+                new Vector3(0f, 1.0f, 0f),
+                0.42f,
+                0);
 
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • HUNTER CLAW • GRAPPLE", 0);
             float t = 0f;
             while (t < 0.34f)
             {
                 t += Time.unscaledDeltaTime;
-                line.SetPosition(0, transform.position + Vector3.up * 1.1f);
-                line.SetPosition(1, TargetCenter(target));
                 SafeMove(Vector3.Lerp(start, goal, Mathf.Clamp01(t / 0.34f)));
                 yield return null;
             }
-
-            Destroy(lineGo);
             target.TakeDamage(20f, 12f, transform);
             StartCoroutine(StunTarget(target, 0.5f));
             HighflySkillLabMetrics.RecordAction("HUNTER CLAW • IMPACT + STUN 0.5s", 1);
@@ -544,17 +547,23 @@ namespace Highfly.SkillLab
                 yield break;
             }
 
-            GameObject drone = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            drone.name = "HIGHFLY_HUNT_DRONE";
-            Collider dc = drone.GetComponent<Collider>();
-            if (dc != null) Destroy(dc);
+            GameObject drone = new GameObject("HIGHFLY_HUNT_DRONE");
             drone.transform.position = transform.position + Vector3.up * 2.2f + transform.right * 0.8f;
-            drone.transform.localScale = Vector3.one * 0.55f;
-            Renderer dr = drone.GetComponent<Renderer>();
-            if (dr != null)
-                dr.sharedMaterial = HighflyLabVisuals.CreateMaterial(
-                    new Color(0.15f, 0.85f, 1f, 1f),
-                    new Color(0.05f, 0.60f, 1f, 1f));
+            GameObject droneFx = HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                drone.transform.position,
+                Quaternion.identity,
+                0.62f,
+                1.8f,
+                new Color(0.10f, 0.82f, 1f, 1f));
+            if (droneFx != null)
+                droneFx.transform.SetParent(drone.transform, true);
+
+            TrailRenderer droneTrail = drone.AddComponent<TrailRenderer>();
+            droneTrail.time = 0.24f;
+            droneTrail.startWidth = 0.11f;
+            droneTrail.endWidth = 0.01f;
+            droneTrail.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.18f, 0.78f, 1f, 0.78f));
 
             HighflySkillLabMetrics.RecordAction("PROJECT-X REF • HUNT DRONE • SEEK + EXPLODE", 0);
 
@@ -944,7 +953,17 @@ namespace Highfly.SkillLab
 
             Renderer r = projectile.GetComponent<Renderer>();
             if (r != null)
-                r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 1.8f);
+                r.enabled = false;
+
+            GameObject visual = HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                position,
+                Quaternion.identity,
+                Mathf.Clamp(radius * 0.95f, 0.24f, 1.15f),
+                duration + 0.35f,
+                color);
+            if (visual != null)
+                visual.transform.SetParent(projectile.transform, true);
 
             TrailRenderer trail = projectile.AddComponent<TrailRenderer>();
             trail.time = 0.22f;
@@ -1166,40 +1185,85 @@ namespace Highfly.SkillLab
 
         private GameObject SpawnPulse(Vector3 position, float size, Color color, float life)
         {
-            GameObject fx = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            fx.name = "HIGHFLY_DONOR_PULSE";
-            Collider c = fx.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            fx.transform.position = position;
-            fx.transform.localScale = Vector3.one * size;
-            Renderer r = fx.GetComponent<Renderer>();
-            if (r != null) r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 2f);
-            Destroy(fx, life);
+            // Presentation pass v2.4: keep gameplay proxy logic, remove visible solid primitives.
+            GameObject fx = HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                position,
+                Quaternion.identity,
+                Mathf.Clamp(size * 0.72f, 0.22f, 1.35f),
+                Mathf.Max(0.25f, life),
+                color);
+
+            if (fx == null)
+                fx = HighflyPremiumFx.SpawnResource(
+                    "Sparks",
+                    position,
+                    Quaternion.identity,
+                    Mathf.Clamp(size * 0.55f, 0.18f, 1.15f),
+                    Mathf.Max(0.25f, life),
+                    color);
+
             return fx;
         }
 
         private GameObject SpawnRing(Vector3 position, float radius, Color color, float life)
         {
-            GameObject fx = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            fx.name = "HIGHFLY_DONOR_RING";
-            Collider c = fx.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            fx.transform.position = position;
-            fx.transform.localScale = new Vector3(radius * 2f, 0.02f, radius * 2f);
-            Renderer r = fx.GetComponent<Renderer>();
-            if (r != null) r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 1.6f);
-            Destroy(fx, life);
+            // No opaque/neon cylinder: use a low-profile particle burst + stylized slash arcs.
+            GameObject fx = HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                position + Vector3.up * 0.08f,
+                Quaternion.identity,
+                Mathf.Clamp(radius * 0.26f, 0.35f, 1.35f),
+                Mathf.Max(0.35f, life),
+                color);
+
+            Vector3 fwd = ForwardFlat();
+            HighflyPremiumFx.SpawnCrescentSlash(
+                position + Vector3.up * 0.18f,
+                fwd,
+                color,
+                Mathf.Clamp(radius * 0.62f, 0.8f, 2.8f),
+                0.12f,
+                86f,
+                Mathf.Max(0.16f, life));
+
             return fx;
         }
 
         private GameObject SpawnField(Vector3 position, float radius, Color color, float life)
         {
-            return SpawnRing(position + Vector3.up * 0.03f, radius, color, life);
+            GameObject fx = HighflyPremiumFx.SpawnResource(
+                "ParticlesLight",
+                position + Vector3.up * 0.25f,
+                Quaternion.identity,
+                Mathf.Clamp(radius * 0.34f, 0.65f, 1.8f),
+                life,
+                color);
+
+            HighflyAnimeFx.SpawnGrandMagicCircle(
+                transform,
+                new Color(color.r, color.g, color.b, Mathf.Clamp01(color.a + 0.18f)),
+                Mathf.Clamp(radius * 0.72f, 1.8f, 4.6f),
+                life);
+
+            return fx;
         }
 
         private void SpawnImpact(Vector3 position, float radius, Color color)
         {
-            SpawnPulse(position, Mathf.Max(0.35f, radius), color, 0.18f);
+            HighflyAnimeFx.SpawnImpactCross(
+                position,
+                ForwardFlat(),
+                color,
+                Mathf.Clamp(radius * 1.35f, 1.0f, 3.2f));
+
+            HighflyPremiumFx.SpawnResource(
+                "EnergyExplosion",
+                position,
+                Quaternion.identity,
+                Mathf.Clamp(radius * 0.34f, 0.30f, 1.15f),
+                0.75f,
+                color);
         }
 
         private GameObject SpawnResourceFx(string path, Vector3 position, float scale, float life)
