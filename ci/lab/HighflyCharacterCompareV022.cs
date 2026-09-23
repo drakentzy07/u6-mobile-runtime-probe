@@ -79,7 +79,8 @@ namespace Highfly.SkillLab
             HighflyParkourAnimationV010.BindTo(_lucidAnimator);
 
             RefreshStatus("LUCID CANDIDATO A");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID CANDIDATO A", 0);\n            HighflyLabTestHistoryV026.Log("CHARACTER -> LUCID");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID CANDIDATO A", 0);
+            HighflyLabTestHistoryV026.Log("CHARACTER -> LUCID");
         }
 
         public void UseKayKit()
@@ -113,7 +114,8 @@ namespace Highfly.SkillLab
             HighflyParkourAnimationV010.BindTo(_kayAnimator);
 
             RefreshStatus("KAYKIT CANDIDATO B");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT CANDIDATO B • SCALE 0.84", 0);\n            HighflyLabTestHistoryV026.Log("CHARACTER -> KAYKIT • visualScale=0.84");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT CANDIDATO B • SCALE 0.84", 0);
+            HighflyLabTestHistoryV026.Log("CHARACTER -> KAYKIT • visualScale=0.84");
         }
 
         private void EnsureKayKit()
