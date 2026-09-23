@@ -21,27 +21,115 @@ namespace Highfly.SkillLab
             if (forward.sqrMagnitude < 0.0001f) forward = Vector3.forward;
             forward.Normalize();
 
+            float safeLength = Mathf.Max(0.2f, length);
+            float safeWidth = Mathf.Max(0.05f, width);
+            float safeDuration = Mathf.Max(0.08f, duration);
             string texture = Mathf.Abs(rollDegrees) > 40f ? "slash_03" : "slash_02";
-            GameObject go = CreateTexturedQuad("HF_FINAL_SLASH", texture, color);
-            if (go == null) return null;
 
-            go.transform.position = origin;
-            go.transform.rotation =
+            // v2.6 premium slash: three asset-backed layers instead of one flat quad.
+            // Glow sells speed/readability; colored blade carries identity; white core
+            // gives the cut an anime-hot center without relying on heavy VFX Graph.
+            GameObject root = new GameObject("HF_FINAL_SLASH_PREMIUM");
+            root.transform.position = origin;
+            root.transform.rotation =
                 Quaternion.LookRotation(forward, Vector3.up) *
                 Quaternion.Euler(0f, 0f, rollDegrees);
-            go.transform.localScale = new Vector3(
-                Mathf.Max(0.2f, length),
-                Mathf.Max(0.05f, width),
-                1f);
 
-            var life = go.AddComponent<HighflyFinalQuadLifetimeV024>();
-            life.Initialize(Mathf.Max(0.08f, duration), 0.16f, 0f);
+            Color glow = new Color(color.r, color.g, color.b, 0.26f);
+            Color blade = new Color(color.r, color.g, color.b, 0.84f);
+            Color core = new Color(1f, 1f, 1f, 0.96f);
 
-            SpawnImpact(origin + forward * Mathf.Min(length * 0.42f, 1.35f),
-                Mathf.Max(0.35f, width * 1.4f),
+            SpawnSlashLayer(
+                root.transform,
+                "GLOW",
+                texture,
+                glow,
+                safeLength * 1.12f,
+                safeWidth * 2.35f,
+                0.020f,
+                safeDuration * 1.10f,
+                0.22f);
+
+            SpawnSlashLayer(
+                root.transform,
+                "BLADE",
+                texture,
+                blade,
+                safeLength,
+                safeWidth,
+                0.010f,
+                safeDuration,
+                0.12f);
+
+            SpawnSlashLayer(
+                root.transform,
+                "CORE",
+                "slash_01",
+                core,
+                safeLength * 0.90f,
+                Mathf.Max(0.035f, safeWidth * 0.31f),
+                0f,
+                safeDuration * 0.78f,
+                0.04f);
+
+            var motion = root.AddComponent<HighflyFinalSlashMotionV026>();
+            motion.Initialize(
+                forward,
+                Mathf.Clamp(safeLength * 0.72f, 0.65f, 2.65f),
+                safeDuration);
+
+            Vector3 impact =
+                origin + forward * Mathf.Min(safeLength * 0.52f, 1.65f);
+
+            SpawnParticleBurst(
+                impact,
+                "spark_04",
+                core,
+                Mathf.Max(0.12f, safeWidth * 0.48f),
+                9,
+                Mathf.Max(2.4f, safeLength * 2.2f),
+                0.20f);
+
+            SpawnImpact(
+                impact,
+                Mathf.Max(0.35f, safeWidth * 1.55f),
                 color);
 
-            return go;
+            return root;
+        }
+
+        private static void SpawnSlashLayer(
+            Transform parent,
+            string label,
+            string texture,
+            Color color,
+            float length,
+            float width,
+            float localZ,
+            float duration,
+            float grow)
+        {
+            GameObject layer =
+                CreateTexturedQuad(
+                    "HF_FINAL_SLASH_" + label,
+                    texture,
+                    color);
+
+            if (layer == null) return;
+
+            layer.transform.SetParent(parent, false);
+            layer.transform.localPosition = new Vector3(0f, 0f, localZ);
+            layer.transform.localRotation = Quaternion.identity;
+            layer.transform.localScale =
+                new Vector3(length, width, 1f);
+
+            var life =
+                layer.AddComponent<HighflyFinalQuadLifetimeV024>();
+
+            life.Initialize(
+                Mathf.Max(0.06f, duration),
+                grow,
+                0f);
         }
 
         public static GameObject SpawnPulse(Vector3 position, float size, Color color, float life)
@@ -276,6 +364,50 @@ namespace Highfly.SkillLab
             mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             mr.receiveShadows = false;
             return go;
+        }
+    }
+
+    [DisallowMultipleComponent]
+    public sealed class HighflyFinalSlashMotionV026 : MonoBehaviour
+    {
+        private Vector3 _direction;
+        private float _speed;
+        private float _end;
+        private float _duration;
+        private Vector3 _baseScale;
+
+        public void Initialize(Vector3 direction, float travelDistance, float duration)
+        {
+            _direction =
+                direction.sqrMagnitude > 0.0001f
+                    ? direction.normalized
+                    : Vector3.forward;
+
+            _duration = Mathf.Max(0.06f, duration);
+            _speed = Mathf.Max(0f, travelDistance) / _duration;
+            _end = Time.unscaledTime + _duration;
+            _baseScale = transform.localScale;
+        }
+
+        private void Update()
+        {
+            float remaining = _end - Time.unscaledTime;
+            if (remaining <= 0f)
+            {
+                Destroy(gameObject);
+                return;
+            }
+
+            transform.position +=
+                _direction * _speed * Time.unscaledDeltaTime;
+
+            float t = 1f - Mathf.Clamp01(remaining / _duration);
+            float punch =
+                t < 0.28f
+                    ? Mathf.Lerp(0.82f, 1.08f, t / 0.28f)
+                    : Mathf.Lerp(1.08f, 0.98f, (t - 0.28f) / 0.72f);
+
+            transform.localScale = _baseScale * punch;
         }
     }
 
