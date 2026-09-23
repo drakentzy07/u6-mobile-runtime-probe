@@ -128,8 +128,10 @@ namespace Highfly.SkillLab
             {
                 HighflyParkourAnimationV010.Instance?.StopNow();
                 PlayerController p = Object.FindFirstObjectByType<PlayerController>();
+                HighflyLabMotionGuardV026.Instance?.ForceRelease("RESET MOV button");
                 p?.HighflyLabForceLocomotion();
                 HighflySkillLabMetrics.RecordAction("LAB • RESET MOVIMIENTO", 0);
+                HighflyLabTestHistoryV026.Log("MANUAL RESET MOV");
             });
         }
 
