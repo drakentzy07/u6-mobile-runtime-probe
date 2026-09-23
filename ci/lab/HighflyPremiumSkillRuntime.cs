@@ -196,6 +196,9 @@ namespace Highfly.SkillLab
 
         public void Trigger(HighflyPremiumSkillId id)
         {
+            if (HighflySkillLabMode.IsActive)
+                ClearPreviewCooldown(id);
+
             switch (id)
             {
                 case HighflyPremiumSkillId.TwinDance:
