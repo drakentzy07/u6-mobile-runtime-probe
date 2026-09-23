@@ -184,6 +184,7 @@ namespace Highfly.SkillLab
             }
             finally
             {
+                _player?.HighflyLabForceLocomotion();
                 _busy = false;
             }
         }
@@ -277,6 +278,8 @@ namespace Highfly.SkillLab
                 HighflySkillLabMetrics.RecordAction("SIGIL FLASH • VOLITION INSUFICIENTE", 0);
                 yield break;
             }
+
+            HighflyParkourAnimationV010.Instance?.Play("Sword_Dash", 1.35f, 0.30f);
 
             Vector3 dir = ForwardFlat();
             float dist = 5f;
