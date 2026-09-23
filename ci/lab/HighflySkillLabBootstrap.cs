@@ -185,7 +185,7 @@ namespace Highfly.SkillLab
 
                 _metricsText.text =
                     "HIGHFLY • DONOR LAB 2.3 • SKILL VAULT + CHARACTER A/B\n" +
-                    "33 SKILL ENTRIES • 3 TARGETS • LUCID vs KAYKIT\n" +
+                    "33 ENTRADAS TESTEABLES • 3 TARGETS • LUCID vs KAYKIT\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
