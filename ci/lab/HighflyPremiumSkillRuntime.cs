@@ -292,7 +292,7 @@ namespace Highfly.SkillLab
         {
             HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
             int actionToken = guard != null
-                ? guard.Begin("S1 DANZA GEMELA • " + stage, 0.95f, true)
+                ? guard.Begin("S1 DANZA GEMELA • " + stage, 0.95f, false)
                 : 0;
 
             if (guard != null && actionToken == 0)
@@ -447,7 +447,7 @@ namespace Highfly.SkillLab
         {
             HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
             int actionToken = guard != null
-                ? guard.Begin("S2 PASO FANTASMA", 0.90f, true)
+                ? guard.Begin("S2 PASO FANTASMA", 0.90f, false)
                 : 0;
 
             if (guard != null && actionToken == 0)
