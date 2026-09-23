@@ -290,6 +290,14 @@ namespace Highfly.SkillLab
 
         private IEnumerator TwinDanceRoutine(int stage)
         {
+            HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
+            int actionToken = guard != null
+                ? guard.Begin("S1 DANZA GEMELA • " + stage, 0.95f, true)
+                : 0;
+
+            if (guard != null && actionToken == 0)
+                yield break;
+
             Vector3 dir = FacingDirection();
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
@@ -419,6 +427,7 @@ namespace Highfly.SkillLab
             }
 
             _player.HighflyLabForceLocomotion();
+            guard?.End(actionToken, "stage " + stage + " complete");
         }
 
         // ------------------------------------------------------------------
@@ -436,6 +445,14 @@ namespace Highfly.SkillLab
 
         private IEnumerator PhantomStepRoutine()
         {
+            HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
+            int actionToken = guard != null
+                ? guard.Begin("S2 PASO FANTASMA", 0.90f, true)
+                : 0;
+
+            if (guard != null && actionToken == 0)
+                yield break;
+
             Vector3 dir = FacingDirection();
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
@@ -497,6 +514,7 @@ namespace Highfly.SkillLab
 
             // Never rely on an animation event to leave Roll in the LAB.
             _player.HighflyLabForceLocomotion();
+            guard?.End(actionToken, "dash complete");
         }
 
         // ------------------------------------------------------------------
