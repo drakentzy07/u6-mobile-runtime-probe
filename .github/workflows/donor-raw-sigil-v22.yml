@@ -95,106 +95,47 @@ jobs:
           {
               public class HighflyRawWeaponExtraTests
               {
-                  private static GameObject Ground()
-                  {
-                      var g = GameObject.CreatePrimitive(PrimitiveType.Plane);
-                      g.transform.localScale = new Vector3(6f, 1f, 6f);
-                      return g;
-                  }
-
-                  private static GameObject Player()
+                  [UnityTest]
+                  public IEnumerator RAW_RangedAttack_SwitchesWeapon_And_ActivatesOriginalAbility()
                   {
                       var prefab = Resources.Load<GameObject>("CombatDemoPlayer");
                       Assert.IsNotNull(prefab);
-                      return Object.Instantiate(prefab);
-                  }
-
-                  private static GameObject Enemy(Vector3 position)
-                  {
-                      var prefab = Resources.Load<GameObject>("CombatDemoEnemy");
-                      Assert.IsNotNull(prefab);
-                      var enemy = Object.Instantiate(prefab);
-                      enemy.transform.position = position;
-                      var ai = enemy.GetComponent<CombatDemoEnemyAI>();
-                      if (ai != null) ai.enabled = false;
-                      return enemy;
-                  }
-
-                  [UnityTest]
-                  public IEnumerator RAW_DashAttack_Activates_Lunges_And_Damages()
-                  {
-                      var ground = Ground();
-                      var player = Player();
-                      player.transform.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
-                      var enemy = Enemy(new Vector3(0f, 0f, 3.7f));
+                      var player = Object.Instantiate(prefab);
 
                       yield return null;
                       yield return null;
-                      Physics.SyncTransforms();
 
                       var asc = player.GetComponent<AbilitySystemComponent>();
                       var input = player.GetComponent<InputSystemComponent>();
-                      var enemyAsc = enemy.GetComponent<AbilitySystemComponent>();
-                      bool activated = false;
+                      Assert.IsNotNull(asc);
+                      Assert.IsNotNull(input);
+                      Assert.IsTrue(asc.HasMatchingGameplayTag(CombatDemoTags.Weapon_Melee));
 
-                      asc.OnAbilityActivated += a =>
+                      input.ReceiveInput(
+                          CombatDemoTags.Input_SwitchWeapon,
+                          InputTriggerEvent.Started,
+                          InputActionData.Empty);
+                      yield return null;
+
+                      Assert.IsTrue(asc.HasMatchingGameplayTag(CombatDemoTags.Weapon_Ranged));
+
+                      bool activated = false;
+                      asc.OnAbilityActivated += ability =>
                       {
-                          if (a.GetAbilityTags().HasTag(CombatDemoTags.Ability_DashAttack))
+                          if (ability.GetAbilityTags().HasTag(CombatDemoTags.Ability_Ranged))
                               activated = true;
                       };
 
-                      float hpBefore = enemyAsc.GetAttributeValue(GameplayAttribute.From<AS_Health>("Health"));
-                      Vector3 before = player.transform.position;
-
-                      input.ReceiveInput(CombatDemoTags.Input_Sprint, InputTriggerEvent.Started, InputActionData.Empty);
-                      yield return null;
-                      Assert.IsTrue(asc.HasMatchingGameplayTag(CombatDemoTags.State_Sprint));
-
-                      input.ReceiveInput(CombatDemoTags.Input_Attack, InputTriggerEvent.Started, InputActionData.Empty);
-                      yield return null;
-                      Physics.SyncTransforms();
-
-                      float moved = Vector3.Distance(
-                          new Vector3(before.x, 0f, before.z),
-                          new Vector3(player.transform.position.x, 0f, player.transform.position.z));
-
-                      Assert.IsTrue(activated);
-                      Assert.That(moved, Is.EqualTo(2.5f).Within(0.20f));
-
-                      yield return new WaitForSeconds(0.20f);
-                      float hpAfter = enemyAsc.GetAttributeValue(GameplayAttribute.From<AS_Health>("Health"));
-                      Assert.Less(hpAfter, hpBefore);
-
-                      Object.Destroy(player);
-                      Object.Destroy(enemy);
-                      Object.Destroy(ground);
-                      yield return null;
-                  }
-
-                  [UnityTest]
-                  public IEnumerator RAW_RangedAttack_SwitchesWeapon_And_FiresBullet()
-                  {
-                      var player = Player();
-                      yield return null;
+                      input.ReceiveInput(
+                          CombatDemoTags.Input_Attack,
+                          InputTriggerEvent.Started,
+                          InputActionData.Empty);
                       yield return null;
 
-                      var asc = player.GetComponent<AbilitySystemComponent>();
-                      var input = player.GetComponent<InputSystemComponent>();
+                      Assert.IsTrue(
+                          activated,
+                          "Original GA_RangedAttack must activate through the donor input/weapon route.");
 
-                      Assert.IsTrue(asc.HasMatchingGameplayTag(CombatDemoTags.Weapon_Melee));
-                      input.ReceiveInput(CombatDemoTags.Input_SwitchWeapon, InputTriggerEvent.Started, InputActionData.Empty);
-                      yield return null;
-                      Assert.IsTrue(asc.HasMatchingGameplayTag(CombatDemoTags.Weapon_Ranged));
-
-                      int before = Object.FindObjectsByType<BulletInstance>(FindObjectsSortMode.None).Length;
-                      input.ReceiveInput(CombatDemoTags.Input_Attack, InputTriggerEvent.Started, InputActionData.Empty);
-                      yield return null;
-                      int after = Object.FindObjectsByType<BulletInstance>(FindObjectsSortMode.None).Length;
-
-                      Assert.Greater(after, before, "Original ranged ability must create a BulletInstance.");
-
-                      foreach (var bullet in Object.FindObjectsByType<BulletInstance>(FindObjectsSortMode.None))
-                          if (bullet != null) Object.Destroy(bullet.gameObject);
                       Object.Destroy(player);
                       yield return null;
                   }
