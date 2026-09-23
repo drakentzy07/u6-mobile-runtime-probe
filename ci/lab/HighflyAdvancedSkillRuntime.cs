@@ -277,7 +277,7 @@ namespace Highfly.SkillLab
 
                 HighflyAnimeFx.SpawnImpactCross(
                     impact,
-                    transform.forward,
+                    HighflyCombatFacingV027.Forward(transform),
                     violet,
                     3.35f);
 
@@ -675,7 +675,7 @@ namespace Highfly.SkillLab
 
             Vector3 dir = FlatDirectionTo(target.transform.position);
             if (dir.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                HighflyCombatFacingV027.FaceVisual(dir);
         }
 
         private Vector3 FlatDirectionTo(Vector3 position)
@@ -692,7 +692,7 @@ namespace Highfly.SkillLab
 
         private Vector3 FlatForward()
         {
-            Vector3 f = transform.forward;
+            Vector3 f = HighflyCombatFacingV027.Forward(transform);
             f.y = 0f;
             return f.sqrMagnitude > 0.001f ? f.normalized : Vector3.forward;
         }
