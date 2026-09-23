@@ -48,9 +48,7 @@ namespace Highfly.SkillLab
             _busy = true;
             try
             {
-                CharacterStats target = HighflyPremiumSkillRuntime.Instance != null
-                    ? HighflyPremiumSkillRuntime.Instance.FindBestTarget(10f, 360f)
-                    : null;
+                CharacterStats target = FindTarget(10f);
 
                 if (target != null)
                 {
@@ -88,6 +86,31 @@ namespace Highfly.SkillLab
             {
                 _busy = false;
             }
+        }
+
+        private CharacterStats FindTarget(float radius)
+        {
+            CharacterStats[] all = Object.FindObjectsByType<CharacterStats>(FindObjectsSortMode.None);
+            CharacterStats owner = GetComponent<CharacterStats>();
+            CharacterStats best = null;
+            float bestSq = radius * radius;
+
+            for (int i = 0; i < all.Length; i++)
+            {
+                CharacterStats candidate = all[i];
+                if (candidate == null || candidate == owner) continue;
+
+                Vector3 d = candidate.transform.position - transform.position;
+                d.y = 0f;
+                float sq = d.sqrMagnitude;
+                if (sq < bestSq)
+                {
+                    bestSq = sq;
+                    best = candidate;
+                }
+            }
+
+            return best;
         }
 
         private static GameObject Spawn(string path, Vector3 pos, float scale, float life)
