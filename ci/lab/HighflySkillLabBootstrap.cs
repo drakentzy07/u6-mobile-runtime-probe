@@ -25,6 +25,7 @@ namespace Highfly.SkillLab
         {
             LastAction = action;
             ComboStage = comboStage;
+            HighflyLabTelemetryV026.Record("ACTION", action + " • stage=" + comboStage);
         }
 
         public static void RecordHit(float damage)
@@ -33,6 +34,7 @@ namespace Highfly.SkillLab
             TotalDamage += damage;
             TotalHits++;
             LastHitAt = Time.unscaledTime;
+            HighflyLabTelemetryV026.Record("HIT", damage.ToString("0.0") + " dmg • totalHits=" + TotalHits);
         }
 
         public static void Reset()
@@ -155,7 +157,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.5_COMBAT_LINK");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.6_STABILITY_PREMIUM");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,14 +186,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.5 • COMBAT LINK\n" +
+                    "HIGHFLY • DONOR LAB 2.6 • STABILITY + PREMIUM FX\n" +
                     "LUCID / KAYKIT • FINALISTAS A/B • 3 TARGETS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
                     "CORE: Danza Gemela • Danza Fantasma • Desgarro Eclipse\n" +
-                    "LAB: sin costo/CD • recovery garantizado • sólo skills conectadas\n" +
-                    "SKILLS +/- minimiza • RESET MOV recupera locomoción\n\n" +
+                    "LAB: sin costo/CD • Action Guard • recovery watchdog\n" +
+                    "TEST LOG está minimizado • RESET MOV sigue disponible\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -217,6 +219,9 @@ namespace Highfly.SkillLab
             player.transform.rotation = Quaternion.identity;
 
             if (cc != null) cc.enabled = true;
+
+            HighflyLabActionGuardV026.Install(player);
+            HighflyLabTelemetryV026.Install(player, transform);
 
             if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
