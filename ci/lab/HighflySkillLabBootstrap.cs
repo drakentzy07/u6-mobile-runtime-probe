@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.3_SKILL_VAULT");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.4_FINAL_VISUAL_PASS");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,15 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.3 • SKILL VAULT + CHARACTER A/B\n" +
-                    "33 ENTRADAS TESTEABLES • 3 TARGETS • LUCID vs KAYKIT\n" +
+                    "HIGHFLY • DONOR LAB 2.4 • FINAL VISUAL PASS\n" +
+                    "LUCID MAIN • KAYKIT A/B TEST • 3 TARGETS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "KEEP: Drift • Jump Smash | SIGIL + Dragon Souls\n" +
-                    "NUEVOS: Project-X refs • Ashwalker • Subspace • Adaptive\n" +
-                    "A/B fijo: LUCID / KAYKIT • mismo runtime / mismo control\n" +
-                    "SKILLS +/- minimiza • panel izquierdo tiene scroll\n\n" +
+                    "CORE: Danza Gemela • Danza Fantasma • Desgarro Eclipse\n" +
+                    "DONORS: sólo FINAL / NEAR-FINAL visibles • NO PROXY\n" +
+                    "SKILLS +/- minimiza • panel no pisa el joystick\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
