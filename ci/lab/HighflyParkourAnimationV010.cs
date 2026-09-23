@@ -51,6 +51,15 @@ namespace Highfly.SkillLab
             if (_animator == null || string.IsNullOrEmpty(clipName))
                 return false;
 
+            if (HighflyLabActionGuardV026.Instance != null &&
+                HighflyLabActionGuardV026.Instance.IsLocked)
+            {
+                HighflyLabTelemetryV026.Record(
+                    "PARKOUR BLOCK",
+                    clipName + " durante " + HighflyLabActionGuardV026.Instance.Owner);
+                return false;
+            }
+
             AnimationClip clip =
                 Resources.Load<AnimationClip>(
                     "HIGHFLY/Parkour/" + clipName);
