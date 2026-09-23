@@ -101,7 +101,6 @@ jobs:
           cp ci/lab/HighflyCombatLabV010.ControlShadow.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.ControlShadow.cs
           cp ci/lab/HighflyCombatLabV010.BuffDefense.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.BuffDefense.cs
           cp ci/lab/HighflyCombatLabBrowserV010.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV010.cs
-          cp ci/lab/HighflyCombatLabBrowserV011.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           cp ci/lab/HighflyLabTargetsV011.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
           cp ci/lab/HighflyParkourAnimationV010.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           cp ci/lab/HighflyAcceptedSkillRuntimeV016.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedSkillRuntimeV016.cs
@@ -161,7 +160,6 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.ControlShadow.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.BuffDefense.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV010.cs
-          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabBrowserV011.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedSkillRuntimeV016.cs
