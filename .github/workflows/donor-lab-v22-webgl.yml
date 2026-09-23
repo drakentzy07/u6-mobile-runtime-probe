@@ -1,9 +1,9 @@
-name: Donor Lab 2.3 Skill Vault WebGL
+name: Donor Lab 2.4 Final Visual Pass WebGL
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/donor-lab-v2.3-skill-vault]
+    branches: [highfly/donor-lab-v2.4-final-visual-pass]
     paths:
       - "ci/**"
       - ".github/workflows/donor-lab-v22-webgl.yml"
@@ -14,12 +14,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: donor-lab-v023-skill-vault
+  group: donor-lab-v024-final-visual-pass
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Donor Lab 2.3 Skill Vault WebGL
+    name: Build Donor Lab 2.4 Final Visual Pass WebGL
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.3 Skill Vault
+      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.4 Final Visual Pass
         shell: bash
         run: |
           set -euxo pipefail
@@ -76,6 +76,8 @@ jobs:
           mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX
           mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/AcceptedVFX
           mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare
+          mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/ThirdParty
           mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
 
           cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
@@ -110,6 +112,7 @@ jobs:
           cp ci/lab/HighflyDonorExpandedRuntimeV022.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           cp ci/lab/HighflyDonorBrowserV022.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
           cp ci/lab/HighflyCharacterCompareV022.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCharacterCompareV022.cs
+          cp ci/lab/HighflyFinalFxV024.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyFinalFxV024.cs
 
           # KayKit Character Pack: Adventurers, official CC0 source pinned for A/B testing.
           KAYKIT="$RUNNER_TEMP/KayKit-Adventurers"
@@ -120,6 +123,14 @@ jobs:
           cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare/KayKitKnight.fbx"
           cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare/knight_texture.png"
           cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare/KayKitSword1H.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/arrow.fbx"                       "LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/KayKitArrow.fbx"
+
+          # Kenney Particle Pack 1.1 textures: CC0, pinned mirror commit.
+          KENNEY_BASE="https://raw.githubusercontent.com/Calinou/kenney-particle-pack/ab7086639ee73be31abd87feb21bf1402d4e8144/addons/kenney_particle_pack"
+          for F in slash_01.png slash_02.png slash_03.png slash_04.png spark_04.png magic_03.png circle_05.png twirl_02.png smoke_05.png scorch_01.png; do
+            curl -L --fail --retry 3 "$KENNEY_BASE/$F" -o "LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/$F"
+          done
+          curl -L --fail --retry 3 "$KENNEY_BASE/LICENSE.txt" -o "LucidHost/3D_game/Assets/HIGHFLY/ThirdParty/KenneyParticlePack_LICENSE.txt"
 
           # CC0 Quaternius Universal Animation Library 2 v2.1.
           # Pinned public mirror; SHA-256 is verified against the user's Library copy.
@@ -181,8 +192,14 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCharacterCompareV022.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyFinalFxV024.cs
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare/KayKitKnight.fbx
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/CharacterCompare/KayKitSword1H.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/KayKitArrow.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/slash_02.png
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/spark_04.png
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/FinalVFX/magic_03.png
+          test -s LucidHost/3D_game/Assets/HIGHFLY/ThirdParty/KenneyParticlePack_LICENSE.txt
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/AcceptedVFX/EarthShatter.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/AcceptedVFX/EnergyExplosion.prefab
           test -s LucidHost/3D_game/Assets/HIGHFLY/Parkour/UAL2_Standard.fbx
@@ -193,10 +210,10 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_DONOR_LAB_v2.3_SKILL_VAULT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_DONOR_LAB_v2.4_FINAL_VISUAL_PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "DONOR LAB 2.3" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "33 ENTRADAS TESTEABLES" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "DONOR LAB 2.4" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "FINAL VISUAL PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyDonorBrowserV022.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "DRIFT DE FÓRMULA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
           grep -q "JUMP SMASH" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
@@ -206,11 +223,18 @@ jobs:
           grep -q "DragonRecallFirstLegSpeed = 40f" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorWeaponRuntimeV021.cs
           grep -q "SWORD THROW / EMBED / RECALL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
           grep -q "SKILLS +" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
-          grep -q "PERSONAJE A • LUCID" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
+          grep -q "DANZA GEMELA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
           grep -q "PxVortexEdge" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           grep -q "AshForcePull" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           grep -q "SubMeteorBreak" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           grep -q "AdaptiveHyperArmorHeavy" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "HighflyFinalFxV024.SpawnSlash" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
+          grep -q "HighflyFinalFxV024.CreateProjectile" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q 'Resources.Load<GameObject>("HIGHFLY/CharacterCompare/KayKitSword1H")' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorWeaponRuntimeV021.cs
+          if grep -q 'Add("HUNT DRONE"' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs; then echo "ERROR: proxy drone exposed in final browser"; exit 1; fi
+          if grep -q 'Add("HUNTER CLAW"' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs; then echo "ERROR: proxy claw exposed in final browser"; exit 1; fi
+          if grep -q 'Add("AEGIS FORM"' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs; then echo "ERROR: proxy aegis form exposed in final browser"; exit 1; fi
+          if grep -q "GameObject.CreatePrimitive" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyFinalFxV024.cs; then echo "ERROR: final VFX layer contains primitive proxy geometry"; exit 1; fi
           grep -q "HighflyDonorDefenseState.TryModifyIncoming" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
           grep -q 'ResetTrigger("doAttack")' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedSkillRuntimeV016.cs
           if grep -q "HighflyCuratedDonorRuntimeV015" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: rejected donor runtime still installed"; exit 1; fi
@@ -286,7 +310,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v023-skill-vault-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v024-final-visual-pass-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
@@ -320,11 +344,36 @@ jobs:
           touch "$OUT/.nojekyll"
 
           # donor lab v2.1 cache bust: force mobile browsers to request this exact WebGL payload.
-          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0230"#' "$OUT/index.html"
-          sed -i 's#/WebGL.data"#/WebGL.data?v=0230"#' "$OUT/index.html"
-          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0230"#' "$OUT/index.html"
-          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0230"#' "$OUT/index.html"
-          grep -q "v=0230" "$OUT/index.html"
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0240"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=0240"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0240"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0240"#' "$OUT/index.html"
+          grep -q "v=0240" "$OUT/index.html"
+
+          # Desktop quick-test mode: large 16:9 canvas inside the browser, no fullscreen API required.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("LucidHost/3D_game/build/WebGL/index.html")
+          s = p.read_text(encoding="utf-8")
+          css = """<style id="highfly-desktop-fit">
+          @media (pointer:fine) and (min-width:900px) {
+            html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
+            #unity-container.unity-desktop {
+              position:fixed !important;
+              left:50% !important; top:50% !important;
+              transform:translate(-50%,-50%) !important;
+              width:min(100vw, 177.777777vh) !important;
+              height:min(100vh, 56.25vw) !important;
+            }
+            #unity-canvas { width:100% !important; height:100% !important; }
+            #unity-footer { display:none !important; }
+          }
+          </style>"""
+          if "highfly-desktop-fit" not in s:
+              s = s.replace("</head>", css + "</head>")
+          p.write_text(s, encoding="utf-8")
+          PY
+          grep -q "highfly-desktop-fit" "$OUT/index.html"
 
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
