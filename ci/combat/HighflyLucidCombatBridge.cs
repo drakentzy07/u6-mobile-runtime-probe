@@ -128,7 +128,7 @@ namespace Highfly.Combat
                 _characterController.Move(direction * 2.6f);
 
             if (direction.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+                HighflyCombatFacingV027.FaceVisual(direction);
 
             SpawnPulse(new Color(0.38f, 0.45f, 1f, 1f), 1.0f, 14);
         }
@@ -179,7 +179,7 @@ namespace Highfly.Combat
                     return world.normalized;
             }
 
-            return transform.forward;
+            return HighflyCombatFacingV027.Forward(transform);
         }
 
         private void DamageEnemies(float radius, float damage, float composureDamage)
