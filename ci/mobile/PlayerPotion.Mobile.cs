@@ -64,6 +64,8 @@ public class PlayerPotion : MonoBehaviour
 
     public void HighflyMobileUsePotion()
     {
+        if (_controller == null || _stats == null) return;
+
         // 1. 상태 체크: 가만히 있거나(Idle) 걷는 중(Move)일 때만 마실 수 있음
         // 구르거나 공격 중에는 못 마심!
         if (_controller.currentState != PlayerState.Locomotion)
@@ -103,7 +105,7 @@ public class PlayerPotion : MonoBehaviour
         yield return new WaitForSeconds(1.5f); 
 
         // D. 회복 적용 (마시는 모션 끝날 때쯤 회복)
-        _stats.RestoreEgo(restoreAmount);
+        if (_stats != null) _stats.RestoreEgo(restoreAmount);
         Debug.Log($"<color=cyan>[Lucid Drop] 사용! 남은 개수: {currentPotions}</color>");
 
         // E. 상태 복귀 (다시 움직일 수 있음)
@@ -124,13 +126,16 @@ public class PlayerPotion : MonoBehaviour
     }
     public void RefillPotions()
     {
-        UpdateMaxPotions(_stats.level);
+        if (_stats != null)
+            UpdateMaxPotions(_stats.level);
+
         currentPotions = maxPotions;
         UpdateUI();
     }
     private void UpdateUI()
     {
-        currentPotionText.text = $"{currentPotions}";
+        if (currentPotionText != null)
+            currentPotionText.text = $"{currentPotions}";
     }
     // ---------------------------
     // Animation Event
