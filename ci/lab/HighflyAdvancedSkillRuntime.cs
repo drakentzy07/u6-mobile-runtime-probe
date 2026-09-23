@@ -169,7 +169,7 @@ namespace Highfly.SkillLab
 
             HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
             int actionToken = guard != null
-                ? guard.Begin("S6 DANZA FANTASMA", 1.60f, true)
+                ? guard.Begin("S6 DANZA FANTASMA", 1.60f, false)
                 : 0;
 
             if (guard != null && actionToken == 0)
