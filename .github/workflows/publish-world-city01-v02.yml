@@ -1,4 +1,4 @@
-name: Publish HIGHFLY World City 01 v0.2
+name: Publish HIGHFLY World City 01 v0.2.1
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
           name: highfly-world-city01-v02-webgl
           path: world-webgl
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 35805655401
+          run-id: 35809550351
 
       - name: Assemble combined site
         shell: bash
@@ -56,7 +56,7 @@ jobs:
           test -f site/world-lab/Build/WebGL.loader.js
           test -f site/world-lab/world-version.txt
 
-          echo "HIGHFLY WORLD CITY 01 v0.2 • VERIFIED RUN 35805655401" > site/world-lab/published-version.txt
+          echo "HIGHFLY WORLD CITY 01 v0.2.1 • VERIFIED RUN 35809550351" > site/world-lab/published-version.txt
           touch site/.nojekyll
 
           echo "Root:"
