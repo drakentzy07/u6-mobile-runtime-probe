@@ -26,7 +26,7 @@ namespace Highfly.SkillLab
             if (h == null) h = player.gameObject.AddComponent<HighflyLabTestHistoryV026>();
             h._player = player;
             _instance = h;
-            Log("TEST HISTORY ONLINE • v2.6");
+            Log("TEST HISTORY ONLINE • v2.7 KAYKIT HUNTER");
             return h;
         }
 
@@ -47,7 +47,7 @@ namespace Highfly.SkillLab
         public static string Snapshot()
         {
             var sb = new StringBuilder();
-            sb.AppendLine("HIGHFLY DONOR LAB v2.6 TEST HISTORY");
+            sb.AppendLine("HIGHFLY DONOR LAB v2.7 TEST HISTORY");
             sb.AppendLine("warnings=" + _warnings);
             foreach (string e in Entries) sb.AppendLine(e);
             return sb.ToString();
@@ -70,11 +70,23 @@ namespace Highfly.SkillLab
                 ? HighflyLabMotionGuardV026.Instance.Owner
                 : "NO-GUARD";
 
+            Vector3 rootForward = _player.transform.forward;
+            Vector3 cameraForward = _player.cameraTransform != null
+                ? _player.cameraTransform.forward
+                : rootForward;
+            Vector3 combatForward = HighflyCombatFacingV027.Forward(_player.transform);
+            rootForward.y = cameraForward.y = combatForward.y = 0f;
+            rootForward.Normalize();
+            cameraForward.Normalize();
+            combatForward.Normalize();
+
             Log(
                 "STATE " + _player.currentState +
                 " • owner=" + owner +
                 " • grounded=" + _player.HighflyIsGrounded +
                 " • anim=" + anim +
+                " • rootCam=" + Vector3.Dot(rootForward, cameraForward).ToString("0.00") +
+                " • combatRoot=" + Vector3.Dot(combatForward, rootForward).ToString("0.00") +
                 " • pos=" + _player.transform.position.ToString("F1"));
         }
 
