@@ -191,7 +191,7 @@ namespace Highfly.SkillLab
             CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1920f, 1080f);
-            scaler.matchWidthOrHeight = 0.35f;
+            scaler.matchWidthOrHeight = 0.50f;
 
             GameObject bar = new GameObject("CharacterABBar", typeof(RectTransform), typeof(Image), typeof(Outline));
             bar.transform.SetParent(canvasGo.transform, false);
@@ -219,7 +219,7 @@ namespace Highfly.SkillLab
             kr.sizeDelta = new Vector2(230f, 52f);
             kay.onClick.AddListener(UseKayKit);
 
-            _status = Label(bar.transform, "PERSONAJE: LUCID", 14, TextAnchor.UpperLeft);
+            _status = Label(bar.transform, "PERSONAJE: LUCID", 11, TextAnchor.UpperLeft);
             RectTransform sr = _status.rectTransform;
             sr.anchorMin = sr.anchorMax = new Vector2(0f, 1f);
             sr.pivot = new Vector2(0f, 1f);
