@@ -1,0 +1,92 @@
+name: Publish HIGHFLY Donor Lab v2.3
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-donor-lab-v023.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-donor-lab-v023-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Pages + DONOR Lab 2.3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35877526555
+
+      - name: Download verified DONOR Lab 2.3 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: donor-v23-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35897034054
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site donor-v23-extracted
+
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+
+          test -f site/index.html
+          test -f site/world-lab/index.html
+          test -f site/donor-lab-v22/index.html
+
+          test -f donor-v23-pages/artifact.tar
+          tar -xf donor-v23-pages/artifact.tar -C donor-v23-extracted
+          test -f donor-v23-extracted/index.html
+          grep -q "v=0230" donor-v23-extracted/index.html
+
+          rm -rf site/donor-lab-v23
+          mkdir -p site/donor-lab-v23
+          cp -a donor-v23-extracted/. site/donor-lab-v23/
+
+          test -f site/donor-lab-v23/index.html
+          test -f site/donor-lab-v23/Build/WebGL.loader.js
+          test -f site/donor-lab-v23/Build/WebGL.wasm
+          test -f site/donor-lab-v23/Build/WebGL.data
+
+          echo "HIGHFLY DONOR LAB 2.3 • VERIFIED BUILD RUN 35897034054 • SKILL VAULT + CHARACTER A/B" > site/donor-lab-v23/published-version.txt
+          touch site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy current Pages + DONOR Lab 2.3
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
