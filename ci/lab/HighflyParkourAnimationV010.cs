@@ -16,6 +16,9 @@ namespace Highfly.SkillLab
         private Coroutine _stopRoutine;
         private int _token;
 
+        public bool IsPlaying => _graph.IsValid();
+        public Animator BoundAnimator => _animator;
+
         private void Awake()
         {
             Instance = this;
