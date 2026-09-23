@@ -83,11 +83,27 @@ jobs:
           NODE
 
           find world-download -maxdepth 3 -type f -printf '%p %s bytes\n'
-          PACKAGE="$(find world-download -type f -name '*.unitypackage' | head -n 1)"
+          PACKAGE="$(find world-download -type f \( -name '*.unitypackage' -o -name 'Stylized_Medieval_Village.zip' \) | head -n 1)"
           test -n "$PACKAGE"
           test -f "$PACKAGE"
-          test "$(stat -c%s "$PACKAGE")" -gt 120000000
-          sha256sum "$PACKAGE"
+          test "$(stat -c%s "$PACKAGE")" -eq 142787244
+
+          python3 - "$PACKAGE" <<'PY'
+          import hashlib, sys, tarfile
+          p = sys.argv[1]
+          if not tarfile.is_tarfile(p):
+              raise SystemExit(f"Downloaded file is not a Unity tar package: {p}")
+          h = hashlib.sha256()
+          with open(p, 'rb') as f:
+              for chunk in iter(lambda: f.read(1024*1024), b''):
+                  h.update(chunk)
+          digest = h.hexdigest()
+          print("[HF-WORLD] package sha256=" + digest)
+          expected = "34e2bf4ec08a7b9a1687a04b4e5c155648f3b1a31ff77ddb29812e821318a98d"
+          if digest != expected:
+              raise SystemExit(f"Unexpected RG Poly package digest: {digest}")
+          PY
+
           echo "WORLD_PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
 
       - name: Extract medieval package into Lucid project
