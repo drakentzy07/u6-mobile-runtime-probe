@@ -195,6 +195,13 @@ public class PlayerStats : CharacterStats
     // 마나 사용 함수
     public bool UseLucidity(float amount)
     {
+        if (HighflySkillLabMode.IsActive)
+        {
+            currentLucidity = maxLucidity;
+            OnLucidityChanged?.Invoke(currentLucidity, maxLucidity);
+            return true;
+        }
+
         if (currentLucidity >= amount)
         {
             currentLucidity -= amount;
@@ -207,6 +214,13 @@ public class PlayerStats : CharacterStats
     // 스태미나 사용 함수 (성공하면 true, 실패하면 false 리턴)
     public bool UseVolition(float amount)
     {
+        if (HighflySkillLabMode.IsActive)
+        {
+            currentVolition = maxVolition;
+            OnVolitionChanged?.Invoke(currentVolition, maxVolition);
+            return true;
+        }
+
         if (currentVolition >= amount)
         {
             currentVolition -= amount;
@@ -221,6 +235,7 @@ public class PlayerStats : CharacterStats
     // 확인용 함수: 깎지는 않고 검사만 함
     public bool HasVolition(float amount)
     {
+        if (HighflySkillLabMode.IsActive) return true;
         return currentVolition >= amount;
     }    
     public override void TakeDamage(float damage, float composureDamage = 10f, Transform attacker = null)
