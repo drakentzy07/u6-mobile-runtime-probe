@@ -149,7 +149,8 @@ jobs:
           cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
           cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
 
-          cp ci/world/HighflyWorldCityRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/World/\n          cp ci/world/HighflyLivingWorld.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyWorldCityRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyLivingWorld.cs LucidHost/3D_game/Assets/HIGHFLY/World/
           cp ci/world/HighflyWorldCity01Builder.cs LucidHost/3D_game/Assets/Editor/
 
           test -s LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldCityRuntime.cs
