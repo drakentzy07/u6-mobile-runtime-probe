@@ -20,7 +20,7 @@ namespace Highfly.CI
         private const string PlayerBaseStatsGuid = "92cc0753dc9c64ecd8aa1b624171ad8c";
         private const string PlayerWeaponDataGuid = "16ccb54be70294c84993bfaeaf8f5e5e";
         private const string PlayerSkillGuid = "79402f9292d034e19901e497040863ba";
-        private static readonly Vector3 Spawn = new Vector3(4.5f, 13.35f, -9.5f);
+        private static readonly Vector3 Spawn = new Vector3(0f, 13.35f, -42f);
 
         public static void Build()
         {
@@ -115,6 +115,7 @@ namespace Highfly.CI
             var runtime = new GameObject("HIGHFLY_CITY01_RUNTIME");
             SceneManager.MoveGameObjectToScene(runtime, scene);
             runtime.AddComponent<Highfly.World.HighflyWorldCityRuntime>();
+            runtime.AddComponent<Highfly.World.HighflyWorldMinimap>();
 
             CreateCamera(scene);
             BindPlayerCamera(player);
