@@ -935,23 +935,7 @@ namespace Highfly.SkillLab
 
         private GameObject CreateProjectile(string label, Vector3 position, float radius, Color color)
         {
-            GameObject projectile = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            projectile.name = label;
-            Collider ownCollider = projectile.GetComponent<Collider>();
-            if (ownCollider != null) Destroy(ownCollider);
-            projectile.transform.position = position;
-            projectile.transform.localScale = Vector3.one * Mathf.Clamp(radius * 0.9f, 0.18f, 1.6f);
-
-            Renderer r = projectile.GetComponent<Renderer>();
-            if (r != null)
-                r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 1.8f);
-
-            TrailRenderer trail = projectile.AddComponent<TrailRenderer>();
-            trail.time = 0.22f;
-            trail.startWidth = Mathf.Max(0.05f, radius * 0.32f);
-            trail.endWidth = 0f;
-            trail.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(color);
-            return projectile;
+            return HighflyFinalFxV024.CreateProjectile(label, position, radius, color);
         }
 
         private IEnumerator ProjectileRoutine(
@@ -1166,40 +1150,22 @@ namespace Highfly.SkillLab
 
         private GameObject SpawnPulse(Vector3 position, float size, Color color, float life)
         {
-            GameObject fx = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            fx.name = "HIGHFLY_DONOR_PULSE";
-            Collider c = fx.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            fx.transform.position = position;
-            fx.transform.localScale = Vector3.one * size;
-            Renderer r = fx.GetComponent<Renderer>();
-            if (r != null) r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 2f);
-            Destroy(fx, life);
-            return fx;
+            return HighflyFinalFxV024.SpawnPulse(position, size, color, life);
         }
 
         private GameObject SpawnRing(Vector3 position, float radius, Color color, float life)
         {
-            GameObject fx = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            fx.name = "HIGHFLY_DONOR_RING";
-            Collider c = fx.GetComponent<Collider>();
-            if (c != null) Destroy(c);
-            fx.transform.position = position;
-            fx.transform.localScale = new Vector3(radius * 2f, 0.02f, radius * 2f);
-            Renderer r = fx.GetComponent<Renderer>();
-            if (r != null) r.sharedMaterial = HighflyLabVisuals.CreateMaterial(color, color * 1.6f);
-            Destroy(fx, life);
-            return fx;
+            return HighflyFinalFxV024.SpawnField(position, radius, color, life);
         }
 
         private GameObject SpawnField(Vector3 position, float radius, Color color, float life)
         {
-            return SpawnRing(position + Vector3.up * 0.03f, radius, color, life);
+            return HighflyFinalFxV024.SpawnField(position, radius, color, life);
         }
 
         private void SpawnImpact(Vector3 position, float radius, Color color)
         {
-            SpawnPulse(position, Mathf.Max(0.35f, radius), color, 0.18f);
+            HighflyFinalFxV024.SpawnImpact(position, radius, color);
         }
 
         private GameObject SpawnResourceFx(string path, Vector3 position, float scale, float life)
