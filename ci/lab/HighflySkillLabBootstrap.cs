@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.2_GALLERY_CHARACTER_AB");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.3_SKILL_VAULT");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,15 +184,15 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.2 • GALLERY + CHARACTER A/B\n" +
-                    "2 KEEP + 6 DONOR SKILLS • 3 TARGETS • LUCID vs KAYKIT\n" +
+                    "HIGHFLY • DONOR LAB 2.3 • SKILL VAULT + CHARACTER A/B\n" +
+                    "33 SKILL ENTRIES • 3 TARGETS • LUCID vs KAYKIT\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "KEEP: Drift de Fórmula • Jump Smash\n" +
-                    "SIGIL: Melee • Dash • Ranged • Flash • Fireball\n" +
-                    "DRAGON SOULS: Sword Throw / Embed / Recall\n" +
-                    "Browser izquierdo: tocá skill = preview inmediato\n\n" +
+                    "KEEP: Drift • Jump Smash | SIGIL + Dragon Souls\n" +
+                    "NUEVOS: Project-X refs • Ashwalker • Subspace • Adaptive\n" +
+                    "A/B fijo: LUCID / KAYKIT • mismo runtime / mismo control\n" +
+                    "SKILLS +/- minimiza • panel izquierdo tiene scroll\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
