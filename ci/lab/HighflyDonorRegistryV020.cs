@@ -350,14 +350,25 @@ namespace Highfly.SkillLab
 
             new(
                 "Warcraft Arena Unity",
-                "Mage/Support spell kit",
+                "Mage/Support spell system",
                 "Unity",
-                "license verification pending; franchise-named presentation excluded",
-                HighflyDonorTierV020.Candidate,
+                "The Unlicense for repository code; Warcraft/franchise presentation and audio/VFX excluded pending provenance",
+                HighflyDonorTierV020.SemiFull,
                 false,
                 false,
-                "spell system / ability definitions",
-                "Potentially large combat donor set including teleport, barriers, CC, direct damage, AoE and support. Must clear license and presentation provenance before any transplant.")
+                "spell definitions + Spell Effects + Aura Effects",
+                "Large data-driven kit: teleport, damage, heal, AoE, absorb, stun, freeze, root, silence, procs and support. Reuse generic system/logic only; replace franchise-named/presentation dependencies."),
+
+            new(
+                "Unity_RPG_Course",
+                "Sword Throw/Embed/Return + Clone Attack",
+                "Unity",
+                "NOASSERTION / no clear repository license",
+                HighflyDonorTierV020.Blocked,
+                false,
+                false,
+                "Sword_Skill.cs + Sword_Skill_Controller.cs + Clone_Skill.cs + Clone_Skill_Controller.cs",
+                "Mechanically excellent and highly relevant: aim/throw/embed/catch plus autonomous clone attack, counter and dash assets are present. Do not copy until permission/license is established.")
         };
     }
 }
