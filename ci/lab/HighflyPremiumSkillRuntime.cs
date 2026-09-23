@@ -199,6 +199,14 @@ namespace Highfly.SkillLab
             if (HighflySkillLabMode.IsActive)
                 ClearPreviewCooldown(id);
 
+            if (HighflySkillLabMode.IsActive && HighflyLabMotionGuardV026.Instance != null)
+            {
+                float lockSeconds = MotionLockFor(id);
+                if (!HighflyLabMotionGuardV026.Instance.TryClaimSkill(id.ToString(), lockSeconds))
+                    return;
+            }
+            HighflyLabTestHistoryV026.Log("SKILL TRIGGER • " + id);
+
             switch (id)
             {
                 case HighflyPremiumSkillId.TwinDance:
@@ -248,6 +256,20 @@ namespace Highfly.SkillLab
                 case HighflyPremiumSkillId.ReserveSpell:
                     HighflyApexPassSkillRuntime.Instance?.Trigger(id);
                     break;
+            }
+        }
+
+        private static float MotionLockFor(HighflyPremiumSkillId id)
+        {
+            switch (id)
+            {
+                case HighflyPremiumSkillId.PhantomStep: return 0.48f;
+                case HighflyPremiumSkillId.TwinDance: return 0.72f;
+                case HighflyPremiumSkillId.PhantomTwinDance: return 1.05f;
+                case HighflyPremiumSkillId.EclipseRend: return 1.10f;
+                case HighflyPremiumSkillId.SevenSinker: return 1.25f;
+                case HighflyPremiumSkillId.BoundlessMassacre: return 1.45f;
+                default: return 0.62f;
             }
         }
 
