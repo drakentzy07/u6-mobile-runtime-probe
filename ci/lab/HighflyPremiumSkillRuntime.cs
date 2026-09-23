@@ -290,7 +290,7 @@ namespace Highfly.SkillLab
             Vector3 dir = FacingDirection();
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
-            _player.HighflyMobileAttack();
+            _player.HighflyLabPlayMeleePulse();
 
             Color cyan = new Color(0.07f, 0.74f, 1f, 1f);
             Color violet = new Color(0.56f, 0.16f, 1f, 1f);
@@ -414,6 +414,8 @@ namespace Highfly.SkillLab
 
                 StartCoroutine(FovPunch(5.8f, 0.11f));
             }
+
+            _player.HighflyLabForceLocomotion();
         }
 
         // ------------------------------------------------------------------
@@ -435,7 +437,7 @@ namespace Highfly.SkillLab
             transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
 
             // Lucid Roll supplies the real i-frame contract.
-            _player.HighflyMobileRoll();
+            _player.HighflyLabPlayRollPulse();
 
             Color ghost = new Color(0.16f, 0.66f, 1f, 1f);
             float start = Time.unscaledTime;
@@ -489,6 +491,9 @@ namespace Highfly.SkillLab
             DealConeDamage(31f, 2.75f, 1.35f, dir, "Paso-Fantasma");
             SpawnImpactRing(transform.position + dir * 1.2f, ghost, 1.45f);
             StartCoroutine(FovPunch(3.8f, 0.09f));
+
+            // Never rely on an animation event to leave Roll in the LAB.
+            _player.HighflyLabForceLocomotion();
         }
 
         // ------------------------------------------------------------------
