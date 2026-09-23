@@ -1,9 +1,9 @@
-name: Donor Lab 2.2 WebGL
+name: Donor Lab 2.3 Skill Vault WebGL
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/donor-lab-v2.2-gallery-character-ab]
+    branches: [highfly/donor-lab-v2.3-skill-vault]
     paths:
       - "ci/**"
       - ".github/workflows/donor-lab-v22-webgl.yml"
@@ -14,12 +14,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: donor-lab-v022-gallery-character-ab
+  group: donor-lab-v023-skill-vault
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Donor Lab 2.2 WebGL
+    name: Build Donor Lab 2.3 Skill Vault WebGL
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.2
+      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.3 Skill Vault
         shell: bash
         run: |
           set -euxo pipefail
@@ -193,10 +193,10 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_DONOR_LAB_v2.2_GALLERY_CHARACTER_AB" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_DONOR_LAB_v2.3_SKILL_VAULT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "DONOR LAB 2.2" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "2 KEEP + 6 DONOR SKILLS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "DONOR LAB 2.3" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "33 ENTRADAS TESTEABLES" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyDonorBrowserV022.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "DRIFT DE FÓRMULA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
           grep -q "JUMP SMASH" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
@@ -279,7 +279,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v022-gallery-character-ab-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v023-skill-vault-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
@@ -313,11 +313,11 @@ jobs:
           touch "$OUT/.nojekyll"
 
           # donor lab v2.1 cache bust: force mobile browsers to request this exact WebGL payload.
-          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0220"#' "$OUT/index.html"
-          sed -i 's#/WebGL.data"#/WebGL.data?v=0220"#' "$OUT/index.html"
-          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0220"#' "$OUT/index.html"
-          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0220"#' "$OUT/index.html"
-          grep -q "v=0220" "$OUT/index.html"
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0230"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=0230"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0230"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0230"#' "$OUT/index.html"
+          grep -q "v=0230" "$OUT/index.html"
 
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
