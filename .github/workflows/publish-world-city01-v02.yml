@@ -22,13 +22,13 @@ jobs:
     name: Merge current Skill root + WORLD City 01
     runs-on: ubuntu-latest
     steps:
-      - name: Download current Skill Lab Pages root
+      - name: Download current Skill Lab v0.15 Pages root
         uses: actions/download-artifact@v4
         with:
           name: github-pages
           path: skill-pages
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 35796229260
+          run-id: 35803374382
 
       - name: Download verified WORLD City 01 WebGL
         uses: actions/download-artifact@v4
