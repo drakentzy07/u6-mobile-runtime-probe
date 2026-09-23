@@ -1,0 +1,89 @@
+name: Donor Lab 2.1 Preview Host
+
+on:
+  push:
+    branches: [highfly/donor-lab-v2.1-preview-host]
+    paths:
+      - ".github/workflows/donor-lab-v21-preview.yml"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Require Vercel token
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "::error::VERCEL_TOKEN secret is missing"
+            exit 1
+          fi
+
+      - name: Download successful Donor Lab WebGL artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: downloaded
+          repository: drakentzy07/u6-mobile-runtime-probe
+          run-id: 35864991930
+          github-token: ${{ github.token }}
+
+      - name: Extract Pages artifact
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          tar -xf downloaded/artifact.tar -C site
+          test -s site/index.html
+          test -s site/Build/WebGL.wasm
+          test -s site/Build/WebGL.data
+          du -h site/Build/*
+
+      - name: Configure isolated Vercel test project
+        shell: bash
+        run: |
+          mkdir -p site/.vercel
+          cat > site/.vercel/project.json <<'EOF'
+          {
+            "orgId": "team_q3lvaqtTAKOlP5yAfvtPqXCD",
+            "projectId": "prj_jrZ72egwq0LsW544UjSgT6YQ5Vf5"
+          }
+          EOF
+          cat > site/vercel.json <<'EOF'
+          {
+            "headers": [
+              {
+                "source": "/Build/(.*).wasm",
+                "headers": [{"key": "Content-Type", "value": "application/wasm"}]
+              }
+            ]
+          }
+          EOF
+
+      - name: Deploy preview
+        id: deploy
+        working-directory: site
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euxo pipefail
+          npm install --global vercel
+          URL="$(vercel deploy --yes --token="$VERCEL_TOKEN")"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "HIGHFLY_DONOR_LAB_PREVIEW=$URL"
+
+      - name: Preview summary
+        run: |
+          echo "## HIGHFLY DONOR LAB 2.1" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Preview: ${{ steps.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
