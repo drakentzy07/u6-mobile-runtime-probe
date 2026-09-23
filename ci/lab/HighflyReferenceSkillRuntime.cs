@@ -216,10 +216,10 @@ namespace Highfly.SkillLab
                 dir.y = 0f;
 
                 if (dir.sqrMagnitude < 0.001f)
-                    dir = transform.forward;
+                    dir = HighflyCombatFacingV027.Forward(transform);
 
                 dir.Normalize();
-                transform.rotation = Quaternion.LookRotation(dir, Vector3.up);
+                HighflyCombatFacingV027.FaceVisual(dir);
 
                 Color cut = (i % 2 == 0) ? edge : core;
 
@@ -259,7 +259,7 @@ namespace Highfly.SkillLab
 
                 HighflyAnimeFx.SpawnImpactCross(
                     impact,
-                    transform.forward,
+                    HighflyCombatFacingV027.Forward(transform),
                     core,
                     3.8f);
 
@@ -319,19 +319,19 @@ namespace Highfly.SkillLab
 
             Vector3 hit =
                 transform.position +
-                transform.forward * 1.35f +
+                HighflyCombatFacingV027.Forward(transform) * 1.35f +
                 Vector3.up * 1.0f;
 
             HighflyAnimeFx.SpawnImpactCross(
                 hit,
-                transform.forward,
+                HighflyCombatFacingV027.Forward(transform),
                 new Color(0.48f, 0.78f, 1f, 1f),
                 2.4f);
 
             HighflyPremiumFx.SpawnResource(
                 "Sparks",
                 hit,
-                Quaternion.LookRotation(transform.forward),
+                Quaternion.LookRotation(HighflyCombatFacingV027.Forward(transform)),
                 0.58f,
                 0.55f,
                 new Color(0.62f, 0.90f, 1f, 1f));
@@ -375,7 +375,7 @@ namespace Highfly.SkillLab
             if (_player.HighflyMobileMoveInput.x > 0.15f)
                 escapeDir = transform.right;
             else if (_player.HighflyMobileMoveInput.y < -0.15f)
-                escapeDir = -transform.forward;
+                escapeDir = -HighflyCombatFacingV027.Forward(transform);
 
             Vector3 destination =
                 transform.position +
