@@ -56,7 +56,7 @@ namespace Highfly.SkillLab
 
             var title = Label(
                 _panel.transform,
-                "HIGHFLY • LAB 2.4 • FINAL VISUAL PASS",
+                "HIGHFLY • LAB 2.5 • COMBAT LINK",
                 22,
                 TextAnchor.UpperLeft,
                 Color.white);
@@ -64,7 +64,7 @@ namespace Highfly.SkillLab
 
             var status = Label(
                 _panel.transform,
-                "FINAL / NEAR-FINAL • NO PROXY • SCROLL • TOCÁ = PREVIEW",
+                "CONECTADAS • SIN COSTO/CD • SCROLL • TOCÁ = PREVIEW",
                 13,
                 TextAnchor.MiddleLeft,
                 new Color(0.35f, 0.84f, 1f, 1f));
@@ -74,9 +74,9 @@ namespace Highfly.SkillLab
 
             _info = Label(
                 _panel.transform,
-                "LUCID = personaje principal. KAYKIT = compatibilidad A/B.\n" +
-                "Catálogo principal: sólo skills con animación + VFX asset-backed + hit real.\n" +
-                "WIP ocultas: Hunter Claw, Hunt Drone y Aegis Form.",
+                "LUCID y KAYKIT = candidatos A/B reales.\n" +
+                "FULL DONOR = fuente + licencia + animación/VFX verificables.\n" +
+                "MECH+HF = mecánica donor con presentación HIGHFLY; no se etiqueta como FULL.",
                 12,
                 TextAnchor.UpperLeft,
                 new Color(0.80f, 0.87f, 0.94f, 1f));
@@ -110,6 +110,27 @@ namespace Highfly.SkillLab
             }
 
             b.onClick.AddListener(TogglePanel);
+
+            var reset = Button(canvasParent, "RESET MOV");
+            reset.gameObject.name = "SkillVault_ResetMovement";
+            var rr = reset.GetComponent<RectTransform>();
+            rr.anchorMin = rr.anchorMax = new Vector2(0.34f, 1f);
+            rr.pivot = new Vector2(1f, 1f);
+            rr.anchoredPosition = new Vector2(-150f, -16f);
+            rr.sizeDelta = new Vector2(128f, 44f);
+            Text rt = reset.GetComponentInChildren<Text>();
+            if (rt != null)
+            {
+                rt.fontSize = 13;
+                rt.alignment = TextAnchor.MiddleCenter;
+            }
+            reset.onClick.AddListener(() =>
+            {
+                HighflyParkourAnimationV010.Instance?.StopNow();
+                PlayerController p = Object.FindFirstObjectByType<PlayerController>();
+                p?.HighflyLabForceLocomotion();
+                HighflySkillLabMetrics.RecordAction("LAB • RESET MOVIMIENTO", 0);
+            });
         }
 
         private void TogglePanel()
@@ -180,92 +201,56 @@ namespace Highfly.SkillLab
 
         private void Populate()
         {
-            Section("HIGHFLY CORE • FINAL / NEAR-FINAL");
-            Add("DANZA GEMELA", "S1 • combo 3 etapas • cortes asset-backed",
+            Section("HIGHFLY PREMIUM • CONECTADO");
+            Add("DANZA GEMELA", "3 etapas • animación cuerpo + cortes + hit + recovery",
                 () => Premium(HighflyPremiumSkillId.TwinDance));
-            Add("PASO FANTASMA", "blink / reposición • core HIGHFLY",
+            Add("PASO FANTASMA", "dash/roll • i-frame visual + slash + recovery forzado",
                 () => Premium(HighflyPremiumSkillId.PhantomStep));
             Add("DANZA FANTASMA", "micro-blinks + multicorte",
                 () => Premium(HighflyPremiumSkillId.PhantomTwinDance));
             Add("DESGARRO ECLIPSE", "siete cortes + confirmación final",
                 () => Premium(HighflyPremiumSkillId.EclipseRend));
-            Add("GRILLETE ABISAL", "control / convergencia",
+            Add("GRILLETE ABISAL", "control / convergencia + VFX",
                 () => Premium(HighflyPremiumSkillId.AbyssalShackle));
 
-            Section("CONTROL");
-            Add("DRIFT DE FÓRMULA", "KEEP • HIGHFLY",
-                () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(HighflyAcceptedSkillV016.Drift));
-            Add("JUMP SMASH", "KEEP • HIGHFLY",
-                () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(HighflyAcceptedSkillV016.JumpSmash));
+            Section("FULL SYSTEM DONOR • LICENCIA LIMPIA");
+            Add("FOCUS SPECIAL", "ADAPTIVE • MIT + UAL/UAL2 CC0 • cuerpo + hit + VFX",
+                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveFocusSpecial));
+            Add("EXECUTION", "ADAPTIVE • postura rota → ejecución • cuerpo + hit",
+                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveExecution));
+            Add("HYPER ARMOR HEAVY", "ADAPTIVE • hyper armor + heavy strike",
+                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveHyperArmorHeavy));
 
-            Section("SIGIL COMBAT • MIT");
-            Add("MELEE TRACE", "melee trace + poise",
+            Section("MECH DONOR + HIGHFLY PRESENTATION");
+            Add("MELEE TRACE", "SIGIL MIT • melee trace/poise • presentación HIGHFLY",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilMelee));
-            Add("DASH ATTACK", "lunge + trace",
-                () => HighflyDonorWeaponRuntimeV021.Instance?.Preview(HighflyDonorWeaponSkillV021.SigilDashAttack));
-            Add("RANGED SHOT", "projectile VFX asset-backed",
+            Add("DASH ATTACK", "SIGIL MIT • dash + trace • UAL2 body",
+                () => HighflyDonorWeaponRuntimeV021.Instance?.Preview(
+                    HighflyDonorWeaponSkillV021.SigilDashAttack));
+            Add("RANGED SHOT", "SIGIL MIT • projectile mechanic • body linked",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilRanged));
-            Add("FLASH", "blink + salida/entrada con partículas",
+            Add("FLASH", "SIGIL MIT • blink 5m • body linked + entry/exit VFX",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilFlash));
-            Add("CHARGED FIREBALL", "charge + projectile + stun",
-                () => Expanded(HighflyDonorExpandedSkillV022.SigilFireball));
 
-            Section("DRAGON SOULS • MIT");
-            Add("SWORD THROW / EMBED / RECALL", "espada CC0 real + trail",
+            Add("SWORD THROW / EMBED / RECALL",
+                "DRAGON SOULS • mecánica donor • visual legal reemplazado/aislado",
                 () => HighflyDonorWeaponRuntimeV021.Instance?.Preview(
                     HighflyDonorWeaponSkillV021.DragonSwordThrowRecall));
 
-            Section("PROJECT-X • MECHANIC STUDY");
-            Add("VORTEX EDGE", "spin AOE + slash/field VFX",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxVortexEdge));
-            Add("VEIL STRIKE", "cloak + reposition + strike",
+            Add("VEIL STRIKE", "PROJECT-X mechanic • cloak/reposition/strike • HF presentation",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxVeilStrike));
-            Add("BURST ARROW", "flecha CC0 + explosión AOE",
+            Add("BURST ARROW", "PROJECT-X mechanic • projectile/explosion • HF presentation",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxBurstArrow));
-            Add("TITAN SWING", "heavy + knockback + stun",
+            Add("TITAN SWING", "PROJECT-X mechanic • heavy/knockback/stun • HF presentation",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxTitanSwing));
-            Add("VITAL DRAIN", "DOT pulses + self heal",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxVitalDrain));
-            Add("OVERCHARGE DOMAIN", "domain + movement buff",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxOverchargeDomain));
-            Add("PLASMA GUARD", "shield real + aura particle",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxPlasmaGuard));
-            Add("BARRAGE", "5-shot burst VFX",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxBarrage));
-            Add("RAIL SHOT", "charge + high-speed hit",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxRailShot));
 
-            Section("ASHWALKER • MIT");
-            Add("FORCE PUSH", "push físico + impact VFX",
-                () => Expanded(HighflyDonorExpandedSkillV022.AshForcePush));
-            Add("FORCE PULL", "pull físico + impact VFX",
-                () => Expanded(HighflyDonorExpandedSkillV022.AshForcePull));
-            Add("HASTE DOMAIN", "campo temporal + movement x1.5",
-                () => Expanded(HighflyDonorExpandedSkillV022.AshHasteDomain));
-            Add("SLOW DOMAIN", "campo temporal + enemy x0.35",
-                () => Expanded(HighflyDonorExpandedSkillV022.AshSlowDomain));
-
-            Section("SUBSPACEHUNTER • MIT CODE / ART REEMPLAZADO");
-            Add("EMBER BOLT", "fire projectile + partículas",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubEmberBolt));
-            Add("THUNDER MARK", "electric strike + stun",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubThunderMark));
-            Add("FROST LANCE", "ice projectile + stun",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubFrostLance));
-            Add("METEOR BREAK", "meteor + AOE impact",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubMeteorBreak));
-            Add("AEGIS", "shield + aura particle",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubAegis));
-            Add("RESTORE", "heal + particle burst",
-                () => Expanded(HighflyDonorExpandedSkillV022.SubHeal));
-
-            Section("ADAPTIVE BOSS ARENA • MIT SYSTEM STUDY");
-            Add("FOCUS SPECIAL", "empowered special",
-                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveFocusSpecial));
-            Add("EXECUTION", "posture-break execution",
-                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveExecution));
-            Add("HYPER ARMOR HEAVY", "hyper-armor + heavy strike",
-                () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveHyperArmorHeavy));
+            Section("CONTROL / REGRESIÓN");
+            Add("DRIFT DE FÓRMULA", "control HIGHFLY",
+                () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(
+                    HighflyAcceptedSkillV016.Drift));
+            Add("JUMP SMASH", "control HIGHFLY",
+                () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(
+                    HighflyAcceptedSkillV016.JumpSmash));
         }
 
         private static void Premium(HighflyPremiumSkillId skill)
