@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.6_MELEE_STABILITY");
+            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.7_KAYKIT_HUNTER_CORE");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,8 +184,8 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • DONOR LAB 2.6 • MELEE STABILITY\n" +
-                    "LUCID / KAYKIT • FINALISTAS A/B • 3 TARGETS\n" +
+                    "HIGHFLY • DONOR LAB 2.7 • KAYKIT HUNTER CORE\n" +
+                    "KAYKIT HUNTER • LUCID CORE + DRAGON DONORS • 3 TARGETS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n" +
@@ -222,6 +222,8 @@ namespace Highfly.SkillLab
 
             HighflyLabTestHistoryV026.Install(player);
             HighflyLabMotionGuardV026.Install(player);
+            HighflyCombatFacingV027.Install(player);
+            HighflyAnimatorMirrorV027.Install(player);
 
             if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
