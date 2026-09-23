@@ -301,7 +301,7 @@ jobs:
           sed -i 's#/WebGL.data"#/WebGL.data?v=0210"#' "$OUT/index.html"
           sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0210"#' "$OUT/index.html"
           sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0210"#' "$OUT/index.html"
-          grep -q "v=0160" "$OUT/index.html"
+          grep -q "v=0210" "$OUT/index.html"
 
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
