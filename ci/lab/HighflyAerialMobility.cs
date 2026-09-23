@@ -28,6 +28,8 @@ namespace Highfly.SkillLab
         private bool _wallTrickActive;
         private bool _wasGrounded;
         private float _lastAirVerticalSpeed;
+        private Transform _wallTrickVisual;
+        private Quaternion _wallTrickBaseRotation = Quaternion.identity;
 
         private readonly RaycastHit[] _wallHits = new RaycastHit[16];
 
@@ -89,6 +91,9 @@ namespace Highfly.SkillLab
         public void RequestJump()
         {
             if (_player == null) return;
+            if (HighflyLabActionGuardV026.Instance != null &&
+                HighflyLabActionGuardV026.Instance.BlocksManualInput("JUMP / PARKOUR"))
+                return;
             if (_player.currentState != PlayerState.Locomotion) return;
 
             if (_player.HighflyIsGrounded)
@@ -253,8 +258,10 @@ namespace Highfly.SkillLab
         private IEnumerator WallTrickVisual(Transform visual, float lateral)
         {
             _wallTrickActive = true;
+            _wallTrickVisual = visual;
+            _wallTrickBaseRotation = visual.localRotation;
 
-            Quaternion baseRotation = visual.localRotation;
+            Quaternion baseRotation = _wallTrickBaseRotation;
             bool sideFlip = Mathf.Abs(lateral) > 0.45f;
             Vector3 axis = sideFlip ? Vector3.forward : Vector3.right;
             float direction = sideFlip && lateral < 0f ? -1f : 1f;
@@ -278,7 +285,22 @@ namespace Highfly.SkillLab
             if (visual != null)
                 visual.localRotation = baseRotation;
 
+            _wallTrickVisual = null;
             _wallTrickActive = false;
+        }
+
+        public void ForceResetMotion(string reason)
+        {
+            StopAllCoroutines();
+
+            if (_wallTrickVisual != null)
+                _wallTrickVisual.localRotation = _wallTrickBaseRotation;
+
+            _wallTrickVisual = null;
+            _wallImpulseActive = false;
+            _wallTrickActive = false;
+
+            HighflyLabTelemetryV026.Record("PARKOUR RESET", reason ?? "-");
         }
 
         private void SoftenLightLanding(float lastVerticalSpeed)
