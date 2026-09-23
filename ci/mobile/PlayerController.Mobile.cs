@@ -77,7 +77,93 @@ public class PlayerController : MonoBehaviour
 
         if (triggerJumpAnimation && animator != null)
             animator.SetTrigger(AnimID_Jump);
-    } 
+    }
+
+    // LAB action bridge: skills must not inherit Lucid's stamina gates, queued combo
+    // states or animation-event-only exits. This is intentionally LAB-only.
+    public void HighflyLabPlayMeleePulse()
+    {
+        if (!HighflySkillLabMode.IsActive) return;
+        if (currentState == PlayerState.Die ||
+            currentState == PlayerState.Interact ||
+            currentState == PlayerState.UseItem)
+            return;
+
+        if (currentState != PlayerState.Locomotion)
+            ChangeState(PlayerState.Locomotion);
+
+        _comboStep = 0;
+        _comboInputReceived = false;
+
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+            animator.ResetTrigger(AnimID_Jump);
+            animator.ResetTrigger(AnimID_Roll);
+            animator.ResetTrigger(AnimID_DoCounterAttack);
+            animator.ResetTrigger(AnimID_DoSkill);
+            animator.ResetTrigger(AnimID_DoAttack);
+            animator.SetInteger(AnimID_ComboStep, 0);
+            animator.SetTrigger(AnimID_DoAttack);
+        }
+    }
+
+    public void HighflyLabPlayRollPulse()
+    {
+        if (!HighflySkillLabMode.IsActive) return;
+        if (currentState == PlayerState.Die ||
+            currentState == PlayerState.Interact ||
+            currentState == PlayerState.UseItem)
+            return;
+
+        if (currentState != PlayerState.Locomotion)
+            ChangeState(PlayerState.Locomotion);
+
+        currentState = PlayerState.Roll;
+        _comboStep = 0;
+        _comboInputReceived = false;
+
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+            animator.ResetTrigger(AnimID_Jump);
+            animator.ResetTrigger(AnimID_DoAttack);
+            animator.ResetTrigger(AnimID_DoSkill);
+            animator.ResetTrigger(AnimID_Roll);
+            animator.SetInteger(AnimID_ComboStep, 0);
+            animator.SetTrigger(AnimID_Roll);
+        }
+    }
+
+    public void HighflyLabForceLocomotion()
+    {
+        if (!HighflySkillLabMode.IsActive) return;
+        if (currentState == PlayerState.Die ||
+            currentState == PlayerState.Interact ||
+            currentState == PlayerState.UseItem)
+            return;
+
+        _comboInputReceived = false;
+        _comboStep = 0;
+        _canCounterAttack = false;
+        CancelInvoke(nameof(ResetCounterWindow));
+
+        currentState = PlayerState.Locomotion;
+
+        if (animator != null)
+        {
+            animator.applyRootMotion = false;
+            animator.ResetTrigger(AnimID_Jump);
+            animator.ResetTrigger(AnimID_Roll);
+            animator.ResetTrigger(AnimID_DoSkill);
+            animator.ResetTrigger(AnimID_DoCounterAttack);
+            animator.ResetTrigger(AnimID_DoAttack);
+            animator.SetBool(AnimID_IsCountering, false);
+            animator.SetInteger(AnimID_ComboStep, 0);
+        }
+
+        WeaponDisable();
+    }
 
     [Header("Audio Clip")]
     public AudioClip parrySound; // 휘두르는 소리
