@@ -56,13 +56,15 @@ namespace Highfly.SkillLab
 
             _lucidRenderers = player.GetComponentsInChildren<Renderer>(true);
             BuildUi(uiParent);
-            RefreshStatus("LUCID MAIN");
+            RefreshStatus("LUCID CANDIDATO A");
         }
 
         public void UseLucid()
         {
             if (_player == null || _lucidAnimator == null) return;
 
+            _player.HighflyLabForceLocomotion();
+            HighflyParkourAnimationV010.Instance?.StopNow();
             _usingKayKit = false;
 
             if (_kayRoot != null)
@@ -76,13 +78,16 @@ namespace Highfly.SkillLab
             _player.animator = _lucidAnimator;
             HighflyParkourAnimationV010.BindTo(_lucidAnimator);
 
-            RefreshStatus("LUCID MAIN");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID MAIN", 0);
+            RefreshStatus("LUCID CANDIDATO A");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • LUCID CANDIDATO A", 0);
         }
 
         public void UseKayKit()
         {
             if (_player == null) return;
+
+            _player.HighflyLabForceLocomotion();
+            HighflyParkourAnimationV010.Instance?.StopNow();
             EnsureKayKit();
             if (_kayRoot == null || _kayAnimator == null)
             {
@@ -107,8 +112,8 @@ namespace Highfly.SkillLab
             _player.animator = _kayAnimator;
             HighflyParkourAnimationV010.BindTo(_kayAnimator);
 
-            RefreshStatus("KAYKIT TEST");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT TEST", 0);
+            RefreshStatus("KAYKIT CANDIDATO B");
+            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT CANDIDATO B", 0);
         }
 
         private void EnsureKayKit()
@@ -203,7 +208,7 @@ namespace Highfly.SkillLab
             bar.GetComponent<Image>().color = new Color(0.010f, 0.016f, 0.028f, 0.94f);
             bar.GetComponent<Outline>().effectColor = new Color(0.18f, 0.72f, 1f, 0.92f);
 
-            Button lucid = Button(bar.transform, "A • LUCID MAIN");
+            Button lucid = Button(bar.transform, "A • LUCID CANDIDATO A");
             RectTransform lr = lucid.GetComponent<RectTransform>();
             lr.anchorMin = lr.anchorMax = new Vector2(0f, 1f);
             lr.pivot = new Vector2(0f, 1f);
@@ -211,7 +216,7 @@ namespace Highfly.SkillLab
             lr.sizeDelta = new Vector2(230f, 52f);
             lucid.onClick.AddListener(UseLucid);
 
-            Button kay = Button(bar.transform, "B • KAYKIT TEST");
+            Button kay = Button(bar.transform, "B • KAYKIT CANDIDATO B");
             RectTransform kr = kay.GetComponent<RectTransform>();
             kr.anchorMin = kr.anchorMax = new Vector2(0f, 1f);
             kr.pivot = new Vector2(0f, 1f);
@@ -219,7 +224,7 @@ namespace Highfly.SkillLab
             kr.sizeDelta = new Vector2(230f, 52f);
             kay.onClick.AddListener(UseKayKit);
 
-            _status = Label(bar.transform, "PRINCIPAL: LUCID", 14, TextAnchor.UpperLeft);
+            _status = Label(bar.transform, "A/B FINALISTA • LUCID / KAYKIT", 14, TextAnchor.UpperLeft);
             RectTransform sr = _status.rectTransform;
             sr.anchorMin = sr.anchorMax = new Vector2(0f, 1f);
             sr.pivot = new Vector2(0f, 1f);
