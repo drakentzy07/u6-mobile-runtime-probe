@@ -65,7 +65,14 @@ namespace Highfly.SkillLab
         {
             if (_player == null || _lucidAnimator == null) return;
 
-            HighflyLabActionGuardV026.Instance?.ForceRecover("switch to Lucid");
+            if (HighflyLabActionGuardV026.Instance != null &&
+                HighflyLabActionGuardV026.Instance.IsLocked)
+            {
+                HighflyLabTelemetryV026.Record(
+                    "CHARACTER BLOCK",
+                    "LUCID durante " + HighflyLabActionGuardV026.Instance.Owner);
+                return;
+            }
             _player.HighflyLabForceLocomotion();
             HighflyParkourAnimationV010.Instance?.StopNow();
             _usingKayKit = false;
@@ -89,7 +96,14 @@ namespace Highfly.SkillLab
         {
             if (_player == null) return;
 
-            HighflyLabActionGuardV026.Instance?.ForceRecover("switch to KayKit");
+            if (HighflyLabActionGuardV026.Instance != null &&
+                HighflyLabActionGuardV026.Instance.IsLocked)
+            {
+                HighflyLabTelemetryV026.Record(
+                    "CHARACTER BLOCK",
+                    "KAYKIT durante " + HighflyLabActionGuardV026.Instance.Owner);
+                return;
+            }
             _player.HighflyLabForceLocomotion();
             HighflyParkourAnimationV010.Instance?.StopNow();
             EnsureKayKit();
