@@ -86,7 +86,7 @@ namespace Highfly.SkillLab
 
         private static GameObject BuildLargeMonster(Vector3 position)
         {
-            GameObject root = CreateRoot("MONSTER_LARGE_BRUTE", position, new Color(0.26f, 0.13f, 0.18f, 1f));
+            GameObject root = CreateRoot("BOSS_POISE_TARGET", position, new Color(0.26f, 0.13f, 0.18f, 1f));
 
             AddPrimitive(root.transform, PrimitiveType.Capsule, "BruteBody",
                 Vector3.zero, new Vector3(1.55f, 1.68f, 1.28f),
@@ -105,7 +105,7 @@ namespace Highfly.SkillLab
                 new Color(0.22f, 0.10f, 0.14f, 1f));
 
             AddRing(root.transform, 1.45f, new Color(1f, 0.28f, 0.38f, 1f));
-            AddLabel(root.transform, "LARGE / POISE", new Vector3(0f, 3.45f, 0f));
+            AddLabel(root.transform, "BOSS / POISE", new Vector3(0f, 3.45f, 0f));
             return root;
         }
 
