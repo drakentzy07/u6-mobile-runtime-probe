@@ -153,6 +153,11 @@ namespace Highfly.SkillLab
         {
             if (_player == null) return;
 
+            if (hard)
+            {
+                AbortTransientLabCoroutines();
+            }
+
             _locked = false;
             _owner = "-";
             _deadline = 0f;
@@ -170,6 +175,18 @@ namespace Highfly.SkillLab
 
             RestoreRootScaleIfNeeded(hard ? "hard-recover" : "release");
             _lastPosition = _player.transform.position;
+        }
+
+        private void AbortTransientLabCoroutines()
+        {
+            _player.GetComponent<HighflyPremiumSkillRuntime>()?.StopAllCoroutines();
+            _player.GetComponent<HighflyAdvancedSkillRuntime>()?.StopAllCoroutines();
+            _player.GetComponent<HighflyReferenceSkillRuntime>()?.StopAllCoroutines();
+            _player.GetComponent<HighflyApexPassSkillRuntime>()?.StopAllCoroutines();
+            _player.GetComponent<HighflyDonorExpandedRuntimeV022>()?.StopAllCoroutines();
+            _player.GetComponent<HighflyDonorWeaponRuntimeV021>()?.StopAllCoroutines();
+
+            HighflyLabTelemetryV026.Record("ABORT", "coroutines transitorias detenidas");
         }
 
         private void RestoreRootScaleIfNeeded(string source)
