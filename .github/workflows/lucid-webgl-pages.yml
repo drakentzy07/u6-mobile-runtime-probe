@@ -3,7 +3,7 @@ name: Lucid WebGL Pages
 on:
   workflow_dispatch:
   push:
-    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10, highfly/skill-lab-v0.12-donor-vertical-slice, highfly/skill-lab-v0.13-production-pass, highfly/skill-lab-v0.14-all-skills-gallery]
+    branches: [main, highfly/skill-lab-v0.8-master-skill-tree, highfly/skill-lab-v0.9-apex-pass, highfly/skill-lab-v0.10-slf-core, highfly/skill-lab-v0.11-premium-slf10, highfly/skill-lab-v0.12-donor-vertical-slice, highfly/skill-lab-v0.13-production-pass, highfly/skill-lab-v0.14-all-skills-gallery, highfly/skill-lab-v0.15-curated-donor-pass]
     paths:
       - "ci/**"
       - ".github/workflows/lucid-webgl-pages.yml"
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: skill-lab-v014-all-skills-gallery
+  group: skill-lab-v015-curated-donor-pass
   cancel-in-progress: true
 
 jobs:
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.14 All Skills Gallery
+      - name: Install HIGHFLY Mobile Core v0.6 + Skill Lab v0.15 Curated Donor Pass
         shell: bash
         run: |
           set -euxo pipefail
@@ -74,6 +74,7 @@ jobs:
           mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Lab
           mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Parkour
           mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX
+          mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX
           mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
 
           cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
@@ -104,6 +105,8 @@ jobs:
           cp ci/lab/HighflyLabTargetsV011.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
           cp ci/lab/HighflyArteSacrificioV012.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           cp ci/lab/HighflyParkourAnimationV010.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
+          cp ci/lab/HighflyCuratedDonorRuntimeV015.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedDonorRuntimeV015.cs
+          cp ci/lab/HighflyCuratedGalleryV015.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
 
           # CC0 Quaternius Universal Animation Library 2 v2.1.
           # Pinned public mirror; SHA-256 is verified against the user's Library copy.
@@ -117,6 +120,17 @@ jobs:
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/PlasmaExplosionEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/PlasmaExplosion.prefab"
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab"
           cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab"
+
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/FireBall.prefab"                     "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/FireBall.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/BigExplosion.prefab"                "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/BigExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/SmallExplosion.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/SmallExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/EnergyExplosion.prefab"             "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/EnergyExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/ElectricalSparksEffect.prefab"             "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/ElectricalSparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/PlasmaExplosionEffect.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/PlasmaExplosion.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab"                       "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/Sparks.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Magic Effects/Prefabs/IceLance.prefab"                             "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/IceLance.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Magic Effects/Prefabs/EarthShatter.prefab"                          "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/EarthShatter.prefab"
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Fire & Explosion Effects/Prefabs/ParticlesLight.prefab"             "LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/ParticlesLight.prefab"
           cp "LucidHost/3D_game/Assets/Mixamo/Knight.prefab"              "LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab"
 
           cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
@@ -158,6 +172,12 @@ jobs:
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyLabTargetsV011.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedDonorRuntimeV015.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/FireBall.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/IceLance.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/EarthShatter.prefab
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/DonorVFX/BigExplosion.prefab
           test -s LucidHost/3D_game/Assets/HIGHFLY/Parkour/UAL2_Standard.fbx
           test "$(stat -c%s LucidHost/3D_game/Assets/HIGHFLY/Parkour/UAL2_Standard.fbx)" -gt 20000000
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ElectricalSparks.prefab
@@ -166,7 +186,7 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_SKILL_LAB_v0.14.1" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_SKILL_LAB_v0.15" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "10 SKILLS OBJETIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyCombatLabBrowserV011.Install" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
@@ -191,9 +211,12 @@ jobs:
           if grep -q "Sword_Regular_A" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCombatLabV010.DamageMove.cs; then echo "ERROR: v0.13 must not force incompatible UAL sword clips"; exit 1; fi
           grep -q "AnimationPlayableOutput" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           grep -q "PrepareParkourAnimations" ci/HighflyCiWebGLBuilder.cs
-          grep -q "MASTER SKILL TREE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
-          grep -q "HighflySkillBrowser.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "HIGHFLY v0.14.1 • ALL SKILLS GALLERY • 28 PREVIEWS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillBrowser.cs
+          grep -q "CURATED DONOR PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HighflyCuratedGalleryV015.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "SubspaceHunter Fire" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "HighflyCuratedAegisState.TryAbsorb" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          if grep -q "HighflySkillBrowser.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: old 28-skill browser still installed"; exit 1; fi
+          if grep -q "HighflyCombatLabBrowserV011.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: old combat shortlist still installed"; exit 1; fi
           grep -q "HighflyMasterSkillTree" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
           grep -q "RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
           grep -q "GRAVEDAD CERO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
@@ -279,7 +302,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v014-gallery-ual2-d26d0e9f-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v015-curated-ual2-d26d0e9f-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
@@ -313,11 +336,11 @@ jobs:
           touch "$OUT/.nojekyll"
 
           # v0.14.1 cache bust: force mobile browsers to request this exact WebGL payload.
-          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0141"#' "$OUT/index.html"
-          sed -i 's#/WebGL.data"#/WebGL.data?v=0141"#' "$OUT/index.html"
-          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0141"#' "$OUT/index.html"
-          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0141"#' "$OUT/index.html"
-          grep -q "v=0141" "$OUT/index.html"
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0150"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=0150"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0150"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0150"#' "$OUT/index.html"
+          grep -q "v=0150" "$OUT/index.html"
 
           du -sh "$OUT"
           find "$OUT" -maxdepth 2 -type f | head -n 40
