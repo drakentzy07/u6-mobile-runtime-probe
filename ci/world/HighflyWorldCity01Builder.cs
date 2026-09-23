@@ -292,7 +292,7 @@ namespace Highfly.CI
             var baseGo = GameObject.CreatePrimitive(PrimitiveType.Cube);
             baseGo.name = "HIGHFLY_WORLD_EDGE_BASE";
             SceneManager.MoveGameObjectToScene(baseGo, scene);
-            baseGo.transform.position = origin + new Vector3(size.x * 0.5f, -1.0f, size.z * 0.5f);
+            baseGo.transform.position = origin + new Vector3(size.x * 0.5f, -0.75f, size.z * 0.5f);
             baseGo.transform.localScale = new Vector3(size.x * 3.0f, 1.0f, size.z * 3.0f);
 
             var col = baseGo.GetComponent<Collider>();
@@ -301,9 +301,16 @@ namespace Highfly.CI
             Shader shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader != null)
             {
-                var mat = new Material(shader) { name = "HIGHFLY_EdgeGround_Runtime" };
-                if (mat.HasProperty("_BaseColor"))
-                    mat.SetColor("_BaseColor", new Color(0.08f, 0.18f, 0.08f, 1f));
+                const string edgeMatPath = "Assets/HIGHFLY/World/HIGHFLY_EdgeGround.mat";
+                var mat = AssetDatabase.LoadAssetAtPath<Material>(edgeMatPath);
+                if (mat == null)
+                {
+                    mat = new Material(shader) { name = "HIGHFLY_EdgeGround" };
+                    if (mat.HasProperty("_BaseColor"))
+                        mat.SetColor("_BaseColor", new Color(0.08f, 0.18f, 0.08f, 1f));
+                    AssetDatabase.CreateAsset(mat, edgeMatPath);
+                    AssetDatabase.SaveAssets();
+                }
                 baseGo.GetComponent<Renderer>().sharedMaterial = mat;
             }
 
