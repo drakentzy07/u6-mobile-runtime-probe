@@ -1,0 +1,99 @@
+name: Publish HIGHFLY Donor Lab v2.1
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-donor-lab-v021.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-donor-lab-v021-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Pages + DONOR Lab 2.1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35864914052
+
+      - name: Download verified DONOR Lab 2.1 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: donor-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35864991930
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+          test -f site/index.html
+          test -f site/world-lab/index.html
+
+          mkdir -p donor-extracted
+          test -f donor-pages/artifact.tar
+          tar -xf donor-pages/artifact.tar -C donor-extracted
+          test -f donor-extracted/index.html
+          grep -q "v=0210" donor-extracted/index.html
+
+          rm -rf site/donor-lab-v21
+          mkdir -p site/donor-lab-v21
+          cp -a donor-extracted/. site/donor-lab-v21/
+
+          test -f site/donor-lab-v21/index.html
+          test -f site/donor-lab-v21/Build/WebGL.loader.js
+          test -f site/donor-lab-v21/Build/WebGL.wasm
+          test -f site/donor-lab-v21/Build/WebGL.data
+
+          echo "HIGHFLY DONOR LAB 2.1 • VERIFIED BUILD RUN 35864991930 • SIGIL RAW RUN 35865632028" > site/donor-lab-v21/published-version.txt
+          touch site/.nojekyll
+
+          echo "Root preserved:"
+          ls -la site | head -n 30
+          echo "WORLD preserved:"
+          test -f site/world-lab/index.html
+          echo "DONOR added:"
+          find site/donor-lab-v21 -maxdepth 2 -type f | head -n 40
+          du -sh site site/world-lab site/donor-lab-v21
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy current Pages + DONOR Lab 2.1
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
