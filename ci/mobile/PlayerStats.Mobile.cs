@@ -235,6 +235,13 @@ public class PlayerStats : CharacterStats
         if (HighflyReflectiveWallState.TryReflect(this, damage, composureDamage, attacker))
             return;
 
+        // HIGHFLY DONOR LAB v2.3: real shield + hyper-armour interception.
+        // Default behaviour stays at Lucid's existing 50 composure damage unless
+        // a donor preview explicitly arms hyper armour.
+        float resolvedComposureDamage = 50.0f;
+        if (HighflyDonorDefenseState.TryModifyIncoming(this, ref damage, ref resolvedComposureDamage))
+            return;
+
         // 1. 무적 판정 로직 추가
         if (_playerController != null && _playerController.currentState == PlayerState.Roll)
         {
@@ -268,7 +275,7 @@ public class PlayerStats : CharacterStats
         }
 
         // 3. 무적이 아니면 부모의 원래 기능(체력 깎기) 실행
-        base.TakeDamage(damage, 50.0f, attacker);
+        base.TakeDamage(damage, resolvedComposureDamage, attacker);
     }
     // 디버그용: 패링 각도를 눈으로 확인
     private void OnDrawGizmosSelected()
