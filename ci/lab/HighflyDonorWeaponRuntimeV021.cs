@@ -191,6 +191,11 @@ namespace Highfly.SkillLab
             {
                 FaceNearestTarget(30f);
                 EnsureDragonBlade();
+                if (_dragonBlade == null)
+                {
+                    HighflySkillLabMetrics.RecordAction("DRAGON SOULS • MODELO DE ESPADA NO DISPONIBLE", 0);
+                    yield break;
+                }
                 SetBladeAtHand();
 
                 HighflySkillLabMetrics.RecordAction(
@@ -368,48 +373,37 @@ namespace Highfly.SkillLab
         {
             if (_dragonBlade != null) return;
 
-            _dragonBlade = new GameObject("DONOR_DRAGON_SOULS_SWORD_PROXY");
+            GameObject swordPrefab =
+                Resources.Load<GameObject>("HIGHFLY/CharacterCompare/KayKitSword1H");
 
-            GameObject blade = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            blade.name = "Blade";
-            blade.transform.SetParent(_dragonBlade.transform, false);
-            blade.transform.localPosition = new Vector3(0f, 0.68f, 0f);
-            blade.transform.localScale = new Vector3(0.10f, 1.25f, 0.055f);
-            Destroy(blade.GetComponent<Collider>());
+            if (swordPrefab == null)
+            {
+                Debug.LogError("[HIGHFLY 2.4] Final sword resource missing.");
+                return;
+            }
 
-            GameObject guard = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            guard.name = "Guard";
-            guard.transform.SetParent(_dragonBlade.transform, false);
-            guard.transform.localPosition = new Vector3(0f, 0.02f, 0f);
-            guard.transform.localScale = new Vector3(0.48f, 0.09f, 0.12f);
-            Destroy(guard.GetComponent<Collider>());
+            _dragonBlade = Instantiate(swordPrefab);
+            _dragonBlade.name = "DONOR_DRAGON_SOULS_SWORD_FINAL";
+            _dragonBlade.transform.localScale = Vector3.one;
 
-            GameObject grip = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            grip.name = "Grip";
-            grip.transform.SetParent(_dragonBlade.transform, false);
-            grip.transform.localPosition = new Vector3(0f, -0.27f, 0f);
-            grip.transform.localScale = new Vector3(0.07f, 0.28f, 0.07f);
-            Destroy(grip.GetComponent<Collider>());
+            foreach (Collider c in _dragonBlade.GetComponentsInChildren<Collider>(true))
+                c.enabled = false;
 
-            Material bladeMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.62f, 0.72f, 0.82f, 1f),
-                new Color(0.08f, 0.18f, 0.28f, 1f));
-            Material gripMat = HighflyLabVisuals.CreateMaterial(
-                new Color(0.10f, 0.12f, 0.16f, 1f),
-                new Color(0.01f, 0.02f, 0.03f, 1f));
-
-            Renderer br = blade.GetComponent<Renderer>();
-            Renderer gr = guard.GetComponent<Renderer>();
-            Renderer rr = grip.GetComponent<Renderer>();
-            if (br != null) br.sharedMaterial = bladeMat;
-            if (gr != null) gr.sharedMaterial = bladeMat;
-            if (rr != null) rr.sharedMaterial = gripMat;
+            foreach (Rigidbody rb in _dragonBlade.GetComponentsInChildren<Rigidbody>(true))
+            {
+                rb.isKinematic = true;
+                rb.detectCollisions = false;
+            }
 
             TrailRenderer trail = _dragonBlade.AddComponent<TrailRenderer>();
-            trail.time = 0.16f;
-            trail.startWidth = 0.12f;
-            trail.endWidth = 0.015f;
-            trail.sharedMaterial = HighflyLabVisuals.CreateFxMaterial(new Color(0.38f, 0.82f, 1f, 1f));
+            trail.time = 0.18f;
+            trail.minVertexDistance = 0.035f;
+            trail.startWidth = 0.13f;
+            trail.endWidth = 0.01f;
+            trail.textureMode = LineTextureMode.Stretch;
+            trail.material = HighflyFinalFxV024.CreateFxMaterial(
+                "slash_01",
+                new Color(0.40f, 0.86f, 1f, 1f));
         }
 
         private void SetBladeAtHand()
