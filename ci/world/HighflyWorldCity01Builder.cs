@@ -1,7 +1,9 @@
 #if UNITY_EDITOR
 using System;
 using System.IO;
+using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -29,7 +31,10 @@ namespace Highfly.CI
 
             PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
             PlayerSettings.WebGL.decompressionFallback = false;
-            PlayerSettings.WebGL.dataCaching = true;
+            PlayerSettings.WebGL.dataCaching = false;
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.FullWithStacktrace;
+            PlayerSettings.WebGL.debugSymbolMode = WebGLDebugSymbolMode.Embedded;
+            PlayerSettings.SetManagedStrippingLevel(NamedBuildTarget.WebGL, ManagedStrippingLevel.Minimal);
 
             const string outputPath = "build/WebGL";
             var options = new BuildPlayerOptions
@@ -37,7 +42,7 @@ namespace Highfly.CI
                 scenes = new[] { OutputScene },
                 locationPathName = outputPath,
                 target = BuildTarget.WebGL,
-                options = BuildOptions.None
+                options = BuildOptions.Development
             };
 
             Debug.Log("[HF-WORLD] Building CITY 01 only (no MainMenu, no Somnia, no prologue).");
@@ -88,6 +93,7 @@ namespace Highfly.CI
             Scene scene = EditorSceneManager.OpenScene(SourceScene, OpenSceneMode.Single);
 
             RemoveSceneCameras(scene);
+            RemoveLegacyCinemachineAndDemoScripts(scene);
             RemoveHostiles(scene);
 
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PlayerPrefabPath);
@@ -132,6 +138,43 @@ namespace Highfly.CI
                 if (camera == null || camera.gameObject.scene != scene) continue;
                 UnityEngine.Object.DestroyImmediate(camera.gameObject);
             }
+        }
+
+        private static void RemoveLegacyCinemachineAndDemoScripts(Scene scene)
+        {
+            var behaviours = UnityEngine.Object.FindObjectsByType<MonoBehaviour>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+            var cameraRigObjects = new HashSet<GameObject>();
+            int rotatorsRemoved = 0;
+
+            foreach (var behaviour in behaviours)
+            {
+                if (behaviour == null || behaviour.gameObject.scene != scene) continue;
+
+                Type type = behaviour.GetType();
+                string fullName = type.FullName ?? type.Name;
+
+                if (fullName.IndexOf("Cinemachine", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    cameraRigObjects.Add(behaviour.gameObject);
+                    continue;
+                }
+
+                if (string.Equals(type.Name, "Rotator", StringComparison.Ordinal))
+                {
+                    UnityEngine.Object.DestroyImmediate(behaviour);
+                    rotatorsRemoved++;
+                }
+            }
+
+            int rigsRemoved = 0;
+            foreach (var go in cameraRigObjects)
+            {
+                if (go == null || go.scene != scene) continue;
+                UnityEngine.Object.DestroyImmediate(go);
+                rigsRemoved++;
+            }
+
+            Debug.Log($"[HF-WORLD] Removed legacy demo runtime: Cinemachine rigs={rigsRemoved}, Rotator scripts={rotatorsRemoved}");
         }
 
         private static void RemoveHostiles(Scene scene)
