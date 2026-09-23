@@ -34,6 +34,11 @@ namespace Highfly.SkillLab
         {
             if (_busy) return;
 
+            // Character A/B lab can swap the active humanoid Animator at runtime.
+            // Resolve it on every preview instead of keeping Lucid's startup Animator cached.
+            if (_player != null && _player.animator != null)
+                _animator = _player.animator;
+
             if (skill == HighflyAcceptedSkillV016.Drift)
             {
                 HighflyCombatLabV010.Instance?.ForcePreview(HighflyCombatSkillV010.FormulaDrift);
