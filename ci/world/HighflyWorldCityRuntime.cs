@@ -7,7 +7,7 @@ namespace Highfly.World
     [DisallowMultipleComponent]
     public sealed class HighflyWorldCityRuntime : MonoBehaviour
     {
-        public const string Version = "HIGHFLY_WORLD_CITY01_v0.2.1";
+        public const string Version = "HIGHFLY_WORLD_CITY01_v0.3";
         private const string CitySceneName = "HIGHFLY_CITY01";
         private float _nextSweep;
         private GUIStyle _title;
@@ -97,7 +97,7 @@ namespace Highfly.World
             _sub.normal.textColor = new Color(0.65f, 0.92f, 1f, 1f);
 
             GUI.Box(new Rect(12, 12, 360, 58), GUIContent.none);
-            GUI.Label(new Rect(22, 16, 340, 24), "HIGHFLY WORLD v0.2.1 • CITY 01 • SAFE", _title);
+            GUI.Label(new Rect(22, 16, 340, 24), "HIGHFLY WORLD v0.3 • CITY 01 • SAFE", _title);
             GUI.Label(new Rect(22, 40, 340, 20), "Mercado • Posada • Herrería • 0 monstruos", _sub);
         }
     }
