@@ -1,4 +1,4 @@
-name: Publish HIGHFLY World City 01 v0.2.1
+name: Publish HIGHFLY World City 01 v0.4 Living
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: highfly-world-city01-v02-publish
+  group: highfly-world-city01-v04-living-publish
   cancel-in-progress: true
 
 jobs:
@@ -33,10 +33,10 @@ jobs:
       - name: Download verified WORLD City 01 WebGL
         uses: actions/download-artifact@v4
         with:
-          name: highfly-world-city01-v02-webgl
+          name: highfly-world-city01-v04-living-webgl
           path: world-webgl
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 35809550351
+          run-id: 35858951304
 
       - name: Assemble combined site
         shell: bash
@@ -56,7 +56,7 @@ jobs:
           test -f site/world-lab/Build/WebGL.loader.js
           test -f site/world-lab/world-version.txt
 
-          echo "HIGHFLY WORLD CITY 01 v0.2.1 • VERIFIED RUN 35809550351" > site/world-lab/published-version.txt
+          echo "HIGHFLY WORLD CITY 01 v0.4 LIVING • VERIFIED RUN 35858951304" > site/world-lab/published-version.txt
           touch site/.nojekyll
 
           echo "Root:"
