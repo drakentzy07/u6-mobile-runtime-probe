@@ -17,6 +17,7 @@ namespace Highfly.SkillLab
         private RuntimeAnimatorController _sharedController;
         private Renderer[] _lucidRenderers;
 
+        private GameObject _kayVisualPivot;
         private GameObject _kayRoot;
         private Animator _kayAnimator;
         private Text _status;
@@ -56,7 +57,10 @@ namespace Highfly.SkillLab
 
             _lucidRenderers = player.GetComponentsInChildren<Renderer>(true);
             BuildUi(uiParent);
-            RefreshStatus("LUCID CANDIDATO A");
+
+            // v2.7: KayKit is now the default HIGHFLY Hunter visual.
+            // LUCID remains alive underneath as the logical locomotion/combat animator.
+            UseKayKit();
         }
 
         public void UseLucid()
@@ -67,8 +71,8 @@ namespace Highfly.SkillLab
             HighflyParkourAnimationV010.Instance?.StopNow();
             _usingKayKit = false;
 
-            if (_kayRoot != null)
-                _kayRoot.SetActive(false);
+            if (_kayVisualPivot != null)
+                _kayVisualPivot.SetActive(false);
 
             for (int i = 0; i < _lucidRenderers.Length; i++)
                 if (_lucidRenderers[i] != null)
@@ -76,6 +80,8 @@ namespace Highfly.SkillLab
 
             _lucidAnimator.enabled = true;
             _player.animator = _lucidAnimator;
+            HighflyAnimatorMirrorV027.Instance?.Bind(_lucidAnimator, null);
+            HighflyCombatFacingV027.Instance?.BindVisual(null);
             HighflyParkourAnimationV010.BindTo(_lucidAnimator);
 
             RefreshStatus("LUCID CANDIDATO A");
@@ -90,7 +96,7 @@ namespace Highfly.SkillLab
             _player.HighflyLabForceLocomotion();
             HighflyParkourAnimationV010.Instance?.StopNow();
             EnsureKayKit();
-            if (_kayRoot == null || _kayAnimator == null)
+            if (_kayRoot == null || _kayAnimator == null || _kayVisualPivot == null)
             {
                 RefreshStatus("KAYKIT LOAD FAILED");
                 return;
@@ -102,20 +108,25 @@ namespace Highfly.SkillLab
                 if (_lucidRenderers[i] != null)
                     _lucidRenderers[i].enabled = false;
 
+            // LUCID's Animator remains enabled and remains PlayerController.animator.
+            // It owns state, combo Animation Events and root motion. Only its renderers are hidden.
             if (_lucidAnimator != null)
-                _lucidAnimator.enabled = false;
+                _lucidAnimator.enabled = true;
 
-            _kayRoot.SetActive(true);
+            _kayVisualPivot.SetActive(true);
             _kayAnimator.enabled = true;
             _kayAnimator.runtimeAnimatorController = _sharedController;
             _kayAnimator.applyRootMotion = false;
+            _kayAnimator.fireEvents = false;
 
-            _player.animator = _kayAnimator;
+            _player.animator = _lucidAnimator;
+            HighflyAnimatorMirrorV027.Instance?.Bind(_lucidAnimator, _kayAnimator);
+            HighflyCombatFacingV027.Instance?.BindVisual(_kayVisualPivot.transform);
             HighflyParkourAnimationV010.BindTo(_kayAnimator);
 
-            RefreshStatus("KAYKIT CANDIDATO B");
-            HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT CANDIDATO B • SCALE 0.84", 0);
-            HighflyLabTestHistoryV026.Log("CHARACTER -> KAYKIT • visualScale=0.84");
+            RefreshStatus("KAYKIT HUNTER • LUCID CORE");
+            HighflySkillLabMetrics.RecordAction("KAYKIT HUNTER • LUCID CORE • AUTO SCALE", 0);
+            HighflyLabTestHistoryV026.Log("CHARACTER -> KAYKIT HUNTER • logicalAnimator=LUCID");
         }
 
         private void EnsureKayKit()
@@ -129,11 +140,17 @@ namespace Highfly.SkillLab
                 return;
             }
 
-            _kayRoot = Instantiate(prefab, _player.transform);
-            _kayRoot.name = "HIGHFLY_KAYKIT_KNIGHT_COMPARE";
+            _kayVisualPivot = new GameObject("HIGHFLY_KAYKIT_VISUAL_PIVOT");
+            _kayVisualPivot.transform.SetParent(_player.transform, false);
+            _kayVisualPivot.transform.localPosition = Vector3.zero;
+            _kayVisualPivot.transform.localRotation = Quaternion.identity;
+            _kayVisualPivot.transform.localScale = Vector3.one;
+
+            _kayRoot = Instantiate(prefab, _kayVisualPivot.transform);
+            _kayRoot.name = "HIGHFLY_KAYKIT_HUNTER_VISUAL";
             _kayRoot.transform.localPosition = Vector3.zero;
             _kayRoot.transform.localRotation = Quaternion.identity;
-            _kayRoot.transform.localScale = Vector3.one * 0.84f;
+            _kayRoot.transform.localScale = Vector3.one;
 
             foreach (Collider c in _kayRoot.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
@@ -159,9 +176,72 @@ namespace Highfly.SkillLab
 
             _kayAnimator.runtimeAnimatorController = _sharedController;
             _kayAnimator.applyRootMotion = false;
+            _kayAnimator.fireEvents = false;
 
+            NormalizeKayKitVisual();
             AttachKayKitSword();
-            _kayRoot.SetActive(false);
+            _kayVisualPivot.SetActive(false);
+        }
+
+        private void NormalizeKayKitVisual()
+        {
+            if (_kayRoot == null || _player == null) return;
+
+            const float targetHeight = 1.64f;
+            Renderer[] renderers = _kayRoot.GetComponentsInChildren<Renderer>(true);
+            if (renderers == null || renderers.Length == 0) return;
+
+            bool hasBounds = false;
+            Bounds bounds = new Bounds();
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer r = renderers[i];
+                if (r == null) continue;
+                if (!hasBounds)
+                {
+                    bounds = r.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(r.bounds);
+                }
+            }
+
+            if (!hasBounds || bounds.size.y < 0.01f) return;
+
+            float rawHeight = bounds.size.y;
+            float scale = Mathf.Clamp(targetHeight / rawHeight, 0.12f, 2.0f);
+            _kayRoot.transform.localScale = Vector3.one * scale;
+            Physics.SyncTransforms();
+
+            // Recompute after scaling and place the visual feet on LUCID root ground.
+            hasBounds = false;
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer r = renderers[i];
+                if (r == null) continue;
+                if (!hasBounds)
+                {
+                    bounds = r.bounds;
+                    hasBounds = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(r.bounds);
+                }
+            }
+
+            if (hasBounds)
+            {
+                float footCorrection = _player.transform.position.y - bounds.min.y;
+                _kayRoot.transform.position += Vector3.up * footCorrection;
+            }
+
+            HighflyLabTestHistoryV026.Log(
+                "KAYKIT AUTOSCALE • rawHeight=" + rawHeight.ToString("0.00") +
+                " target=" + targetHeight.ToString("0.00") +
+                " scale=" + scale.ToString("0.000"));
         }
 
         private void AttachKayKitSword()
@@ -210,7 +290,7 @@ namespace Highfly.SkillLab
             bar.GetComponent<Image>().color = new Color(0.010f, 0.016f, 0.028f, 0.94f);
             bar.GetComponent<Outline>().effectColor = new Color(0.18f, 0.72f, 1f, 0.92f);
 
-            Button lucid = Button(bar.transform, "A • LUCID CANDIDATO A");
+            Button lucid = Button(bar.transform, "DEBUG • LUCID BODY");
             RectTransform lr = lucid.GetComponent<RectTransform>();
             lr.anchorMin = lr.anchorMax = new Vector2(0f, 1f);
             lr.pivot = new Vector2(0f, 1f);
@@ -218,7 +298,7 @@ namespace Highfly.SkillLab
             lr.sizeDelta = new Vector2(230f, 52f);
             lucid.onClick.AddListener(UseLucid);
 
-            Button kay = Button(bar.transform, "B • KAYKIT CANDIDATO B");
+            Button kay = Button(bar.transform, "KAYKIT HUNTER • FINAL");
             RectTransform kr = kay.GetComponent<RectTransform>();
             kr.anchorMin = kr.anchorMax = new Vector2(0f, 1f);
             kr.pivot = new Vector2(0f, 1f);
@@ -226,7 +306,7 @@ namespace Highfly.SkillLab
             kr.sizeDelta = new Vector2(230f, 52f);
             kay.onClick.AddListener(UseKayKit);
 
-            _status = Label(bar.transform, "A/B FINALISTA • LUCID / KAYKIT", 14, TextAnchor.UpperLeft);
+            _status = Label(bar.transform, "KAYKIT HUNTER • LUCID MOVEMENT/COMBAT CORE", 14, TextAnchor.UpperLeft);
             RectTransform sr = _status.rectTransform;
             sr.anchorMin = sr.anchorMax = new Vector2(0f, 1f);
             sr.pivot = new Vector2(0f, 1f);
