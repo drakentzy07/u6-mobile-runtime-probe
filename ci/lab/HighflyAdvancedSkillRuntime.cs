@@ -167,6 +167,14 @@ namespace Highfly.SkillLab
         {
             if (target == null) yield break;
 
+            HighflyLabActionGuardV026 guard = HighflyLabActionGuardV026.Instance;
+            int actionToken = guard != null
+                ? guard.Begin("S6 DANZA FANTASMA", 1.60f, true)
+                : 0;
+
+            if (guard != null && actionToken == 0)
+                yield break;
+
             var status = EnsureStatus(target);
             status?.ApplyRoot(1.20f);
 
@@ -290,6 +298,7 @@ namespace Highfly.SkillLab
             }
 
             yield return HitStop(0.060f);
+            guard?.End(actionToken, "phantom dance complete");
         }
 
         // ------------------------------------------------------------------
