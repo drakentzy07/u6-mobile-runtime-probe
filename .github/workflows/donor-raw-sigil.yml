@@ -74,8 +74,19 @@ jobs:
           git clone --filter=blob:none https://github.com/forestlii/sigil-combat.git "$PROJECT/Packages/com.likeon.gas.combat"
           git -C "$PROJECT/Packages/com.likeon.gas.combat" checkout aeee8dcee73e447f577e64201d651829efe2d5c1
 
+          # This probe validates the donor CombatDemo runtime, not the framework's own
+          # package test suites. Exclude upstream package tests so their optional
+          # InputSystem TestFramework fixture cannot block the RAW mechanic smoke test.
+          rm -rf "$PROJECT/Packages/com.likeon.gas/Tests" \
+                 "$PROJECT/Packages/com.likeon.gas.movement/Tests" \
+                 "$PROJECT/Packages/com.likeon.gas.combat/Tests"
+
           mkdir -p "$PROJECT/Assets/SigilCombatDemo"
           cp -a "$PROJECT/Packages/com.likeon.gas.combat/Samples~/CombatDemo/." "$PROJECT/Assets/SigilCombatDemo/"
+
+          # Keep the donor sample runtime + its original test asmdef, but execute only
+          # HIGHFLY's focused RAW dash smoke test in this CI probe.
+          find "$PROJECT/Assets/SigilCombatDemo/Tests" -maxdepth 1 -name '*.cs' -delete
 
           cat > "$PROJECT/Assets/SigilCombatDemo/Tests/HighflyRawDashAttackSmokeTest.cs" <<'EOF'
           using System.Collections;
