@@ -14,6 +14,9 @@ public class PlayerInteraction : MonoBehaviour
 
     private IInteractable _currentInteractable;
     private PlayerController _playerController;
+    private bool _fallbackPromptVisible;
+    private string _fallbackPromptMessage = "";
+    private GUIStyle _fallbackPromptStyle;
 
     private void Awake()
     {
@@ -22,9 +25,12 @@ public class PlayerInteraction : MonoBehaviour
 
     private void Start()
     {
-        canvasGroup.alpha = 0f;
-        canvasGroup.interactable = false;
-        canvasGroup.blocksRaycasts = false;
+        if (canvasGroup != null)
+        {
+            canvasGroup.alpha = 0f;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+        }
     }
 
     private void Update()
@@ -63,7 +69,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (isHit)
         {
-            IInteractable interactable = hit.collider.GetComponent<IInteractable>();
+            IInteractable interactable = hit.collider.GetComponentInParent<IInteractable>();
 
             if (interactable != null)
             {
@@ -79,19 +85,37 @@ public class PlayerInteraction : MonoBehaviour
 
     private void ShowPrompt(bool isActive, string message)
     {
-        if (isActive && promptText != null)
+        string localized = HighflyMobileText.Localize(message);
+        bool hasCanvasPrompt = promptText != null && canvasGroup != null;
+
+        if (hasCanvasPrompt)
         {
-            canvasGroup.alpha = 1f;
-            canvasGroup.interactable = true;
+            canvasGroup.alpha = isActive ? 1f : 0f;
+            canvasGroup.interactable = isActive;
             canvasGroup.blocksRaycasts = false;
-            promptText.text = HighflyMobileText.Localize(message);
+            if (isActive) promptText.text = localized;
         }
-        else
+
+        _fallbackPromptVisible = isActive && !hasCanvasPrompt;
+        _fallbackPromptMessage = _fallbackPromptVisible ? localized : "";
+    }
+
+    private void OnGUI()
+    {
+        if (!_fallbackPromptVisible || string.IsNullOrEmpty(_fallbackPromptMessage)) return;
+
+        _fallbackPromptStyle ??= new GUIStyle(GUI.skin.box)
         {
-            canvasGroup.alpha = 0f;
-            canvasGroup.interactable = false;
-            canvasGroup.blocksRaycasts = false;
-        }
+            fontSize = 22,
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter,
+            wordWrap = true
+        };
+
+        float width = Mathf.Min(Screen.width * 0.56f, 700f);
+        float x = (Screen.width - width) * 0.5f;
+        float y = Screen.height * 0.76f;
+        GUI.Box(new Rect(x, y, width, 52f), _fallbackPromptMessage, _fallbackPromptStyle);
     }
 
     private void OnDrawGizmos()
