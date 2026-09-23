@@ -111,7 +111,7 @@ namespace Highfly.SkillLab
             }
 
             if (_busy) return;
-            if (Time.unscaledTime < _sigilReadyAt)
+            if (!HighflySkillLabMode.IsActive && Time.unscaledTime < _sigilReadyAt)
             {
                 float left = Mathf.Max(0f, _sigilReadyAt - Time.unscaledTime);
                 HighflySkillLabMetrics.RecordAction("SIGIL DASH • CD " + left.ToString("0.0") + "s", 0);
@@ -124,7 +124,8 @@ namespace Highfly.SkillLab
         private IEnumerator SigilDashAttack()
         {
             _busy = true;
-            _sigilReadyAt = Time.unscaledTime + SigilCooldown;
+            if (!HighflySkillLabMode.IsActive)
+                _sigilReadyAt = Time.unscaledTime + SigilCooldown;
 
             try
             {
