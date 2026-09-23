@@ -125,7 +125,8 @@ namespace Highfly.SkillLab
             }
 
             float now = Time.unscaledTime;
-            if (_readyAt.TryGetValue(skill, out float ready) && now < ready)
+            if (!HighflySkillLabMode.IsActive &&
+                _readyAt.TryGetValue(skill, out float ready) && now < ready)
             {
                 HighflySkillLabMetrics.RecordAction(
                     SkillLabel(skill) + " • CD " + (ready - now).ToString("0.0") + "s",
@@ -133,7 +134,9 @@ namespace Highfly.SkillLab
                 return;
             }
 
-            _readyAt[skill] = now + CooldownFor(skill);
+            if (!HighflySkillLabMode.IsActive)
+                _readyAt[skill] = now + CooldownFor(skill);
+
             StartCoroutine(Run(skill));
         }
 
