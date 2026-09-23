@@ -89,6 +89,11 @@ namespace Highfly.SkillLab
         public void RequestJump()
         {
             if (_player == null) return;
+            if (HighflyLabMotionGuardV026.Instance != null && HighflyLabMotionGuardV026.Instance.SkillOwnsMotion)
+            {
+                HighflyLabTestHistoryV026.Log("PARKOUR BLOCKED • skill owns motion");
+                return;
+            }
             if (_player.currentState != PlayerState.Locomotion) return;
 
             if (_player.HighflyIsGrounded)
@@ -215,7 +220,8 @@ namespace Highfly.SkillLab
             float start = Time.unscaledTime;
             const float duration = 0.18f;
 
-            while (Time.unscaledTime - start < duration)
+            while (Time.unscaledTime - start < duration &&
+                   (HighflyLabMotionGuardV026.Instance == null || !HighflyLabMotionGuardV026.Instance.SkillOwnsMotion))
             {
                 if (_cc != null && _cc.enabled)
                     _cc.Move(direction * wallJumpHorizontalSpeed * Time.unscaledDeltaTime);
@@ -261,7 +267,8 @@ namespace Highfly.SkillLab
 
             float start = Time.unscaledTime;
             while (visual != null &&
-                   Time.unscaledTime - start < wallTrickDuration)
+                   Time.unscaledTime - start < wallTrickDuration &&
+                   (HighflyLabMotionGuardV026.Instance == null || !HighflyLabMotionGuardV026.Instance.SkillOwnsMotion))
             {
                 float t =
                     (Time.unscaledTime - start) /
