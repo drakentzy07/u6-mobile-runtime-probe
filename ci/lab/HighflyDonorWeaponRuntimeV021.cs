@@ -133,7 +133,7 @@ namespace Highfly.SkillLab
                 HighflySkillLabMetrics.RecordAction("SIGIL DASH ATTACK • SEMI-FULL", 0);
                 HighflyParkourAnimationV010.Instance?.Play("Sword_Dash", 1f, SigilTraceWindow + 0.12f);
 
-                Vector3 fwd = transform.forward;
+                Vector3 fwd = HighflyCombatFacingV027.Forward(transform);
                 fwd.y = 0f;
                 if (fwd.sqrMagnitude < 0.0001f) fwd = Vector3.forward;
                 fwd.Normalize();
@@ -164,7 +164,7 @@ namespace Highfly.SkillLab
 
         private Vector3 SigilSocketPosition()
         {
-            return transform.position + Vector3.up * 1.0f + transform.forward * 1.2f;
+            return transform.position + Vector3.up * 1.0f + HighflyCombatFacingV027.Forward(transform) * 1.2f;
         }
 
         private void TraceSigilSweep(Vector3 from, Vector3 to, HashSet<CharacterStats> hit)
@@ -230,14 +230,14 @@ namespace Highfly.SkillLab
             _dragonReturning = false;
             _dragonEmbeddedTarget = null;
 
-            Vector3 direction = Camera.main != null ? Camera.main.transform.forward : transform.forward;
+            Vector3 direction = Camera.main != null ? Camera.main.HighflyCombatFacingV027.Forward(transform) : HighflyCombatFacingV027.Forward(transform);
             direction.Normalize();
 
             RaycastHit hitInfo;
             if (Camera.main != null &&
                 Physics.Raycast(
                     Camera.main.transform.position,
-                    Camera.main.transform.forward,
+                    Camera.main.HighflyCombatFacingV027.Forward(transform),
                     out hitInfo,
                     DragonMaxRange,
                     ~0,
@@ -504,7 +504,7 @@ namespace Highfly.SkillLab
             Vector3 dir = best.transform.position - transform.position;
             dir.y = 0f;
             if (dir.sqrMagnitude > 0.001f)
-                transform.rotation = Quaternion.LookRotation(dir.normalized, Vector3.up);
+                HighflyCombatFacingV027.FaceVisual(dir.normalized);
         }
 
         private void SafeMove(Vector3 target)
