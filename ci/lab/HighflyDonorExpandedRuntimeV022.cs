@@ -614,7 +614,7 @@ namespace Highfly.SkillLab
 
             float oldMove = _player.moveSpeed;
             float oldSprint = _player.sprintSpeed;
-            Vector3 oldScale = transform.localScale;
+            // v2.6: never scale the physics/player root from a skill.
 
             float shield = Mathf.Max(80f, _stats.maxEgo * 0.5f);
             HighflyDonorDefenseState.ActivateShield(_stats, shield, 10f);
@@ -622,7 +622,7 @@ namespace Highfly.SkillLab
 
             _player.moveSpeed = oldMove * 0.8f;
             _player.sprintSpeed = oldSprint * 0.8f;
-            transform.localScale = oldScale * 1.08f;
+            HighflyLabTestHistoryV026.Log("AEGIS FORM • root scale preserved");
 
             GameObject shell = SpawnPulse(transform.position + Vector3.up, 1.6f, new Color(0.15f, 0.55f, 1f, 0.55f), 10.2f);
             if (shell != null) shell.transform.SetParent(transform, true);
@@ -638,7 +638,7 @@ namespace Highfly.SkillLab
                 _player.moveSpeed = oldMove;
                 _player.sprintSpeed = oldSprint;
             }
-            transform.localScale = oldScale;
+            HighflyLabTestHistoryV026.Log("AEGIS FORM END • root scale unchanged");
         }
 
         // --------------------------------------------------------------------
