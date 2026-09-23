@@ -1,0 +1,207 @@
+name: HIGHFLY World City 01 v0.3
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [world-city01-v03]
+    paths:
+      - "ci/world/**"
+      - "ci/mobile/**"
+      - "ci/combat/**"
+      - "ci/lab/**"
+      - ".github/workflows/world-city01-v03.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: highfly-world-city01-v03-build
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build HIGHFLY City 01 v0.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout WORLD branch
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid Golden Host
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git lfs version
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+          test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+          cat LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+      - name: Download official RG Poly Medieval Village
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p .hf-itch world-download
+          npm --prefix .hf-itch init -y >/dev/null 2>&1
+          npm --prefix .hf-itch install --no-save itchio-downloader@latest
+
+          node <<'NODE'
+          const path = require('path');
+          const { downloadGame } = require(path.join(process.cwd(), '.hf-itch/node_modules/itchio-downloader'));
+
+          (async () => {
+            const result = await downloadGame({
+              itchGameUrl: 'https://rg-poly.itch.io/stylized-medieval-village-unity-urp',
+              downloadDirectory: path.join(process.cwd(), 'world-download'),
+              desiredFileName: 'Stylized_Medieval_Village',
+              resume: true,
+              noCookieCache: true,
+            });
+            console.log('[HF-WORLD] itch download result:', JSON.stringify(result, null, 2));
+          })().catch(err => {
+            console.error(err);
+            process.exit(1);
+          });
+          NODE
+
+          find world-download -maxdepth 3 -type f -printf '%p %s bytes\n'
+          PACKAGE="$(find world-download -type f \( -name '*.unitypackage' -o -name 'Stylized_Medieval_Village.zip' \) | head -n 1)"
+          test -n "$PACKAGE"
+          test -f "$PACKAGE"
+          test "$(stat -c%s "$PACKAGE")" -eq 142787244
+
+          python3 - "$PACKAGE" <<'PY'
+          import hashlib, sys, tarfile
+          p = sys.argv[1]
+          if not tarfile.is_tarfile(p):
+              raise SystemExit(f"Downloaded file is not a Unity tar package: {p}")
+          h = hashlib.sha256()
+          with open(p, 'rb') as f:
+              for chunk in iter(lambda: f.read(1024*1024), b''):
+                  h.update(chunk)
+          digest = h.hexdigest()
+          print("[HF-WORLD] package sha256=" + digest)
+          expected = "34e2bf4ec08a7b9a1687a04b4e5c155648f3b1a31ff77ddb29812e821318a98d"
+          if digest != expected:
+              raise SystemExit(f"Unexpected RG Poly package digest: {digest}")
+          PY
+
+          echo "WORLD_PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+
+      - name: Extract medieval package into Lucid project
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 ci/world/extract_unitypackage.py \
+            --package "$WORLD_PACKAGE" \
+            --project LucidHost/3D_game
+
+          test -f "LucidHost/3D_game/Assets/Stylized Medieval Kingdom URP/Scenes/Demo Stylized Medieval.unity"
+          test -f "LucidHost/3D_game/Assets/Stylized Medieval Kingdom URP/Prefabs/Wall/Wall_Gate Variant.prefab"
+          test -f "LucidHost/3D_game/Assets/Stylized Medieval Kingdom URP/Prefabs/WatermillWheel Variant.prefab"
+
+      - name: Install HIGHFLY Golden Mobile Core + CITY runtime
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Combat
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Lab
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/World
+          mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
+          mkdir -p LucidHost/3D_game/Assets/Editor
+
+          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/
+          cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/
+          cp ci/mobile/HighflyThirdPersonMobileCamera.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/
+          cp ci/combat/HighflyCombatCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/
+          cp ci/combat/HighflyLucidCombatBridge.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/
+
+          cp ci/lab/*.cs LucidHost/3D_game/Assets/HIGHFLY/Lab/
+
+          cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+
+          cp ci/mobile/MainMenuController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
+          cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
+          cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
+          cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+
+          cp ci/world/HighflyWorldCityRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyWorldCity01Builder.cs LucidHost/3D_game/Assets/Editor/
+
+          test -s LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldCityRuntime.cs
+          test -s LucidHost/3D_game/Assets/Editor/HighflyWorldCity01Builder.cs
+          grep -q "HIGHFLY_WORLD_CITY01_v0.3" LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldCityRuntime.cs
+          grep -q "HIGHFLY_CITY01" LucidHost/3D_game/Assets/Editor/HighflyWorldCity01Builder.cs
+          grep -q "HighflyThirdPersonMobileCamera" LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: highfly-world-city01-v03-6000.4.0f1-${{ hashFiles('ci/world/**', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          restore-keys: |
+            highfly-world-city01-v03-6000.4.0f1-
+            lucid-6000.4.0f1-webgl-mobile-v06-
+
+      - name: Build CITY 01 WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.4.0f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.CI.WorldCity01Builder.Build
+          allowDirtyBuild: true
+
+      - name: Verify CITY 01 output
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          test -f "$OUT/index.html"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          touch "$OUT/.nojekyll"
+          echo "HIGHFLY WORLD CITY 01 v0.3" > "$OUT/world-version.txt"
+
+          test -f "LucidHost/3D_game/Assets/HIGHFLY/World/Scenes/HIGHFLY_CITY01.unity"
+          grep -q "HIGHFLY_CITY01_RUNTIME" "LucidHost/3D_game/Assets/HIGHFLY/World/Scenes/HIGHFLY_CITY01.unity"
+          grep -q "HIGHFLY_PLAYER" "LucidHost/3D_game/Assets/HIGHFLY/World/Scenes/HIGHFLY_CITY01.unity"
+
+          du -sh "$OUT"
+          find "$OUT" -maxdepth 2 -type f | head -n 50
+
+      - name: Upload WORLD-only artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-world-city01-v03-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          retention-days: 2
