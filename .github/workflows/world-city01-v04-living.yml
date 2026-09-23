@@ -1,4 +1,4 @@
-name: HIGHFLY World City 01 v0.4 Living
+name: HIGHFLY World City 01 v0.4.1 Living Fix
 
 on:
   workflow_dispatch:
@@ -151,6 +151,11 @@ jobs:
 
           cp ci/world/HighflyWorldCityRuntime.cs LucidHost/3D_game/Assets/HIGHFLY/World/
           cp ci/world/HighflyLivingWorld.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyWorldState.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyLandmarkInteractable.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyResourceNode.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyAmbientWander.cs LucidHost/3D_game/Assets/HIGHFLY/World/
+          cp ci/world/HighflyWorldMinimap.cs LucidHost/3D_game/Assets/HIGHFLY/World/
           cp ci/world/HighflyWorldCity01Builder.cs LucidHost/3D_game/Assets/Editor/
 
           test -s LucidHost/3D_game/Assets/HIGHFLY/World/HighflyWorldCityRuntime.cs
@@ -190,7 +195,7 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" "$OUT"
           chmod -R u+rwX "$OUT"
           touch "$OUT/.nojekyll"
-          echo "HIGHFLY WORLD CITY 01 v0.4 LIVING" > "$OUT/world-version.txt"
+          echo "HIGHFLY WORLD CITY 01 v0.4.1 LIVING FIX" > "$OUT/world-version.txt"
 
           test -f "LucidHost/3D_game/Assets/HIGHFLY/World/Scenes/HIGHFLY_CITY01.unity"
           grep -q "HIGHFLY_CITY01_RUNTIME" "LucidHost/3D_game/Assets/HIGHFLY/World/Scenes/HIGHFLY_CITY01.unity"
@@ -202,7 +207,7 @@ jobs:
       - name: Upload WORLD-only artifact
         uses: actions/upload-artifact@v4
         with:
-          name: highfly-world-city01-v04-living-webgl
+          name: highfly-world-city01-v041-living-webgl
           path: LucidHost/3D_game/build/WebGL
           if-no-files-found: error
           retention-days: 2
