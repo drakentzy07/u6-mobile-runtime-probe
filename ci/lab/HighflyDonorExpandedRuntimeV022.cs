@@ -344,7 +344,6 @@ namespace Highfly.SkillLab
 
                     projectile.transform.position = next;
                     target.TakeDamage(damage, poise, transform);
-                    HighflySkillLabMetrics.RecordHit(damage);
                     ApplyKnockback(target.transform, direction, knockback);
                     if (stunSeconds > 0f)
                         StartCoroutine(StunTarget(target, stunSeconds));
