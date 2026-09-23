@@ -225,6 +225,10 @@ public class PlayerStats : CharacterStats
     }    
     public override void TakeDamage(float damage, float composureDamage = 10f, Transform attacker = null)
     {
+        // HIGHFLY v0.15 curated donor pass: SubspaceHunter shield logic internalized as Aegis.
+        if (Highfly.SkillLab.HighflyCuratedAegisState.TryAbsorb(this, ref damage))
+            return;
+
         // HIGHFLY LAB v0.10: Vista del Instante only intercepts an actually lethal hit.
         // The attacker/world never receives global time dilation; the player must still escape.
         if (HighflyCombatLabV010.TryInterceptLethal(this, damage, attacker))
