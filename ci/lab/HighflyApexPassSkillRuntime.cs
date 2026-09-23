@@ -109,11 +109,17 @@ namespace Highfly.SkillLab
                 _player.currentState == PlayerState.UseItem)
                 return false;
 
+            if (HighflySkillLabMode.IsActive)
+                return true;
+
             return GetCooldownRemaining(id) <= 0.001f;
         }
 
         private void BeginCooldown(HighflyPremiumSkillId id, float seconds)
         {
+            if (HighflySkillLabMode.IsActive)
+                return;
+
             float factor =
                 FoolActive && id != HighflyPremiumSkillId.TheFool
                     ? 0.52f
