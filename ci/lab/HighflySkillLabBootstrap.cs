@@ -188,7 +188,9 @@ namespace Highfly.SkillLab
                     "LUCID / KAYKIT • FINALISTAS A/B • 3 TARGETS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
-                    "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n" +\n                    "Motion owner: " + (HighflyLabMotionGuardV026.Instance != null ? HighflyLabMotionGuardV026.Instance.Owner : "-") +\n                    " • TEST warnings: " + HighflyLabTestHistoryV026.WarningCount + "\n\n" +
+                    "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n" +
+                    "Motion owner: " + (HighflyLabMotionGuardV026.Instance != null ? HighflyLabMotionGuardV026.Instance.Owner : "-") +
+                    " • TEST warnings: " + HighflyLabTestHistoryV026.WarningCount + "\n\n" +
                     "CORE: Danza Gemela • Danza Fantasma • Desgarro Eclipse\n" +
                     "LAB: sin costo/CD • recovery garantizado • sólo skills conectadas\n" +
                     "SKILLS +/- minimiza • RESET MOV recupera locomoción\n\n" +
@@ -218,7 +220,10 @@ namespace Highfly.SkillLab
 
             if (cc != null) cc.enabled = true;
 
-            HighflyLabTestHistoryV026.Install(player);\n            HighflyLabMotionGuardV026.Install(player);\n\n            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
+            HighflyLabTestHistoryV026.Install(player);
+            HighflyLabMotionGuardV026.Install(player);
+
+            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
 
             if (player.GetComponent<HighflyAerialMobility>() == null)
