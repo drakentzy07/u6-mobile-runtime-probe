@@ -188,8 +188,6 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
           grep -q "HIGHFLY_SKILL_LAB_v0.15" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "10 SKILLS OBJETIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "HighflyCombatLabBrowserV011.Install" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyArteSacrificioV012" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "ARTE DEL SACRIFICIO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
           grep -q "Dragon Souls" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyArteSacrificioV012.cs
@@ -212,6 +210,15 @@ jobs:
           grep -q "AnimationPlayableOutput" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyParkourAnimationV010.cs
           grep -q "PrepareParkourAnimations" ci/HighflyCiWebGLBuilder.cs
           grep -q "CURATED DONOR PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "8 SKILLS CURADAS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "DRIFT DE FÓRMULA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "ARTE DEL SACRIFICIO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "JUMP SMASH" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "EMBER BOLT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "THUNDER MARK" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "FROST LANCE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "METEOR BREAK" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
+          grep -q "AEGIS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
           grep -q "HighflyCuratedGalleryV015.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "SubspaceHunter Fire" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyCuratedGalleryV015.cs
           grep -q "HighflyCuratedAegisState.TryAbsorb" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
@@ -219,10 +226,6 @@ jobs:
           if grep -q "HighflyCombatLabBrowserV011.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: old combat shortlist still installed"; exit 1; fi
           grep -q "HighflyMasterSkillTree" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyMasterSkillTree.cs
           grep -q "RequestHitStop" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyTimeDilationManager.cs
-          grep -q "GRAVEDAD CERO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "SEVEN SINKER" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "POSESIÓN BESTIAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "LIBERACIÓN DE MEMORIA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "TriggerGravityZero" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyApexPassSkillRuntime.cs
           grep -q "TriggerSevenSinker" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyApexPassSkillRuntime.cs
           grep -q "TriggerTemporalCut" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyApexPassSkillRuntime.cs
@@ -233,13 +236,6 @@ jobs:
           if grep -q "float old = Time.timeScale" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs; then exit 1; fi
           if grep -q "float oldScale = Time.timeScale" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs; then exit 1; fi
           grep -q "HIGHFLY SYSTEM • SKILL CODEX / LOADOUT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "DANZA FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "VÍNCULO UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "GRILLETE ABISAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "JUICIO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAdvancedSkillRuntime.cs
-          grep -q "DESGARRO ECLIPSE" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
-          grep -q "MURALLA DE RETORNO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
-          grep -q "ECO VORAZ" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyReferenceSkillRuntime.cs
           grep -q "TryReflect" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
           grep -q "CooldownRadial" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillCooldownUI.cs
           grep -q "SELECCIÓN RÁPIDA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
@@ -250,19 +246,12 @@ jobs:
           grep -q "DirectLabBoot" LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
           grep -q "SpawnShadowChain" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
           grep -q "SpawnBladeScar" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
-          grep -q "PREVIEW EN VIVO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
-          grep -q "EQUIPAR EN S" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLoadoutMenu.cs
           grep -q "FindBestTargetStrict" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "SpawnGrandMagicCircle" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAnimeFx.cs
           grep -q "DOBLE SALTO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           grep -q "WALL JUMP" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAerialMobility.cs
           grep -q "PARKOUR_WALL_LEFT" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "CheckPlayerBounds" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "DANZA GEMELA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
-          grep -q "PASO FANTASMA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
-          grep -q "GRILLETE UMBRÍO" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
-          grep -q "PACTO VITAL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
-          grep -q "LLAMADO DE LA SOMBRA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "SpawnShadowKnight" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
           grep -q "SpawnCrescentSlash" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
           grep -q "SpawnVitalSigil" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumFx.cs
