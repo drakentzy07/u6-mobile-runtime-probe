@@ -186,7 +186,7 @@ namespace Highfly.SkillLab
 
             Canvas canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 9920;
+            canvas.sortingOrder = 9940;
 
             CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -199,24 +199,24 @@ namespace Highfly.SkillLab
             br.anchorMin = br.anchorMax = new Vector2(0.57f, 1f);
             br.pivot = new Vector2(0.5f, 1f);
             br.anchoredPosition = new Vector2(0f, -20f);
-            br.sizeDelta = new Vector2(430f, 154f);
+            br.sizeDelta = new Vector2(520f, 154f);
             bar.GetComponent<Image>().color = new Color(0.010f, 0.016f, 0.028f, 0.94f);
             bar.GetComponent<Outline>().effectColor = new Color(0.18f, 0.72f, 1f, 0.92f);
 
-            Button lucid = Button(bar.transform, "A • LUCID");
+            Button lucid = Button(bar.transform, "PERSONAJE A • LUCID");
             RectTransform lr = lucid.GetComponent<RectTransform>();
             lr.anchorMin = lr.anchorMax = new Vector2(0f, 1f);
             lr.pivot = new Vector2(0f, 1f);
             lr.anchoredPosition = new Vector2(14f, -18f);
-            lr.sizeDelta = new Vector2(180f, 52f);
+            lr.sizeDelta = new Vector2(230f, 52f);
             lucid.onClick.AddListener(UseLucid);
 
-            Button kay = Button(bar.transform, "B • KAYKIT");
+            Button kay = Button(bar.transform, "PERSONAJE B • KAYKIT");
             RectTransform kr = kay.GetComponent<RectTransform>();
             kr.anchorMin = kr.anchorMax = new Vector2(0f, 1f);
             kr.pivot = new Vector2(0f, 1f);
-            kr.anchoredPosition = new Vector2(202f, -18f);
-            kr.sizeDelta = new Vector2(180f, 52f);
+            kr.anchoredPosition = new Vector2(254f, -18f);
+            kr.sizeDelta = new Vector2(230f, 52f);
             kay.onClick.AddListener(UseKayKit);
 
             _status = Label(bar.transform, "PERSONAJE: LUCID", 14, TextAnchor.UpperLeft);
@@ -224,7 +224,7 @@ namespace Highfly.SkillLab
             sr.anchorMin = sr.anchorMax = new Vector2(0f, 1f);
             sr.pivot = new Vector2(0f, 1f);
             sr.anchoredPosition = new Vector2(14f, -78f);
-            sr.sizeDelta = new Vector2(402f, 62f);
+            sr.sizeDelta = new Vector2(490f, 62f);
         }
 
         private void RefreshStatus(string label)
