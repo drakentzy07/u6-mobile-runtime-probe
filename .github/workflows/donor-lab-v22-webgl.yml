@@ -1,9 +1,9 @@
-name: Donor Lab 2.4 Final Visual Pass WebGL
+name: Donor Lab 2.5 Combat Link WebGL
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/donor-lab-v2.4-final-visual-pass]
+    branches: [highfly/donor-lab-v2.5-combat-link]
     paths:
       - "ci/**"
       - ".github/workflows/donor-lab-v22-webgl.yml"
@@ -14,12 +14,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: donor-lab-v024-final-visual-pass
+  group: donor-lab-v025-combat-link
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Donor Lab 2.4 Final Visual Pass WebGL
+    name: Build Donor Lab 2.5 Combat Link WebGL
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -65,7 +65,7 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
-      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.4 Final Visual Pass
+      - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.5 Combat Link
         shell: bash
         run: |
           set -euxo pipefail
@@ -210,10 +210,10 @@ jobs:
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/Sparks.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ParticlesLight.prefab
           test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/SkillVFX/ShadowKnight.prefab
-          grep -q "HIGHFLY_DONOR_LAB_v2.4_FINAL_VISUAL_PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "HIGHFLY_DONOR_LAB_v2.5_COMBAT_LINK" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "public static bool IsActive => true" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "DONOR LAB 2.4" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
-          grep -q "FINAL VISUAL PASS" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "DONOR LAB 2.5" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          grep -q "COMBAT LINK" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "HighflyDonorBrowserV022.Install(transform)" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
           grep -q "DRIFT DE FÓRMULA" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
           grep -q "JUMP SMASH" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedGalleryV016.cs
@@ -230,6 +230,14 @@ jobs:
           grep -q "AdaptiveHyperArmorHeavy" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
           grep -q "HighflyFinalFxV024.SpawnSlash" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs
           grep -q "HighflyFinalFxV024.CreateProjectile" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "HighflyLabPlayMeleePulse" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyLabPlayRollPulse" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflyLabForceLocomotion" LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          grep -q "HighflySkillLabMode.IsActive" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          grep -q "RESET MOV" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
+          grep -q "LUCID / KAYKIT • FINALISTAS A/B" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs
+          if grep -q "_player.HighflyMobileAttack();" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs; then echo "ERROR: premium skill still calls base attack path"; exit 1; fi
+          if grep -q "_player.HighflyMobileRoll();" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyPremiumSkillRuntime.cs; then echo "ERROR: phantom step still relies on base roll state"; exit 1; fi
           grep -q 'Resources.Load<GameObject>("HIGHFLY/CharacterCompare/KayKitSword1H")' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorWeaponRuntimeV021.cs
           if grep -q 'Add("HUNT DRONE"' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs; then echo "ERROR: proxy drone exposed in final browser"; exit 1; fi
           if grep -q 'Add("HUNTER CLAW"' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs; then echo "ERROR: proxy claw exposed in final browser"; exit 1; fi
@@ -310,7 +318,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v024-final-visual-pass-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v025-combat-link-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
             lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
@@ -344,11 +352,11 @@ jobs:
           touch "$OUT/.nojekyll"
 
           # donor lab v2.1 cache bust: force mobile browsers to request this exact WebGL payload.
-          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0240"#' "$OUT/index.html"
-          sed -i 's#/WebGL.data"#/WebGL.data?v=0240"#' "$OUT/index.html"
-          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0240"#' "$OUT/index.html"
-          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0240"#' "$OUT/index.html"
-          grep -q "v=0240" "$OUT/index.html"
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=0250"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=0250"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=0250"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=0250"#' "$OUT/index.html"
+          grep -q "v=0250" "$OUT/index.html"
 
           # Desktop quick-test mode: large 16:9 canvas inside the browser, no fullscreen API required.
           python3 - <<'PY'
