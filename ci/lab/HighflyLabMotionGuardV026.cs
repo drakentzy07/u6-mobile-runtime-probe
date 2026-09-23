@@ -63,6 +63,7 @@ namespace Highfly.SkillLab
         {
             _skillLockUntil = 0f;
             _skillOwner = "-";
+            HighflyCombatFacingV027.Instance?.ResetVisualFacing(reason);
             if (_player != null)
                 _player.HighflyLabForceLocomotion();
             HighflyLabTestHistoryV026.Log("RELEASE • " + reason);
@@ -73,7 +74,10 @@ namespace Highfly.SkillLab
             if (_player == null) return;
 
             if (Time.unscaledTime >= _skillLockUntil && _skillOwner != "-")
+            {
                 _skillOwner = "-";
+                HighflyCombatFacingV027.Instance?.ResetVisualFacing("skill lease expired");
+            }
 
             if (Time.unscaledTime < _nextSanityCheck) return;
             _nextSanityCheck = Time.unscaledTime + 0.10f;
