@@ -191,7 +191,7 @@ namespace Highfly.SkillLab
             Color core = new Color(0.52f, 0.10f, 0.92f, 1f);
             Color edge = new Color(0.10f, 0.72f, 1f, 1f);
 
-            _player.HighflyMobileAttack();
+            _player.HighflyLabPlayMeleePulse();
             HighflyPremiumFx.AttachWeaponTrail(
                 _player,
                 Color.white,
