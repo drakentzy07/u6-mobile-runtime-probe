@@ -21,6 +21,8 @@ namespace Highfly.SkillLab
         private Animator _kayAnimator;
         private Text _status;
         private bool _usingKayKit;
+        private Vector3 _kayStableScale = Vector3.one;
+        private Vector3 _kayStableLocalPosition = Vector3.zero;
 
         public static HighflyCharacterCompareV022 Install(PlayerController player, Transform uiParent)
         {
@@ -63,6 +65,7 @@ namespace Highfly.SkillLab
         {
             if (_player == null || _lucidAnimator == null) return;
 
+            HighflyLabActionGuardV026.Instance?.ForceRecover("switch to Lucid");
             _player.HighflyLabForceLocomotion();
             HighflyParkourAnimationV010.Instance?.StopNow();
             _usingKayKit = false;
@@ -86,6 +89,7 @@ namespace Highfly.SkillLab
         {
             if (_player == null) return;
 
+            HighflyLabActionGuardV026.Instance?.ForceRecover("switch to KayKit");
             _player.HighflyLabForceLocomotion();
             HighflyParkourAnimationV010.Instance?.StopNow();
             EnsureKayKit();
@@ -112,8 +116,23 @@ namespace Highfly.SkillLab
             _player.animator = _kayAnimator;
             HighflyParkourAnimationV010.BindTo(_kayAnimator);
 
+            RestoreKayKitTransform();
             RefreshStatus("KAYKIT CANDIDATO B");
             HighflySkillLabMetrics.RecordAction("CHARACTER A/B • KAYKIT CANDIDATO B", 0);
+            HighflyLabTelemetryV026.Record("CHARACTER", "KayKit activo scale=" + _kayStableScale.x.ToString("0.000"));
+        }
+
+        private void LateUpdate()
+        {
+            if (!_usingKayKit || _kayRoot == null) return;
+
+            if (Vector3.Distance(_kayRoot.transform.localScale, _kayStableScale) > 0.001f)
+            {
+                HighflyLabTelemetryV026.Record(
+                    "FIX",
+                    "KayKit scale drift " + _kayRoot.transform.localScale + " -> " + _kayStableScale);
+                _kayRoot.transform.localScale = _kayStableScale;
+            }
         }
 
         private void EnsureKayKit()
@@ -158,8 +177,88 @@ namespace Highfly.SkillLab
             _kayAnimator.runtimeAnimatorController = _sharedController;
             _kayAnimator.applyRootMotion = false;
 
+            NormalizeKayKitScale();
             AttachKayKitSword();
             _kayRoot.SetActive(false);
+        }
+
+        private void NormalizeKayKitScale()
+        {
+            if (_kayRoot == null || _player == null) return;
+
+            _kayRoot.transform.localPosition = Vector3.zero;
+            _kayRoot.transform.localRotation = Quaternion.identity;
+            _kayRoot.transform.localScale = Vector3.one;
+
+            float kayHeight = RendererHeight(_kayRoot.GetComponentsInChildren<Renderer>(true));
+            float lucidHeight = RendererHeight(_lucidRenderers);
+
+            float targetHeight =
+                lucidHeight > 0.25f
+                    ? lucidHeight * 0.88f
+                    : 1.62f;
+
+            float factor =
+                kayHeight > 0.05f
+                    ? targetHeight / kayHeight
+                    : 0.82f;
+
+            factor = Mathf.Clamp(factor, 0.45f, 0.95f);
+            _kayRoot.transform.localScale = Vector3.one * factor;
+
+            Renderer[] rr = _kayRoot.GetComponentsInChildren<Renderer>(true);
+            if (TryBounds(rr, out Bounds bounds))
+            {
+                float deltaY = _player.transform.position.y - bounds.min.y + 0.015f;
+                _kayRoot.transform.position += Vector3.up * deltaY;
+            }
+
+            _kayStableScale = _kayRoot.transform.localScale;
+            _kayStableLocalPosition = _kayRoot.transform.localPosition;
+
+            HighflyLabTelemetryV026.Record(
+                "KAYKIT",
+                "normalizado target=" + targetHeight.ToString("0.00") +
+                "m source=" + kayHeight.ToString("0.00") +
+                "m factor=" + factor.ToString("0.000"));
+        }
+
+        private void RestoreKayKitTransform()
+        {
+            if (_kayRoot == null) return;
+            _kayRoot.transform.localScale = _kayStableScale;
+            _kayRoot.transform.localPosition = _kayStableLocalPosition;
+        }
+
+        private static float RendererHeight(Renderer[] renderers)
+        {
+            return TryBounds(renderers, out Bounds b) ? b.size.y : 0f;
+        }
+
+        private static bool TryBounds(Renderer[] renderers, out Bounds bounds)
+        {
+            bounds = new Bounds();
+            bool found = false;
+
+            if (renderers == null) return false;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer r = renderers[i];
+                if (r == null) continue;
+
+                if (!found)
+                {
+                    bounds = r.bounds;
+                    found = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(r.bounds);
+                }
+            }
+
+            return found;
         }
 
         private void AttachKayKitSword()
