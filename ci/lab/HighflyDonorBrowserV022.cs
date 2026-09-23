@@ -9,7 +9,6 @@ namespace Highfly.SkillLab
     {
         private RectTransform _content;
         private Text _info;
-        private Text _status;
         private GameObject _panel;
         private Text _toggleText;
         private readonly List<GameObject> _rows = new List<GameObject>();
@@ -19,7 +18,7 @@ namespace Highfly.SkillLab
             var existing = Object.FindFirstObjectByType<HighflyDonorBrowserV022>();
             if (existing != null) return existing;
 
-            var go = new GameObject("HIGHFLY_DONOR_BROWSER_v023_SKILL_VAULT");
+            var go = new GameObject("HIGHFLY_DONOR_BROWSER_v024_FINAL_VISUAL_PASS");
             go.transform.SetParent(parent, false);
             return go.AddComponent<HighflyDonorBrowserV022>();
         }
@@ -28,7 +27,7 @@ namespace Highfly.SkillLab
 
         private void Build()
         {
-            var cg = new GameObject("SkillVaultCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+            var cg = new GameObject("FinalSkillVaultCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             cg.transform.SetParent(transform, false);
 
             var canvas = cg.GetComponent<Canvas>();
@@ -40,13 +39,14 @@ namespace Highfly.SkillLab
             scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.35f;
 
-            _panel = new GameObject("SKILL_VAULT_PANEL", typeof(RectTransform), typeof(Image), typeof(Outline));
+            _panel = new GameObject("FINAL_SKILL_VAULT_PANEL", typeof(RectTransform), typeof(Image), typeof(Outline));
             _panel.transform.SetParent(cg.transform, false);
 
             var pr = _panel.GetComponent<RectTransform>();
-            pr.anchorMin = new Vector2(0f, 0f);
-            pr.anchorMax = new Vector2(0.38f, 1f);
-            pr.offsetMin = new Vector2(10f, 12f);
+            // Leave the lower-left 28% free so the joystick is never covered.
+            pr.anchorMin = new Vector2(0f, 0.28f);
+            pr.anchorMax = new Vector2(0.34f, 1f);
+            pr.offsetMin = new Vector2(10f, 8f);
             pr.offsetMax = new Vector2(-8f, -12f);
 
             _panel.GetComponent<Image>().color = new Color(0.008f, 0.014f, 0.026f, 0.965f);
@@ -54,29 +54,30 @@ namespace Highfly.SkillLab
 
             BuildPersistentToggle(cg.transform);
 
-            var title = Label(_panel.transform,
-                "HIGHFLY • DONOR LAB 2.3 • SKILL VAULT",
-                24,
+            var title = Label(
+                _panel.transform,
+                "HIGHFLY • LAB 2.4 • FINAL VISUAL PASS",
+                22,
                 TextAnchor.UpperLeft,
                 Color.white);
-            SetTop(title.rectTransform, 18f, 14f, 18f, 44f);
+            SetTop(title.rectTransform, 16f, 12f, 14f, 40f);
 
-            _status = Label(_panel.transform,
-                "33 ENTRADAS TESTEABLES • SCROLL • TOCÁ = PREVIEW",
-                14,
+            var status = Label(
+                _panel.transform,
+                "FINAL / NEAR-FINAL • NO PROXY • SCROLL • TOCÁ = PREVIEW",
+                13,
                 TextAnchor.MiddleLeft,
                 new Color(0.35f, 0.84f, 1f, 1f));
-            SetTop(_status.rectTransform, 18f, 57f, 18f, 32f);
+            SetTop(status.rectTransform, 16f, 52f, 14f, 30f);
 
-            BuildCharacterSwitch(_panel.transform);
             BuildScroll(_panel.transform);
 
             _info = Label(
                 _panel.transform,
-                "VAULT 2.3: mecánicas únicas, sin inflar variantes.\n" +
-                "A/B comparte PlayerController + AnimatorController.\n" +
-                "Project-X = referencia mecánica, implementación HIGHFLY independiente.",
-                13,
+                "LUCID = personaje principal. KAYKIT = compatibilidad A/B.\n" +
+                "Catálogo principal: sólo skills con animación + VFX asset-backed + hit real.\n" +
+                "WIP ocultas: Hunter Claw, Hunt Drone y Aegis Form.",
+                12,
                 TextAnchor.UpperLeft,
                 new Color(0.80f, 0.87f, 0.94f, 1f));
 
@@ -84,8 +85,8 @@ namespace Highfly.SkillLab
             ir.anchorMin = new Vector2(0f, 0f);
             ir.anchorMax = new Vector2(1f, 0f);
             ir.pivot = new Vector2(0.5f, 0f);
-            ir.offsetMin = new Vector2(18f, 14f);
-            ir.offsetMax = new Vector2(-18f, 132f);
+            ir.offsetMin = new Vector2(16f, 10f);
+            ir.offsetMax = new Vector2(-14f, 105f);
 
             Populate();
         }
@@ -94,16 +95,17 @@ namespace Highfly.SkillLab
         {
             var b = Button(canvasParent, "SKILLS -");
             b.gameObject.name = "SkillVault_Minimize";
+
             var r = b.GetComponent<RectTransform>();
-            r.anchorMin = r.anchorMax = new Vector2(0.38f, 1f);
+            r.anchorMin = r.anchorMax = new Vector2(0.34f, 1f);
             r.pivot = new Vector2(1f, 1f);
-            r.anchoredPosition = new Vector2(-18f, -18f);
-            r.sizeDelta = new Vector2(132f, 46f);
+            r.anchoredPosition = new Vector2(-14f, -16f);
+            r.sizeDelta = new Vector2(128f, 44f);
 
             _toggleText = b.GetComponentInChildren<Text>();
             if (_toggleText != null)
             {
-                _toggleText.fontSize = 14;
+                _toggleText.fontSize = 13;
                 _toggleText.alignment = TextAnchor.MiddleCenter;
             }
 
@@ -119,38 +121,6 @@ namespace Highfly.SkillLab
                 _toggleText.text = next ? "SKILLS -" : "SKILLS +";
         }
 
-        private void BuildCharacterSwitch(Transform parent)
-        {
-            var bar = new GameObject("CharacterSwitch", typeof(RectTransform), typeof(Image), typeof(Outline));
-            bar.transform.SetParent(parent, false);
-
-            var br = bar.GetComponent<RectTransform>();
-            br.anchorMin = new Vector2(0f, 1f);
-            br.anchorMax = new Vector2(1f, 1f);
-            br.pivot = new Vector2(0.5f, 1f);
-            br.offsetMin = new Vector2(18f, -152f);
-            br.offsetMax = new Vector2(-18f, -96f);
-
-            bar.GetComponent<Image>().color = new Color(0.018f, 0.035f, 0.060f, 0.98f);
-            bar.GetComponent<Outline>().effectColor = new Color(0.16f, 0.70f, 1f, 0.95f);
-
-            var a = Button(bar.transform, "PERSONAJE A • LUCID");
-            var ar = a.GetComponent<RectTransform>();
-            ar.anchorMin = new Vector2(0f, 0f);
-            ar.anchorMax = new Vector2(0.49f, 1f);
-            ar.offsetMin = new Vector2(4f, 4f);
-            ar.offsetMax = new Vector2(-3f, -4f);
-            a.onClick.AddListener(() => HighflyCharacterCompareV022.Instance?.UseLucid());
-
-            var b = Button(bar.transform, "PERSONAJE B • KAYKIT");
-            var rr = b.GetComponent<RectTransform>();
-            rr.anchorMin = new Vector2(0.51f, 0f);
-            rr.anchorMax = new Vector2(1f, 1f);
-            rr.offsetMin = new Vector2(3f, 4f);
-            rr.offsetMax = new Vector2(-4f, -4f);
-            b.onClick.AddListener(() => HighflyCharacterCompareV022.Instance?.UseKayKit());
-        }
-
         private void BuildScroll(Transform parent)
         {
             var viewport = new GameObject(
@@ -164,10 +134,10 @@ namespace Highfly.SkillLab
             var vr = viewport.GetComponent<RectTransform>();
             vr.anchorMin = new Vector2(0f, 0f);
             vr.anchorMax = new Vector2(1f, 1f);
-            vr.offsetMin = new Vector2(16f, 142f);
-            vr.offsetMax = new Vector2(-16f, -164f);
+            vr.offsetMin = new Vector2(14f, 112f);
+            vr.offsetMax = new Vector2(-14f, -92f);
 
-            viewport.GetComponent<Image>().color = new Color(0.004f, 0.010f, 0.020f, 0.82f);
+            viewport.GetComponent<Image>().color = new Color(0.004f, 0.010f, 0.020f, 0.84f);
 
             var content = new GameObject(
                 "Content",
@@ -179,12 +149,14 @@ namespace Highfly.SkillLab
             _content = content.GetComponent<RectTransform>();
             _content.anchorMin = new Vector2(0f, 1f);
             _content.anchorMax = new Vector2(1f, 1f);
-            _content.pivot = new Vector2(0.5f, 1f);
+            _content.pivot = new Vector2(0f, 1f);
             _content.anchoredPosition = Vector2.zero;
+            _content.sizeDelta = Vector2.zero;
 
             var layout = content.GetComponent<VerticalLayoutGroup>();
-            layout.padding = new RectOffset(7, 7, 8, 8);
-            layout.spacing = 7f;
+            layout.padding = new RectOffset(6, 6, 6, 6);
+            layout.spacing = 6f;
+            layout.childAlignment = TextAnchor.UpperLeft;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
@@ -199,93 +171,106 @@ namespace Highfly.SkillLab
             scroll.vertical = true;
             scroll.inertia = true;
             scroll.decelerationRate = 0.12f;
-            scroll.scrollSensitivity = 62f;
-            scroll.movementType = ScrollRect.MovementType.Elastic;
+            scroll.scrollSensitivity = 68f;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_content);
         }
 
         private void Populate()
         {
-            Section("KEEP / CONTROL");
+            Section("HIGHFLY CORE • FINAL / NEAR-FINAL");
+            Add("DANZA GEMELA", "S1 • combo 3 etapas • cortes asset-backed",
+                () => Premium(HighflyPremiumSkillId.TwinDance));
+            Add("PASO FANTASMA", "blink / reposición • core HIGHFLY",
+                () => Premium(HighflyPremiumSkillId.PhantomStep));
+            Add("DANZA FANTASMA", "micro-blinks + multicorte",
+                () => Premium(HighflyPremiumSkillId.PhantomTwinDance));
+            Add("DESGARRO ECLIPSE", "siete cortes + confirmación final",
+                () => Premium(HighflyPremiumSkillId.EclipseRend));
+            Add("GRILLETE ABISAL", "control / convergencia",
+                () => Premium(HighflyPremiumSkillId.AbyssalShackle));
+
+            Section("CONTROL");
             Add("DRIFT DE FÓRMULA", "KEEP • HIGHFLY",
                 () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(HighflyAcceptedSkillV016.Drift));
             Add("JUMP SMASH", "KEEP • HIGHFLY",
                 () => HighflyAcceptedSkillRuntimeV016.Instance?.Preview(HighflyAcceptedSkillV016.JumpSmash));
 
             Section("SIGIL COMBAT • MIT");
-            Add("MELEE TRACE", "VERIFIED • melee trace + poise",
+            Add("MELEE TRACE", "melee trace + poise",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilMelee));
-            Add("DASH ATTACK", "RAW VERIFIED • lunge + trace",
+            Add("DASH ATTACK", "lunge + trace",
                 () => HighflyDonorWeaponRuntimeV021.Instance?.Preview(HighflyDonorWeaponSkillV021.SigilDashAttack));
-            Add("RANGED SHOT", "VERIFIED • projectile",
+            Add("RANGED SHOT", "projectile VFX asset-backed",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilRanged));
-            Add("FLASH", "VERIFIED • blink 5m + obstacle check",
+            Add("FLASH", "blink + salida/entrada con partículas",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilFlash));
-            Add("CHARGED FIREBALL", "VERIFIED • charge + damage + stun",
+            Add("CHARGED FIREBALL", "charge + projectile + stun",
                 () => Expanded(HighflyDonorExpandedSkillV022.SigilFireball));
 
             Section("DRAGON SOULS • MIT");
-            Add("SWORD THROW / EMBED / RECALL",
-                "VERIFIED • 3-state weapon mechanic",
+            Add("SWORD THROW / EMBED / RECALL", "espada CC0 real + trail",
                 () => HighflyDonorWeaponRuntimeV021.Instance?.Preview(
                     HighflyDonorWeaponSkillV021.DragonSwordThrowRecall));
 
             Section("PROJECT-X • MECHANIC STUDY");
-            Add("VORTEX EDGE", "BladeStorm ref • spin AOE / repeated ticks",
+            Add("VORTEX EDGE", "spin AOE + slash/field VFX",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxVortexEdge));
-            Add("VEIL STRIKE", "CloakStrike ref • vanish + reposition + strike",
+            Add("VEIL STRIKE", "cloak + reposition + strike",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxVeilStrike));
-            Add("BURST ARROW", "ExplosiveShot ref • projectile + explosion AOE",
+            Add("BURST ARROW", "flecha CC0 + explosión AOE",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxBurstArrow));
-            Add("HUNTER CLAW", "GrapplingClaw ref • grapple + impact + stun",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxHunterClaw));
-            Add("TITAN SWING", "HomerunSwing ref • charge + knockback + stun",
+            Add("TITAN SWING", "heavy + knockback + stun",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxTitanSwing));
-            Add("VITAL DRAIN", "LifeDrain ref • DOT pulses + self heal",
+            Add("VITAL DRAIN", "DOT pulses + self heal",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxVitalDrain));
-            Add("OVERCHARGE DOMAIN", "OverchargeField ref • temporary movement buff",
+            Add("OVERCHARGE DOMAIN", "domain + movement buff",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxOverchargeDomain));
-            Add("PLASMA GUARD", "PlasmaShield ref • real damage shield",
+            Add("PLASMA GUARD", "shield real + aura particle",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxPlasmaGuard));
-            Add("BARRAGE", "RapidFire ref • 5-shot burst",
+            Add("BARRAGE", "5-shot burst VFX",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxBarrage));
-            Add("HUNT DRONE", "SentryDrone ref • seek + AOE explosion",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxHuntDrone));
-            Add("RAIL SHOT", "SniperShot ref • charge + high-speed hit",
+            Add("RAIL SHOT", "charge + high-speed hit",
                 () => Expanded(HighflyDonorExpandedSkillV022.PxRailShot));
-            Add("AEGIS FORM", "AegisProtocol ref • shield + hyper armor + speed tradeoff",
-                () => Expanded(HighflyDonorExpandedSkillV022.PxAegisForm));
 
             Section("ASHWALKER • MIT");
-            Add("FORCE PUSH", "physics/control donor • push target",
+            Add("FORCE PUSH", "push físico + impact VFX",
                 () => Expanded(HighflyDonorExpandedSkillV022.AshForcePush));
-            Add("FORCE PULL", "physics/control donor • pull target",
+            Add("FORCE PULL", "pull físico + impact VFX",
                 () => Expanded(HighflyDonorExpandedSkillV022.AshForcePull));
-            Add("HASTE DOMAIN", "time-field donor • movement x1.5",
+            Add("HASTE DOMAIN", "campo temporal + movement x1.5",
                 () => Expanded(HighflyDonorExpandedSkillV022.AshHasteDomain));
-            Add("SLOW DOMAIN", "time-field donor • enemy animation x0.35",
+            Add("SLOW DOMAIN", "campo temporal + enemy x0.35",
                 () => Expanded(HighflyDonorExpandedSkillV022.AshSlowDomain));
 
-            Section("SUBSPACEHUNTER • MIT CODE / RAW ART EXCLUDED");
-            Add("EMBER BOLT", "fire projectile mechanic",
+            Section("SUBSPACEHUNTER • MIT CODE / ART REEMPLAZADO");
+            Add("EMBER BOLT", "fire projectile + partículas",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubEmberBolt));
-            Add("THUNDER MARK", "electric instant strike + short stun",
+            Add("THUNDER MARK", "electric strike + stun",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubThunderMark));
             Add("FROST LANCE", "ice projectile + stun",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubFrostLance));
-            Add("METEOR BREAK", "falling meteor + AOE impact",
+            Add("METEOR BREAK", "meteor + AOE impact",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubMeteorBreak));
-            Add("AEGIS", "shield mechanic • 85 HP / 5s",
+            Add("AEGIS", "shield + aura particle",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubAegis));
-            Add("RESTORE", "heal mechanic • +35 EGO",
+            Add("RESTORE", "heal + particle burst",
                 () => Expanded(HighflyDonorExpandedSkillV022.SubHeal));
 
             Section("ADAPTIVE BOSS ARENA • MIT SYSTEM STUDY");
-            Add("FOCUS SPECIAL", "full-meter empowered special preview",
+            Add("FOCUS SPECIAL", "empowered special",
                 () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveFocusSpecial));
-            Add("EXECUTION", "posture-break execution preview",
+            Add("EXECUTION", "posture-break execution",
                 () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveExecution));
-            Add("HYPER ARMOR HEAVY", "real hyper-armor window + heavy strike",
+            Add("HYPER ARMOR HEAVY", "hyper-armor + heavy strike",
                 () => Expanded(HighflyDonorExpandedSkillV022.AdaptiveHyperArmorHeavy));
+        }
+
+        private static void Premium(HighflyPremiumSkillId skill)
+        {
+            HighflyPremiumSkillRuntime.Instance?.ForcePreview(skill);
         }
 
         private static void Expanded(HighflyDonorExpandedSkillV022 skill)
@@ -295,24 +280,22 @@ namespace Highfly.SkillLab
 
         private void Section(string text)
         {
-            var t = Label(_content, text, 14, TextAnchor.MiddleLeft, new Color(0.47f, 0.82f, 1f, 1f));
-            var e = t.gameObject.AddComponent<LayoutElement>();
-            e.preferredHeight = 36f;
+            var t = Label(_content, text, 13, TextAnchor.MiddleLeft, new Color(0.47f, 0.82f, 1f, 1f));
+            t.gameObject.AddComponent<LayoutElement>().preferredHeight = 32f;
             _rows.Add(t.gameObject);
         }
 
         private void Add(string name, string note, UnityEngine.Events.UnityAction action)
         {
             var b = Button(_content, "●  " + name + "\n    " + note);
-            var e = b.gameObject.AddComponent<LayoutElement>();
-            e.preferredHeight = 72f;
+            b.gameObject.AddComponent<LayoutElement>().preferredHeight = 62f;
 
             b.onClick.AddListener(() =>
             {
                 if (_info != null)
                     _info.text =
                         name + "\n" + note +
-                        "\n\nA/B: cambiá LUCID / KAYKIT y repetí la misma prueba.";
+                        "\n\nLUCID = principal. Repetí en KAYKIT sólo para compatibilidad.";
                 action();
             });
 
@@ -338,15 +321,15 @@ namespace Highfly.SkillLab
             var t = Label(
                 go.transform,
                 value,
-                14,
+                13,
                 TextAnchor.MiddleLeft,
                 new Color(0.93f, 0.97f, 1f, 1f));
 
             var tr = t.rectTransform;
             tr.anchorMin = Vector2.zero;
             tr.anchorMax = Vector2.one;
-            tr.offsetMin = new Vector2(13f, 5f);
-            tr.offsetMax = new Vector2(-10f, -5f);
+            tr.offsetMin = new Vector2(11f, 4f);
+            tr.offsetMax = new Vector2(-9f, -4f);
 
             return go.GetComponent<Button>();
         }
