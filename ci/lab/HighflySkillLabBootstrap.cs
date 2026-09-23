@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.14.1");
+            var root = new GameObject("HIGHFLY_SKILL_LAB_v0.15");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -184,15 +184,14 @@ namespace Highfly.SkillLab
                     : 0f;
 
                 _metricsText.text =
-                    "HIGHFLY • SKILL LAB v0.14.1 • ALL SKILLS GALLERY\n" +
-                    "ARTE DEL SACRIFICIO • THROW/EMBED/DETONATE/RECALL • 3 MONSTRUOS\n" +
+                    "HIGHFLY • SKILL LAB v0.15 • CURATED DONOR PASS\n" +
+                    "8 SKILLS CURADAS • SIN PREVIEWS DE RELLENO • 3 MONSTRUOS\n" +
                     "PC: WASD + arrastre derecho + R recentrar\n" +
                     "SPACE salto/doble/wall | dodge/parry/lock siguen disponibles\n" +
                     "Movilidad: " + (HighflyAerialMobility.Instance != null ? HighflyAerialMobility.Instance.DebugState : "-") + "\n\n" +
-                    "SKILLS: botón minimizable • TARGET: 1 / TARGETS: 3\n" +
-                    "10 SKILLS OBJETIVO • ARTE DEL SACRIFICIO = VERTICAL SLICE ACTIVO\n" +
-                    "ALL SKILLS GALLERY • 28 previews HIGHFLY + donor harvest\n" +
-                    "Arte = patrón vertical-slice • mecánica + arma + VFX + impacto + retorno\n\n" +
+                    "CURATED: Drift • Arte • JumpSmash • Fire • Thunder • Ice • Meteor • Aegis\n" +
+                    "SubspaceHunter = mecánica donor reescrita sobre HIGHFLY CORE\n" +
+                    "NO: Danza/Cadena/Impacto/geométricos/repetidos hasta rework premium\n\n" +
                     "Acción: " + HighflySkillLabMetrics.LastAction + "\n" +
                     "Combo: " + HighflySkillLabMetrics.ComboStage + "/3\n" +
                     "Último daño: " + HighflySkillLabMetrics.LastDamage.ToString("0") + "\n" +
@@ -222,15 +221,6 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
                 player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
 
-            if (player.GetComponent<HighflyAdvancedSkillRuntime>() == null)
-                player.gameObject.AddComponent<HighflyAdvancedSkillRuntime>();
-
-            if (player.GetComponent<HighflyReferenceSkillRuntime>() == null)
-                player.gameObject.AddComponent<HighflyReferenceSkillRuntime>();
-
-            if (player.GetComponent<HighflyApexPassSkillRuntime>() == null)
-                player.gameObject.AddComponent<HighflyApexPassSkillRuntime>();
-
             if (player.GetComponent<HighflyAerialMobility>() == null)
                 player.gameObject.AddComponent<HighflyAerialMobility>();
 
@@ -240,19 +230,18 @@ namespace Highfly.SkillLab
             if (player.GetComponent<HighflyArteSacrificioV012>() == null)
                 player.gameObject.AddComponent<HighflyArteSacrificioV012>();
 
+            if (player.GetComponent<HighflyCuratedDonorRuntimeV015>() == null)
+                player.gameObject.AddComponent<HighflyCuratedDonorRuntimeV015>();
+
             Animator hunterAnimator = player.animator;
             if (hunterAnimator != null &&
                 hunterAnimator.GetComponent<HighflyParkourAnimationV010>() == null)
                 hunterAnimator.gameObject.AddComponent<HighflyParkourAnimationV010>();
 
-            if (player.GetComponent<HighflyLabDesktopControls>() == null)
-                player.gameObject.AddComponent<HighflyLabDesktopControls>();
-
             HighflyLabTargetsV011.BuildThreeTargetRange(LabY);
 
             CreateMetricsHud();
-            HighflyCombatLabBrowserV011.Install(transform);
-            HighflySkillBrowser.Install(transform);
+            HighflyCuratedGalleryV015.Install(transform);
 
             Camera cam = Camera.main;
             if (cam != null)
