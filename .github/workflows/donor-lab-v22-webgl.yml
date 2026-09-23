@@ -205,6 +205,13 @@ jobs:
           grep -q "DragonThrowEventRealSeconds = 0.6666667f / 1.4f" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorWeaponRuntimeV021.cs
           grep -q "DragonRecallFirstLegSpeed = 40f" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorWeaponRuntimeV021.cs
           grep -q "SWORD THROW / EMBED / RECALL" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
+          grep -q "SKILLS +" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
+          grep -q "PERSONAJE A • LUCID" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorBrowserV022.cs
+          grep -q "PxVortexEdge" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "AshForcePull" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "SubMeteorBreak" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "AdaptiveHyperArmorHeavy" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyDonorExpandedRuntimeV022.cs
+          grep -q "HighflyDonorDefenseState.TryModifyIncoming" LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
           grep -q 'ResetTrigger("doAttack")' LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflyAcceptedSkillRuntimeV016.cs
           if grep -q "HighflyCuratedDonorRuntimeV015" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: rejected donor runtime still installed"; exit 1; fi
           if grep -q "HighflyArteSacrificioV012" LucidHost/3D_game/Assets/HIGHFLY/Lab/HighflySkillLabBootstrap.cs; then echo "ERROR: rejected Arte still installed"; exit 1; fi
