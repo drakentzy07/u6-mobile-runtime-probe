@@ -95,9 +95,10 @@ jobs:
           test -f build/WebGL/.nojekyll
           test -d build/WebGL/Build
 
-          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
-          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.js' -size +0c -print -quit)"
-          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.data' -size +0c -print -quit)"
+          test -s build/WebGL/Build/WebGL.wasm
+          test -s build/WebGL/Build/WebGL.framework.js
+          test -s build/WebGL/Build/WebGL.data
+          test -s build/WebGL/Build/WebGL.loader.js
 
           if find build/WebGL/Build -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) | grep -q .; then
             echo "ERROR: compressed Unity payload detected; GitHub Pages would serve it without required Content-Encoding"
@@ -105,8 +106,11 @@ jobs:
             exit 1
           fi
 
-          if grep -R -E '\.gz|\.br' build/WebGL/index.html build/WebGL/Build/*.loader.js; then
-            echo "ERROR: loader still references compressed payloads"
+          # Only inspect the WebGL template/config for compressed asset URLs.
+          # Unity's generic loader always contains diagnostic strings mentioning .gz/.br,
+          # even when compression is disabled, so grepping the loader itself is a false positive.
+          if grep -E '\.(gz|br)(["'"'"'?#]|$)' build/WebGL/index.html; then
+            echo "ERROR: index.html references a compressed payload"
             exit 1
           fi
 
