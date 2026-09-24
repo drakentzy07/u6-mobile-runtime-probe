@@ -720,13 +720,6 @@ if (_controlsRoot != null)
 
             go.GetComponent<HighflyActionButton>().Configure(action);
 
-            int skillSlot = SkillSlotFor(action);
-            if (skillSlot >= 0)
-            {
-                var cooldown =
-cooldown.Configure(skillSlot, _discSprite);
-            }
-
             var text = CreateText(
                 safeName + "_Text",
                 go.transform,
