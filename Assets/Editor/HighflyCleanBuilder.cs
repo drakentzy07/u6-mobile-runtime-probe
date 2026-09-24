@@ -31,6 +31,11 @@ namespace Highfly.Clean.Editor
             PlayerSettings.defaultScreenHeight = 1080;
             PlayerSettings.runInBackground = true;
 
+            // GitHub Pages cannot provide custom Content-Encoding headers for Unity's
+            // pre-compressed .gz/.br payloads. Keep this public test build uncompressed.
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+            PlayerSettings.WebGL.decompressionFallback = false;
+
             EditorUserBuildSettings.SwitchActiveBuildTarget(
                 BuildTargetGroup.WebGL,
                 BuildTarget.WebGL);
@@ -61,7 +66,7 @@ namespace Highfly.Clean.Editor
             Debug.Log(
                 "[CLEAN-RUN0A] BUILD SUCCESS • size=" +
                 report.summary.totalSize +
-                " bytes • nojekyll=OK");
+                " bytes • compression=DISABLED • nojekyll=OK");
         }
     }
 }

@@ -87,16 +87,31 @@ jobs:
           buildMethod: Highfly.Clean.Editor.HighflyCleanBuilder.Build
           allowDirtyBuild: true
 
-      - name: Verify clean WebGL
+      - name: Verify clean WebGL and Pages-safe payload
         shell: bash
         run: |
           set -euxo pipefail
           test -f build/WebGL/index.html
           test -f build/WebGL/.nojekyll
           test -d build/WebGL/Build
-          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
-          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
+
+          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
+          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.js' -size +0c -print -quit)"
+          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.data' -size +0c -print -quit)"
+
+          if find build/WebGL/Build -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) | grep -q .; then
+            echo "ERROR: compressed Unity payload detected; GitHub Pages would serve it without required Content-Encoding"
+            find build/WebGL/Build -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print
+            exit 1
+          fi
+
+          if grep -R -E '\.gz|\.br' build/WebGL/index.html build/WebGL/Build/*.loader.js; then
+            echo "ERROR: loader still references compressed payloads"
+            exit 1
+          fi
+
           du -sh build/WebGL
+          echo "PAGES_SAFE_WEBGL=1"
           echo "CLEAN_WEBGL_VERIFY_OK=1"
 
       - name: Upload clean Run0A artifact
