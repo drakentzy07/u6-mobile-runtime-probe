@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
 using UnityEngine.UI;
+using Highfly.Mobile;
 
 namespace Highfly.SkillLab
 {
