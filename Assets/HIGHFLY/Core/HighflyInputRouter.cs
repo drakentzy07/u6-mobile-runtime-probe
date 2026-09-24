@@ -1,83 +1,91 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Controls;
 
 namespace Highfly.Clean
 {
     public sealed class HighflyInputRouter : MonoBehaviour
     {
         public static HighflyInputRouter Instance { get; private set; }
-        public Vector2 Move { get; private set; }
-        public Vector2 LookDelta { get; private set; }
+
+        private Vector2 _mobileMove;
+        private Vector2 _mobileLookDelta;
+        private Vector2 _desktopLookDelta;
         private bool _attackQueued;
         private bool _jumpQueued;
 
-        private void Awake() => Instance = this;
+        public Vector2 Move { get; private set; }
+
+        private void Awake()
+        {
+            Instance = this;
+        }
 
         private void Update()
         {
-            Move = Vector2.zero;
-            LookDelta = Vector2.zero;
+            Move = _mobileMove;
+            _desktopLookDelta = Vector2.zero;
             ReadDesktop();
-            ReadTouch();
         }
 
         private void ReadDesktop()
         {
             if (Keyboard.current != null)
             {
-                Vector2 m = Vector2.zero;
-                if (Keyboard.current.wKey.isPressed) m.y += 1f;
-                if (Keyboard.current.sKey.isPressed) m.y -= 1f;
-                if (Keyboard.current.dKey.isPressed) m.x += 1f;
-                if (Keyboard.current.aKey.isPressed) m.x -= 1f;
-                Move = Vector2.ClampMagnitude(m, 1f);
-                if (Keyboard.current.spaceKey.wasPressedThisFrame) _jumpQueued = true;
-                if (Keyboard.current.fKey.wasPressedThisFrame) _attackQueued = true;
+                Vector2 keyboardMove = Vector2.zero;
+
+                if (Keyboard.current.wKey.isPressed)
+                    keyboardMove.y += 1f;
+
+                if (Keyboard.current.sKey.isPressed)
+                    keyboardMove.y -= 1f;
+
+                if (Keyboard.current.dKey.isPressed)
+                    keyboardMove.x += 1f;
+
+                if (Keyboard.current.aKey.isPressed)
+                    keyboardMove.x -= 1f;
+
+                if (keyboardMove.sqrMagnitude > 0.001f)
+                    Move = Vector2.ClampMagnitude(
+                        keyboardMove,
+                        1f);
+
+                if (Keyboard.current.spaceKey.wasPressedThisFrame)
+                    _jumpQueued = true;
+
+                if (Keyboard.current.fKey.wasPressedThisFrame)
+                    _attackQueued = true;
             }
 
-            if (Mouse.current != null && Mouse.current.rightButton.isPressed)
-                LookDelta += Mouse.current.delta.ReadValue() * 0.11f;
+            if (Mouse.current != null &&
+                Mouse.current.rightButton.isPressed)
+            {
+                _desktopLookDelta +=
+                    Mouse.current.delta.ReadValue();
+            }
         }
 
-        private void ReadTouch()
+        public void SetMobileMove(Vector2 value)
         {
-            Touchscreen screen = Touchscreen.current;
-            if (screen == null) return;
+            _mobileMove =
+                Vector2.ClampMagnitude(value, 1f);
+        }
 
-            foreach (TouchControl touch in screen.touches)
-            {
-                if (!touch.press.isPressed) continue;
+        public void AddMobileLookDelta(Vector2 screenDelta)
+        {
+            _mobileLookDelta += screenDelta;
+        }
 
-                Vector2 pos = touch.position.ReadValue();
-                Vector2 start = touch.startPosition.ReadValue();
-                Vector2 delta = touch.delta.ReadValue();
+        public Vector2 ConsumeLookDelta()
+        {
+            Vector2 value =
+                _desktopLookDelta +
+                _mobileLookDelta;
 
-                bool attackZone =
-                    pos.x > Screen.width * 0.80f &&
-                    pos.y < Screen.height * 0.34f;
+            _desktopLookDelta = Vector2.zero;
+            _mobileLookDelta = Vector2.zero;
 
-                bool jumpZone =
-                    pos.x > Screen.width * 0.64f &&
-                    pos.x <= Screen.width * 0.80f &&
-                    pos.y < Screen.height * 0.30f;
-
-                if (touch.press.wasPressedThisFrame && attackZone) _attackQueued = true;
-                if (touch.press.wasPressedThisFrame && jumpZone) _jumpQueued = true;
-
-                if (start.x < Screen.width * 0.46f)
-                {
-                    Vector2 virtualStick =
-                        (pos - start) /
-                        Mathf.Max(90f, Screen.height * 0.16f);
-
-                    Move = Vector2.ClampMagnitude(virtualStick, 1f);
-                }
-                else if (!attackZone && !jumpZone)
-                {
-                    LookDelta += delta * 0.115f;
-                }
-            }
+            return value;
         }
 
         public bool ConsumeAttack()
@@ -94,7 +102,21 @@ namespace Highfly.Clean
             return value;
         }
 
-        public void QueueAttack() => _attackQueued = true;
-        public void QueueJump() => _jumpQueued = true;
+        public void QueueAttack()
+        {
+            _attackQueued = true;
+        }
+
+        public void QueueJump()
+        {
+            _jumpQueued = true;
+        }
+
+        private void OnDisable()
+        {
+            _mobileMove = Vector2.zero;
+            _mobileLookDelta = Vector2.zero;
+            _desktopLookDelta = Vector2.zero;
+        }
     }
 }

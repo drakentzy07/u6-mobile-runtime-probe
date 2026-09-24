@@ -10,35 +10,78 @@ namespace Highfly.Clean
 
         public float Distance = 5.2f;
         public float Height = 1.45f;
-        public float LookSensitivity = 1f;
+        public float YawDegreesPerPixel = 0.22f;
+        public float PitchDegreesPerPixel = 0.18f;
 
         public void Bind(Transform target)
         {
             _target = target;
-            if (target != null) _yaw = target.eulerAngles.y;
+
+            if (target != null)
+                _yaw = target.eulerAngles.y;
         }
 
         private void LateUpdate()
         {
-            if (_target == null || HighflyInputRouter.Instance == null) return;
+            HighflyInputRouter input =
+                HighflyInputRouter.Instance;
 
-            Vector2 look = HighflyInputRouter.Instance.LookDelta;
-            _yaw += look.x * LookSensitivity;
-            _pitch -= look.y * LookSensitivity;
-            _pitch = Mathf.Clamp(_pitch, -15f, 50f);
+            if (_target == null || input == null)
+                return;
 
-            Quaternion orbit = Quaternion.Euler(_pitch, _yaw, 0f);
-            Vector3 focus = _target.position + Vector3.up * Height;
-            Vector3 desired = focus - orbit * Vector3.forward * Distance;
+            Vector2 look =
+                input.ConsumeLookDelta();
 
-            transform.position = Vector3.Lerp(
-                transform.position,
-                desired,
-                1f - Mathf.Exp(-18f * Time.deltaTime));
+            _yaw +=
+                look.x *
+                YawDegreesPerPixel;
 
-            transform.rotation = Quaternion.LookRotation(
-                focus - transform.position,
-                Vector3.up);
+            _pitch -=
+                look.y *
+                PitchDegreesPerPixel;
+
+            _pitch =
+                Mathf.Clamp(
+                    _pitch,
+                    -32f,
+                    62f);
+
+            Quaternion orbit =
+                Quaternion.Euler(
+                    _pitch,
+                    _yaw,
+                    0f);
+
+            Vector3 focus =
+                _target.position +
+                Vector3.up * Height;
+
+            Vector3 desired =
+                focus -
+                orbit *
+                Vector3.forward *
+                Distance;
+
+            transform.position =
+                Vector3.Lerp(
+                    transform.position,
+                    desired,
+                    1f -
+                    Mathf.Exp(
+                        -18f *
+                        Time.unscaledDeltaTime));
+
+            Vector3 lookDirection =
+                focus -
+                transform.position;
+
+            if (lookDirection.sqrMagnitude > 0.0001f)
+            {
+                transform.rotation =
+                    Quaternion.LookRotation(
+                        lookDirection.normalized,
+                        Vector3.up);
+            }
         }
 
         public Vector3 FlatForward
@@ -47,7 +90,11 @@ namespace Highfly.Clean
             {
                 Vector3 f = transform.forward;
                 f.y = 0f;
-                return f.sqrMagnitude > 0.001f ? f.normalized : Vector3.forward;
+
+                return
+                    f.sqrMagnitude > 0.001f
+                        ? f.normalized
+                        : Vector3.forward;
             }
         }
 
@@ -57,7 +104,11 @@ namespace Highfly.Clean
             {
                 Vector3 r = transform.right;
                 r.y = 0f;
-                return r.sqrMagnitude > 0.001f ? r.normalized : Vector3.right;
+
+                return
+                    r.sqrMagnitude > 0.001f
+                        ? r.normalized
+                        : Vector3.right;
             }
         }
     }
