@@ -1,0 +1,102 @@
+name: HIGHFLY Combat Reboot Run0A Clean WebGL
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/combat-reboot-clean-main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highfly-combat-reboot-clean-run0a
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build CLEAN Run0A
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout clean root
+        uses: actions/checkout@v4
+
+      - name: Install KayKit Hunter CC0
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p Assets/Resources/HIGHFLY/Run0
+
+          KAYKIT="$RUNNER_TEMP/KayKit-Adventurers"
+          git clone --filter=blob:none https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0.git "$KAYKIT"
+          git -C "$KAYKIT" checkout 672074b73ba276876a19e8816ecdc5241817ab47
+          git -C "$KAYKIT" lfs install --local || true
+          git -C "$KAYKIT" lfs pull || true
+
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx" \
+             Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png" \
+             Assets/Resources/HIGHFLY/Run0/knight_texture.png
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx" \
+             Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
+
+          test -s Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
+          test -s Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
+
+      - name: Install UAL2 CC0 combat bank
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          curl -L --fail --retry 3 \
+            "https://raw.githubusercontent.com/Magellan36/bunker-game/a3f75bf101c1d454a51bee4e4a77a60a082c0175/assets/models/WIP/FINAL/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unity/UAL2_Standard.fbx" \
+            -o Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx
+
+          echo "d26d0e9f4a202d473194c056045143095a605a53ba1d823ef24055be4b86851d  Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx" | sha256sum -c -
+
+      - name: Prove legacy is absent
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if grep -R -E "HighflyAnimatorMirrorV027|HighflyCombatLabV010|HighflyDonorExpandedRuntime|HighflyPremiumSkillRuntime|HighflyParkourAnimationV010|HighflyLucidCombatBridge|HighflySkillCooldownVisual" Assets; then
+            echo "ERROR: legacy runtime leaked into clean root"
+            exit 1
+          fi
+          echo "CLEAN_ROOT_OK=1"
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: Library
+          key: highfly-clean-6000.4.0f1-run0a-${{ hashFiles('Assets/**/*.cs', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+
+      - name: Build CLEAN WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: .
+          unityVersion: 6000.4.0f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.Clean.Editor.HighflyCleanBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify clean WebGL
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -f build/WebGL/index.html
+          touch build/WebGL/.nojekyll
+          du -sh build/WebGL
+
+      - name: Upload clean Run0A artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-combat-reboot-clean-run0a-webgl
+          path: build/WebGL
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
