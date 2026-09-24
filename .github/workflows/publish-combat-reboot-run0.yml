@@ -37,7 +37,7 @@ jobs:
           path: clean-run0a
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 36055721494
+          run-id: 36068354531
 
       - name: Assemble combined site
         shell: bash
@@ -68,7 +68,7 @@ jobs:
           test -n "$(find site/skills-lab-supremo/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
           test -n "$(find site/skills-lab-supremo/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
 
-          echo "HIGHFLY SKILLS LAB SUPREMO • RUN0A CLEAN • SOURCE RUN 36055721494 • COMMIT 0d6dce9b3196031d3c9c7632eb6fac081877e279" > site/skills-lab-supremo/published-version.txt
+          echo "HIGHFLY SKILLS LAB SUPREMO • RUN0A CLEAN • SOURCE RUN 36068354531 • COMMIT 70f10048e26572c853ff560fd2e9cb125d5ad48d" > site/skills-lab-supremo/published-version.txt
           touch site/.nojekyll
           du -sh site/skills-lab-supremo
 
