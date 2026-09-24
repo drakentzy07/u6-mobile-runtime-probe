@@ -1,0 +1,57 @@
+name: HIGHFLY Run0A Publish Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/combat-reboot-run0a-pages]
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-run0a-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish CLEAN Run0A
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download verified Run0A artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-combat-reboot-clean-run0a-webgl
+          path: site
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 36042577526
+
+      - name: Verify downloaded WebGL
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -f site/index.html
+          test -f site/.nojekyll
+          test -d site/Build
+          test -n "$(find site/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
+          test -n "$(find site/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
+          du -sh site
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
