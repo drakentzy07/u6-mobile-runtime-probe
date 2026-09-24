@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using Highfly.Mobile;
 
 namespace Highfly.SkillLab
 {
