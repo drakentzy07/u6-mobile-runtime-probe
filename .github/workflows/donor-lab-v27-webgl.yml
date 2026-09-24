@@ -65,6 +65,31 @@ jobs:
           fi
           echo "LFS_OK size=$(stat -c%s "$ASSET")"
 
+      - name: Remove Unity AI Assistant incompatible with 6000.6.2
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          root = Path("LucidHost/3D_game/Packages")
+          manifest_path = root / "manifest.json"
+          lock_path = root / "packages-lock.json"
+
+          manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+          manifest.get("dependencies", {}).pop("com.unity.ai.assistant", None)
+          manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+          lock = json.loads(lock_path.read_text(encoding="utf-8"))
+          lock.get("dependencies", {}).pop("com.unity.ai.assistant", None)
+          lock_path.write_text(json.dumps(lock, indent=2) + "\n", encoding="utf-8")
+          PY
+
+          ! grep -q '"com.unity.ai.assistant"' LucidHost/3D_game/Packages/manifest.json
+          ! grep -q '"com.unity.ai.assistant"' LucidHost/3D_game/Packages/packages-lock.json
+          echo "UNITY_AI_ASSISTANT_REMOVED=1"
+
       - name: Install HIGHFLY Mobile Core v0.6 + Donor Lab 2.7 KayKit Hunter Core
         shell: bash
         run: |
