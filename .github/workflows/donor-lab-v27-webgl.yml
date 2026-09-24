@@ -1,9 +1,9 @@
-name: Donor Lab 2.7 KayKit Hunter Core WebGL
+name: HIGHFLY Run0F Lucid Dragon KayKit 6000.6.2
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/donor-lab-v2.7-kaykit-hunter-core]
+    branches: [highfly/run0f-lucid-dragon-kaykit-6000.6.2]
     paths:
       - "ci/**"
       - ".github/workflows/donor-lab-v27-webgl.yml"
@@ -14,12 +14,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: donor-lab-v027-kaykit-hunter-core
+  group: run0f-lucid-dragon-kaykit-6000-6-2
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Donor Lab 2.7 KayKit Hunter Core WebGL
+    name: Build Run0F • Lucid + Dragon + KayKit • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -335,14 +335,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v027-kaykit-hunter-core-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
+          key: lucid-6000.6.2f1-webgl-mobile-v06-donorlab-v027-kaykit-hunter-core-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/mobile/**', 'ci/combat/**', 'ci/lab/**') }}
           restore-keys: |
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v010-slf-core-
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v09-apex-pass-
-            lucid-6000.4.0f1-webgl-mobile-v06-skilllab-v01-
-            lucid-6000.4.0f1-webgl-mobile-v06-
-            lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
+            lucid-6000.6.2f1-webgl-mobile-v06-skilllab-v011-premium-slf10-
+            lucid-6000.6.2f1-webgl-mobile-v06-skilllab-v010-slf-core-
+            lucid-6000.6.2f1-webgl-mobile-v06-skilllab-v09-apex-pass-
+            lucid-6000.6.2f1-webgl-mobile-v06-skilllab-v01-
+            lucid-6000.6.2f1-webgl-mobile-v06-
+            lucid-6000.6.2f1-webgl-lfs-v1-da73b5be-
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
@@ -352,7 +352,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: LucidHost/3D_game
-          unityVersion: 6000.4.0f1
+          unityVersion: 6000.6.2f1
           targetPlatform: WebGL
           buildMethod: Highfly.CI.WebGLBuilder.Build
           allowDirtyBuild: true
