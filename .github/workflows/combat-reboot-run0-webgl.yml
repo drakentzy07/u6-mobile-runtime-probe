@@ -68,7 +68,7 @@ jobs:
           mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
           mkdir -p LucidHost/3D_game/Assets/Editor
 
-          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          cp ci/reboot/HighflyMobileCore.Run0.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
           cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
           cp ci/mobile/HighflyThirdPersonMobileCamera.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
 
@@ -83,127 +83,15 @@ jobs:
           cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
           cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
           cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
-          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
-          cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          cp ci/reboot/PlayerController.Run0.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/reboot/PlayerStats.Run0.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
           cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
-
-          python3 - <<'PY'
-          from pathlib import Path
-
-          pc = Path("LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs")
-          s = pc.read_text(encoding="utf-8")
-
-          old_jump = """        if (HighflySkillLabMode.IsActive && HighflyAerialMobility.Instance != null)
-                  {
-                      HighflyAerialMobility.Instance.RequestJump();
-                      return;
-                  }
-
-          """
-          s = s.replace(old_jump, "")
-
-          attack_needle = """    public void HighflyMobileAttack()
-              {
-          """
-          attack_hook = """    public void HighflyMobileAttack()
-              {
-                  if (HighflySkillLabMode.IsActive && HighflyRun0SwordBakeoff.Instance != null)
-                  {
-                      HighflyRun0SwordBakeoff.Instance.TriggerAttack();
-                      return;
-                  }
-          """
-          if attack_needle not in s:
-              raise SystemExit("RUN0 patch failed: attack method signature not found")
-          s = s.replace(attack_needle, attack_hook, 1)
-          pc.write_text(s, encoding="utf-8")
-
-          ps = Path("LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs")
-          s = ps.read_text(encoding="utf-8")
-          s = s.replace(
-              """        if (HighflyCombatLabV010.TryInterceptLethal(this, damage, attacker))
-                      return;
-
-          """, "")
-          s = s.replace(
-              """        if (HighflyReflectiveWallState.TryReflect(this, damage, composureDamage, attacker))
-                      return;
-
-          """, "")
-          s = s.replace(
-              """        float resolvedComposureDamage = 50.0f;
-                  if (HighflyDonorDefenseState.TryModifyIncoming(this, ref damage, ref resolvedComposureDamage))
-                      return;
-          """,
-              """        float resolvedComposureDamage = 50.0f;
-          """)
-          ps.write_text(s, encoding="utf-8")
-
-          core = Path("LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs")
-          s = core.read_text(encoding="utf-8")
-          s = s.replace(
-              """            var combat = UnityEngine.Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
-
-          """, "")
-          s = s.replace(
-              """                case HighflyMobileAction.Attack:
-                          if (combat != null) combat.Request(HighflyCombatAction.Light);
-                          else player?.HighflyMobileAttack();
-                          break;
-                      case HighflyMobileAction.Skill1:
-                          if (combat != null) combat.Request(HighflyCombatAction.Skill1);
-                          else player?.HighflyMobileSkill1();
-                          break;
-                      case HighflyMobileAction.Skill2:
-                          combat?.Request(HighflyCombatAction.Skill2);
-                          break;
-                      case HighflyMobileAction.Skill3:
-                          combat?.Request(HighflyCombatAction.Skill3);
-                          break;
-                      case HighflyMobileAction.Skill4:
-                          combat?.Request(HighflyCombatAction.Skill4);
-                          break;
-                      case HighflyMobileAction.Ultimate:
-                          combat?.Request(HighflyCombatAction.Ultimate);
-                          break;
-                      case HighflyMobileAction.Dodge:
-                          if (combat != null) combat.Request(HighflyCombatAction.Dodge);
-                          else player?.HighflyMobileRoll();
-                          break;
-                      case HighflyMobileAction.Parry:
-                          if (combat != null) combat.Request(HighflyCombatAction.Parry);
-                          else player?.HighflyMobileParry();
-                          break;
-          """,
-              """                case HighflyMobileAction.Attack:
-                          player?.HighflyMobileAttack();
-                          break;
-                      case HighflyMobileAction.Skill1:
-                      case HighflyMobileAction.Skill2:
-                      case HighflyMobileAction.Skill3:
-                      case HighflyMobileAction.Skill4:
-                      case HighflyMobileAction.Ultimate:
-                          break;
-                      case HighflyMobileAction.Dodge:
-                          player?.HighflyMobileRoll();
-                          break;
-                      case HighflyMobileAction.Parry:
-                          player?.HighflyMobileParry();
-                          break;
-          """)
-          s = s.replace(
-              """            if (hasPlayer && player.GetComponent<HighflyLucidCombatBridge>() == null)
-                      player.gameObject.AddComponent<HighflyLucidCombatBridge>();
-
-          """, "")
-          core.write_text(s, encoding="utf-8")
-          PY
 
           if grep -R -E "HighflyAerialMobility|HighflyCombatLabV010|HighflyReflectiveWallState|HighflyDonorDefenseState|HighflyLucidCombatBridge|HighflyCombatAction" \
               LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs \
               LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs \
               LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs; then
-            echo "ERROR: legacy combat dependency survived RUN0 patch"
+            echo "ERROR: legacy combat dependency survived RUN0 source"
             exit 1
           fi
 
