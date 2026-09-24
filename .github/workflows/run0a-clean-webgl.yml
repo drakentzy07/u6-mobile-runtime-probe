@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build CLEAN Run0D • UAL2 Root Bake • Unity 6000.6.2
+    name: Build CLEAN Run0E • Upright Humanoid Guard • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 120
 

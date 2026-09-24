@@ -32,6 +32,13 @@ namespace Highfly.Clean
 
             BuildHunter();
 
+            if (_animator != null)
+            {
+                HighflyHumanoidUprightGuard upright =
+                    _animator.gameObject.AddComponent<HighflyHumanoidUprightGuard>();
+                upright.Initialize(_animator);
+            }
+
             _animation = gameObject.AddComponent<HighflyAnimationDriver>();
             _animation.Initialize(_animator);
         }
@@ -41,7 +48,7 @@ namespace Highfly.Clean
             GameObject prefab = Resources.Load<GameObject>("HIGHFLY/Run0/KayKitKnight");
             if (prefab == null)
             {
-                Debug.LogError("[RUN0C] KayKitKnight resource missing.");
+                Debug.LogError("[RUN0E] KayKitKnight resource missing.");
                 return;
             }
 
@@ -74,7 +81,7 @@ namespace Highfly.Clean
             RemoveEmbeddedEquipmentVisuals();
             AttachSingleSword();
 
-            Debug.Log("[RUN0C] Hunter ready • sanitized equipment • one explicit sword.");
+            Debug.Log("[RUN0E] Hunter ready • sanitized equipment • one explicit sword.");
         }
 
         private void RemoveEmbeddedEquipmentVisuals()
@@ -102,11 +109,11 @@ namespace Highfly.Clean
                 {
                     r.enabled = false;
                     disabled++;
-                    Debug.Log("[RUN0C] disabled embedded equipment renderer: " + path);
+                    Debug.Log("[RUN0E] disabled embedded equipment renderer: " + path);
                 }
             }
 
-            Debug.Log("[RUN0C] embedded equipment renderers disabled=" + disabled);
+            Debug.Log("[RUN0E] embedded equipment renderers disabled=" + disabled);
         }
 
         private static string FullPath(Transform t)
@@ -130,7 +137,7 @@ namespace Highfly.Clean
 
             if (hand == null || prefab == null)
             {
-                Debug.LogWarning("[RUN0C] single sword not attached: hand/prefab missing.");
+                Debug.LogWarning("[RUN0E] single sword not attached: hand/prefab missing.");
                 return;
             }
 
@@ -143,7 +150,7 @@ namespace Highfly.Clean
             foreach (Collider c in sword.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
 
-            Debug.Log("[RUN0C] exactly one explicit KayKit sword attached.");
+            Debug.Log("[RUN0E] exactly one explicit KayKit sword attached.");
         }
 
         private void NormalizeVisual()
