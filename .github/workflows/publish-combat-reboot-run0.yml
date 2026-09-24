@@ -1,0 +1,94 @@
+name: Publish HIGHFLY Combat Reboot Run 0
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-combat-reboot-run0.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-combat-reboot-run0-pages
+  cancel-in-progress: true
+
+jobs:
+  stage:
+    name: Merge current Pages + Combat Reboot Run 0
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download current combined Pages site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 35928293169
+
+      - name: Download verified Combat Reboot Run 0 WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: reboot-run0-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 36025722896
+
+      - name: Assemble combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site reboot-run0-extracted
+
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+
+          test -f site/index.html
+          test -f site/donor-lab-v25/index.html
+          test -f site/donor-lab-v26/index.html
+          test -f site/donor-lab-v27/index.html
+
+          test -f reboot-run0-pages/artifact.tar
+          tar -xf reboot-run0-pages/artifact.tar -C reboot-run0-extracted
+          test -f reboot-run0-extracted/index.html
+          grep -q "v=r0001" reboot-run0-extracted/index.html
+          grep -q "highfly-desktop-fit" reboot-run0-extracted/index.html
+
+          rm -rf site/combat-reboot-run0
+          mkdir -p site/combat-reboot-run0
+          cp -a reboot-run0-extracted/. site/combat-reboot-run0/
+
+          test -f site/combat-reboot-run0/index.html
+          test -f site/combat-reboot-run0/Build/WebGL.loader.js
+          test -f site/combat-reboot-run0/Build/WebGL.wasm
+          test -f site/combat-reboot-run0/Build/WebGL.data
+
+          echo "HIGHFLY COMBAT REBOOT RUN 0 • VERIFIED SOURCE RUN 36025722896 • SWORD BAKE-OFF A/B/C" > site/combat-reboot-run0/published-version.txt
+          touch site/.nojekyll
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy current Pages + Combat Reboot Run 0
+    needs: stage
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4
