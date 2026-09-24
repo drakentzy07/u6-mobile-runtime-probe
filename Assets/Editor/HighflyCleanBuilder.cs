@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using System;
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEditor.SceneManagement;
@@ -49,10 +50,18 @@ namespace Highfly.Clean.Editor
                     "[CLEAN-RUN0A] WebGL build failed: " +
                     report.summary.result);
 
+            string indexPath = Path.Combine(outputPath, "index.html");
+            if (!File.Exists(indexPath))
+                throw new FileNotFoundException(
+                    "[CLEAN-RUN0A] Build reported success but index.html is missing.",
+                    indexPath);
+
+            File.WriteAllText(Path.Combine(outputPath, ".nojekyll"), string.Empty);
+
             Debug.Log(
                 "[CLEAN-RUN0A] BUILD SUCCESS • size=" +
                 report.summary.totalSize +
-                " bytes");
+                " bytes • nojekyll=OK");
         }
     }
 }

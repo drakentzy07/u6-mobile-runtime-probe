@@ -34,12 +34,9 @@ jobs:
           git -C "$KAYKIT" lfs install --local || true
           git -C "$KAYKIT" lfs pull || true
 
-          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx" \
-             Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
-          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png" \
-             Assets/Resources/HIGHFLY/Run0/knight_texture.png
-          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx" \
-             Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx"              Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png"              Assets/Resources/HIGHFLY/Run0/knight_texture.png
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx"              Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
 
           test -s Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
           test -s Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
@@ -49,21 +46,27 @@ jobs:
         run: |
           set -euxo pipefail
 
-          curl -L --fail --retry 3 \
-            "https://raw.githubusercontent.com/Magellan36/bunker-game/a3f75bf101c1d454a51bee4e4a77a60a082c0175/assets/models/WIP/FINAL/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unity/UAL2_Standard.fbx" \
-            -o Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx
+          curl -L --fail --retry 3             "https://raw.githubusercontent.com/Magellan36/bunker-game/a3f75bf101c1d454a51bee4e4a77a60a082c0175/assets/models/WIP/FINAL/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unity/UAL2_Standard.fbx"             -o Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx
 
           echo "d26d0e9f4a202d473194c056045143095a605a53ba1d823ef24055be4b86851d  Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx" | sha256sum -c -
 
-      - name: Prove legacy is absent
+      - name: Prove clean root and Unity 6 API hygiene
         shell: bash
         run: |
           set -euxo pipefail
+
           if grep -R -E "HighflyAnimatorMirrorV027|HighflyCombatLabV010|HighflyDonorExpandedRuntime|HighflyPremiumSkillRuntime|HighflyParkourAnimationV010|HighflyLucidCombatBridge|HighflySkillCooldownVisual" Assets; then
             echo "ERROR: legacy runtime leaked into clean root"
             exit 1
           fi
+
+          if grep -R -E "SleepTimeout\.Never([^S]|$)|\.SetTimeWrapMode\(" Assets --include='*.cs'; then
+            echo "ERROR: known incompatible Unity 6 API found"
+            exit 1
+          fi
+
           echo "CLEAN_ROOT_OK=1"
+          echo "UNITY6_API_HYGIENE_OK=1"
 
       - name: Cache Unity Library
         uses: actions/cache@v4
@@ -89,8 +92,12 @@ jobs:
         run: |
           set -euxo pipefail
           test -f build/WebGL/index.html
-          touch build/WebGL/.nojekyll
+          test -f build/WebGL/.nojekyll
+          test -d build/WebGL/Build
+          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
+          test -n "$(find build/WebGL/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
           du -sh build/WebGL
+          echo "CLEAN_WEBGL_VERIFY_OK=1"
 
       - name: Upload clean Run0A artifact
         uses: actions/upload-artifact@v4
