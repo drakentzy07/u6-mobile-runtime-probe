@@ -724,8 +724,7 @@ if (_controlsRoot != null)
             if (skillSlot >= 0)
             {
                 var cooldown =
-                    go.AddComponent<HighflySkillCooldownVisual>();
-                cooldown.Configure(skillSlot, _discSprite);
+cooldown.Configure(skillSlot, _discSprite);
             }
 
             var text = CreateText(
