@@ -7,7 +7,7 @@ namespace Highfly.Clean
         private void Awake()
         {
             Application.targetFrameRate = 60;
-            Screen.sleepTimeout = SleepTimeout.Never;
+            Screen.sleepTimeout = SleepTimeout.NeverSleep;
             BuildArena();
 
             GameObject inputGo = new GameObject("HIGHFLY_INPUT");

@@ -100,10 +100,7 @@ namespace Highfly.Clean
             playable.SetSpeed(speed);
 
             if (loop)
-            {
                 playable.SetDuration(double.PositiveInfinity);
-                playable.SetTimeWrapMode(DirectorWrapMode.Loop);
-            }
 
             output.SetSourcePlayable(playable);
             _graph.Play();
