@@ -1,0 +1,373 @@
+name: Combat Reboot Run 0 Sword Bake-Off WebGL
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/combat-reboot-run0-sword-bakeoff]
+    paths:
+      - "ci/reboot/**"
+      - "ci/mobile/**"
+      - "ci/HighflyCiWebGLBuilder.cs"
+      - ".github/workflows/combat-reboot-run0-webgl.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: combat-reboot-run0-sword-bakeoff
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Combat Reboot Run 0
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout HIGHFLY probe repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid base with Git LFS
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git lfs version
+
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+
+          test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+          cat LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+      - name: Install HIGHFLY mobile shell + clean Run 0
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Reboot
+          mkdir -p LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/ThirdParty
+          mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
+          mkdir -p LucidHost/3D_game/Assets/Editor
+
+          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
+          cp ci/mobile/HighflyThirdPersonMobileCamera.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
+
+          cp ci/reboot/HighflyRun0Bootstrap.cs LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflySkillLabBootstrap.cs
+          cp ci/reboot/HighflyRun0Hunter.cs LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0Hunter.cs
+          cp ci/reboot/HighflyRun0SwordBakeoff.cs LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+
+          cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+
+          cp ci/mobile/MainMenuController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
+          cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
+          cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
+          cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+
+          python3 - <<'PY'
+          from pathlib import Path
+
+          pc = Path("LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs")
+          s = pc.read_text(encoding="utf-8")
+
+          old_jump = """        if (HighflySkillLabMode.IsActive && HighflyAerialMobility.Instance != null)
+                  {
+                      HighflyAerialMobility.Instance.RequestJump();
+                      return;
+                  }
+
+          """
+          s = s.replace(old_jump, "")
+
+          attack_needle = """    public void HighflyMobileAttack()
+              {
+          """
+          attack_hook = """    public void HighflyMobileAttack()
+              {
+                  if (HighflySkillLabMode.IsActive && HighflyRun0SwordBakeoff.Instance != null)
+                  {
+                      HighflyRun0SwordBakeoff.Instance.TriggerAttack();
+                      return;
+                  }
+          """
+          if attack_needle not in s:
+              raise SystemExit("RUN0 patch failed: attack method signature not found")
+          s = s.replace(attack_needle, attack_hook, 1)
+          pc.write_text(s, encoding="utf-8")
+
+          ps = Path("LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs")
+          s = ps.read_text(encoding="utf-8")
+          s = s.replace(
+              """        if (HighflyCombatLabV010.TryInterceptLethal(this, damage, attacker))
+                      return;
+
+          """, "")
+          s = s.replace(
+              """        if (HighflyReflectiveWallState.TryReflect(this, damage, composureDamage, attacker))
+                      return;
+
+          """, "")
+          s = s.replace(
+              """        float resolvedComposureDamage = 50.0f;
+                  if (HighflyDonorDefenseState.TryModifyIncoming(this, ref damage, ref resolvedComposureDamage))
+                      return;
+          """,
+              """        float resolvedComposureDamage = 50.0f;
+          """)
+          ps.write_text(s, encoding="utf-8")
+
+          core = Path("LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs")
+          s = core.read_text(encoding="utf-8")
+          s = s.replace(
+              """            var combat = UnityEngine.Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
+
+          """, "")
+          s = s.replace(
+              """                case HighflyMobileAction.Attack:
+                          if (combat != null) combat.Request(HighflyCombatAction.Light);
+                          else player?.HighflyMobileAttack();
+                          break;
+                      case HighflyMobileAction.Skill1:
+                          if (combat != null) combat.Request(HighflyCombatAction.Skill1);
+                          else player?.HighflyMobileSkill1();
+                          break;
+                      case HighflyMobileAction.Skill2:
+                          combat?.Request(HighflyCombatAction.Skill2);
+                          break;
+                      case HighflyMobileAction.Skill3:
+                          combat?.Request(HighflyCombatAction.Skill3);
+                          break;
+                      case HighflyMobileAction.Skill4:
+                          combat?.Request(HighflyCombatAction.Skill4);
+                          break;
+                      case HighflyMobileAction.Ultimate:
+                          combat?.Request(HighflyCombatAction.Ultimate);
+                          break;
+                      case HighflyMobileAction.Dodge:
+                          if (combat != null) combat.Request(HighflyCombatAction.Dodge);
+                          else player?.HighflyMobileRoll();
+                          break;
+                      case HighflyMobileAction.Parry:
+                          if (combat != null) combat.Request(HighflyCombatAction.Parry);
+                          else player?.HighflyMobileParry();
+                          break;
+          """,
+              """                case HighflyMobileAction.Attack:
+                          player?.HighflyMobileAttack();
+                          break;
+                      case HighflyMobileAction.Skill1:
+                      case HighflyMobileAction.Skill2:
+                      case HighflyMobileAction.Skill3:
+                      case HighflyMobileAction.Skill4:
+                      case HighflyMobileAction.Ultimate:
+                          break;
+                      case HighflyMobileAction.Dodge:
+                          player?.HighflyMobileRoll();
+                          break;
+                      case HighflyMobileAction.Parry:
+                          player?.HighflyMobileParry();
+                          break;
+          """)
+          s = s.replace(
+              """            if (hasPlayer && player.GetComponent<HighflyLucidCombatBridge>() == null)
+                      player.gameObject.AddComponent<HighflyLucidCombatBridge>();
+
+          """, "")
+          core.write_text(s, encoding="utf-8")
+          PY
+
+          if grep -R -E "HighflyAerialMobility|HighflyCombatLabV010|HighflyReflectiveWallState|HighflyDonorDefenseState|HighflyLucidCombatBridge|HighflyCombatAction" \
+              LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs \
+              LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs \
+              LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs; then
+            echo "ERROR: legacy combat dependency survived RUN0 patch"
+            exit 1
+          fi
+
+      - name: Install KayKit hunter and sword CC0
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          KAYKIT="$RUNNER_TEMP/KayKit-Adventurers"
+          git clone --filter=blob:none https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0.git "$KAYKIT"
+          git -C "$KAYKIT" checkout 672074b73ba276876a19e8816ecdc5241817ab47
+          git -C "$KAYKIT" lfs install --local || true
+          git -C "$KAYKIT" lfs pull || true
+
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/knight_texture.png
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
+
+      - name: Install pinned CC0 animation donor bank
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          DONOR="$RUNNER_TEMP/highfly-run0-cc0-donors"
+          git clone --filter=blob:none --no-checkout https://github.com/dakuandakuan/android-moba-3d-research.git "$DONOR"
+          git -C "$DONOR" lfs install --local
+          GIT_LFS_SKIP_SMUDGE=1 git -C "$DONOR" fetch --depth 1 origin 5a42a012f12a045fa8e2e7fc3b8d642897979e18
+          git -C "$DONOR" sparse-checkout init --no-cone
+          cat > "$DONOR/.git/info/sparse-checkout" <<'EOF'
+          game/Assets/_Project/Art/Phase105CharacterProxy/Animations/KayKit/Rig_Medium_CombatMelee.fbx
+          game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL1_Standard.fbx
+          game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL2_Standard.fbx
+          asset_license_log.md
+          EOF
+          GIT_LFS_SKIP_SMUDGE=1 git -C "$DONOR" checkout --detach FETCH_HEAD
+
+          git -C "$DONOR" lfs pull --include="game/Assets/_Project/Art/Phase105CharacterProxy/Animations/KayKit/Rig_Medium_CombatMelee.fbx,game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL1_Standard.fbx,game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL2_Standard.fbx"
+
+          cp "$DONOR/game/Assets/_Project/Art/Phase105CharacterProxy/Animations/KayKit/Rig_Medium_CombatMelee.fbx" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKit_CombatMelee.fbx
+          cp "$DONOR/game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL1_Standard.fbx" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL1_Standard.fbx
+          cp "$DONOR/game/Assets/_Project/Art/Phase105CharacterProxy/Animations/QuaterniusUAL/UAL2_Standard.fbx" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx
+          cp "$DONOR/asset_license_log.md" \
+             LucidHost/3D_game/Assets/HIGHFLY/ThirdParty/RUN0_CC0_ASSET_LOG.md
+
+          echo "018ba1c4f2ad30e9d4b051f12c46eb3fa3da01c1d4cba3603f673dca3bf899ca  LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKit_CombatMelee.fbx" | sha256sum -c -
+          echo "21b32d912da3cb93426d974fb945e86f5b2e86970acd2ce89905e0fbf9f1dcc2  LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL1_Standard.fbx" | sha256sum -c -
+          echo "d26d0e9f4a202d473194c056045143095a605a53ba1d823ef24055be4b86851d  LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx" | sha256sum -c -
+
+      - name: Install CC0 debug trail and contact VFX
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          KENNEY_BASE="https://raw.githubusercontent.com/Calinou/kenney-particle-pack/ab7086639ee73be31abd87feb21bf1402d4e8144/addons/kenney_particle_pack"
+          curl -L --fail --retry 3 "$KENNEY_BASE/slash_02.png" \
+            -o LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/slash_02.png
+          curl -L --fail --retry 3 "$KENNEY_BASE/LICENSE.txt" \
+            -o LucidHost/3D_game/Assets/HIGHFLY/ThirdParty/KenneyParticlePack_LICENSE.txt
+
+          cp "LucidHost/3D_game/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab" \
+             LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/Sparks.prefab
+
+      - name: Install RUN0 editor import/build scripts
+        shell: bash
+        run: |
+          set -euxo pipefail
+          cp ci/HighflyCiWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyCiWebGLBuilder.cs
+          cp ci/reboot/HighflyRun0Importer.cs LucidHost/3D_game/Assets/Editor/HighflyRun0Importer.cs
+
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflySkillLabBootstrap.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0Hunter.cs
+          test -s LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKitKnight.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKitSword1H.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/KayKit_CombatMelee.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL1_Standard.fbx
+          test -s LucidHost/3D_game/Assets/Resources/HIGHFLY/Run0/UAL2_Standard.fbx
+
+          grep -q "HIGHFLY_COMBAT_REBOOT_RUN0" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflySkillLabBootstrap.cs
+          grep -q "KAYKIT DIRECT ANIMATOR READY" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0Hunter.cs
+          grep -q "SWORD BAKE-OFF" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+          grep -q "A • UAL2" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+          grep -q "B • KAYKIT" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+          grep -q "C • UAL1" LucidHost/3D_game/Assets/HIGHFLY/Reboot/HighflyRun0SwordBakeoff.cs
+          if grep -R -q "HighflyAnimatorMirrorV027" LucidHost/3D_game/Assets/HIGHFLY/Reboot; then
+            echo "ERROR: AnimatorMirror leaked into clean reboot"
+            exit 1
+          fi
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: lucid-6000.4.0f1-webgl-combat-reboot-run0-${{ hashFiles('ci/reboot/**', 'ci/mobile/**', 'ci/HighflyCiWebGLBuilder.cs') }}
+          restore-keys: |
+            lucid-6000.4.0f1-webgl-mobile-v06-donorlab-v027-kaykit-hunter-core-
+            lucid-6000.4.0f1-webgl-mobile-v06-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.4.0f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.CI.WebGLBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify WebGL output
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          test -f "$OUT/index.html"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          touch "$OUT/.nojekyll"
+
+          sed -i 's#/WebGL.loader.js"#/WebGL.loader.js?v=run0a"#' "$OUT/index.html"
+          sed -i 's#/WebGL.data"#/WebGL.data?v=run0a"#' "$OUT/index.html"
+          sed -i 's#/WebGL.framework.js"#/WebGL.framework.js?v=run0a"#' "$OUT/index.html"
+          sed -i 's#/WebGL.wasm"#/WebGL.wasm?v=run0a"#' "$OUT/index.html"
+          grep -q "v=run0a" "$OUT/index.html"
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("LucidHost/3D_game/build/WebGL/index.html")
+          s = p.read_text(encoding="utf-8")
+          css = """<style id="highfly-desktop-fit">
+          @media (pointer:fine) and (min-width:900px) {
+            html, body { width:100%; height:100%; margin:0; overflow:hidden; background:#000; }
+            #unity-container.unity-desktop {
+              position:fixed !important;
+              left:50% !important; top:50% !important;
+              transform:translate(-50%,-50%) !important;
+              width:min(100vw, 177.777777vh) !important;
+              height:min(100vh, 56.25vw) !important;
+            }
+            #unity-canvas { width:100% !important; height:100% !important; }
+            #unity-footer { display:none !important; }
+          }
+          </style>"""
+          if "highfly-desktop-fit" not in s:
+              s = s.replace("</head>", css + "</head>")
+          p.write_text(s, encoding="utf-8")
+          PY
+
+          grep -q "highfly-desktop-fit" "$OUT/index.html"
+          du -sh "$OUT"
+
+      - name: Upload Run 0 WebGL artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-combat-reboot-run0-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
