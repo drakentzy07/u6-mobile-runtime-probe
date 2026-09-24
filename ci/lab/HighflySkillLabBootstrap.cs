@@ -155,7 +155,7 @@ namespace Highfly.SkillLab
         {
             if (UnityEngine.Object.FindFirstObjectByType<HighflySkillLabBootstrap>() != null) return;
 
-            var root = new GameObject("HIGHFLY_DONOR_LAB_v2.7_KAYKIT_HUNTER_CORE");
+            var root = new GameObject("HIGHFLY_COMBAT_REBOOT_RUN0_SWORD_BAKEOFF");
             DontDestroyOnLoad(root);
             root.AddComponent<HighflySkillLabBootstrap>();
         }
@@ -220,38 +220,11 @@ namespace Highfly.SkillLab
 
             if (cc != null) cc.enabled = true;
 
+            // COMBAT REBOOT RUN 0:
+            // v2.7 remains frozen. Do not install legacy skill runtimes, AnimatorMirror,
+            // visual-facing patches or the old donor browser into this experiment.
             HighflyLabTestHistoryV026.Install(player);
-            HighflyLabMotionGuardV026.Install(player);
-            HighflyCombatFacingV027.Install(player);
-            HighflyAnimatorMirrorV027.Install(player);
-
-            if (player.GetComponent<HighflyPremiumSkillRuntime>() == null)
-                player.gameObject.AddComponent<HighflyPremiumSkillRuntime>();
-
-            if (player.GetComponent<HighflyAerialMobility>() == null)
-                player.gameObject.AddComponent<HighflyAerialMobility>();
-
-            if (player.GetComponent<HighflyCombatLabV010>() == null)
-                player.gameObject.AddComponent<HighflyCombatLabV010>();
-
-            if (player.GetComponent<HighflyAcceptedSkillRuntimeV016>() == null)
-                player.gameObject.AddComponent<HighflyAcceptedSkillRuntimeV016>();
-
-            if (player.GetComponent<HighflyDonorWeaponRuntimeV021>() == null)
-                player.gameObject.AddComponent<HighflyDonorWeaponRuntimeV021>();
-
-            if (player.GetComponent<HighflyDonorExpandedRuntimeV022>() == null)
-                player.gameObject.AddComponent<HighflyDonorExpandedRuntimeV022>();
-
-            Animator hunterAnimator = player.animator;
-            if (hunterAnimator != null)
-                HighflyParkourAnimationV010.BindTo(hunterAnimator);
-
-            HighflyLabTargetsV011.BuildThreeTargetRange(LabY);
-
-            CreateMetricsHud();
-            HighflyDonorBrowserV022.Install(transform);
-            HighflyCharacterCompareV022.Install(player, transform);
+            HighflyCombatRebootRun0.Install(player, transform);
 
             Camera cam = Camera.main;
             if (cam != null)
