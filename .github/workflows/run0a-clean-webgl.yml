@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build CLEAN Run0A
+    name: Build CLEAN Run0C • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 120
 
@@ -72,7 +72,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: Library
-          key: highfly-clean-6000.4.0f1-run0a-${{ hashFiles('Assets/**/*.cs', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
+          key: highfly-clean-6000.6.2f1-run0a-${{ hashFiles('Assets/**/*.cs', 'Packages/manifest.json', 'ProjectSettings/ProjectVersion.txt') }}
 
       - name: Build CLEAN WebGL
         uses: game-ci/unity-builder@v4
@@ -82,7 +82,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           projectPath: .
-          unityVersion: 6000.4.0f1
+          unityVersion: 6000.6.2f1
           targetPlatform: WebGL
           buildMethod: Highfly.Clean.Editor.HighflyCleanBuilder.Build
           allowDirtyBuild: true
@@ -116,7 +116,8 @@ jobs:
 
           du -sh build/WebGL
           echo "PAGES_SAFE_WEBGL=1"
-          echo "CLEAN_WEBGL_VERIFY_OK=1"
+          echo "UNITY_6000_6_2_OK=1
+          CLEAN_WEBGL_VERIFY_OK=1"
 
       - name: Upload clean Run0A artifact
         uses: actions/upload-artifact@v4

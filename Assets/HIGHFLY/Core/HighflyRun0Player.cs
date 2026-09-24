@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Highfly.Clean
@@ -21,84 +22,44 @@ namespace Highfly.Clean
 
         public HighflyAnimationDriver Animation => _animation;
 
-        public void Initialize(
-            HighflyCameraRig cameraRig)
+        public void Initialize(HighflyCameraRig cameraRig)
         {
-            _controller =
-                GetComponent<CharacterController>();
-
+            _controller = GetComponent<CharacterController>();
             _controller.height = 1.72f;
             _controller.radius = 0.32f;
-
-            _controller.center =
-                new Vector3(
-                    0f,
-                    0.86f,
-                    0f);
-
+            _controller.center = new Vector3(0f,0.86f,0f);
             _cameraRig = cameraRig;
 
             BuildHunter();
 
-            _animation =
-                gameObject.AddComponent<HighflyAnimationDriver>();
-
+            _animation = gameObject.AddComponent<HighflyAnimationDriver>();
             _animation.Initialize(_animator);
         }
 
         private void BuildHunter()
         {
-            GameObject prefab =
-                Resources.Load<GameObject>(
-                    "HIGHFLY/Run0/KayKitKnight");
-
+            GameObject prefab = Resources.Load<GameObject>("HIGHFLY/Run0/KayKitKnight");
             if (prefab == null)
             {
-                Debug.LogError(
-                    "[CLEAN-RUN0B] KayKitKnight resource missing.");
-
+                Debug.LogError("[RUN0C] KayKitKnight resource missing.");
                 return;
             }
 
-            _visual =
-                Instantiate(
-                    prefab,
-                    transform);
+            _visual = Instantiate(prefab, transform);
+            _visual.name = "HIGHFLY_KAYKIT_HUNTER";
+            _visual.transform.localPosition = Vector3.zero;
+            _visual.transform.localRotation = Quaternion.identity;
 
-            _visual.name =
-                "HIGHFLY_KAYKIT_HUNTER";
-
-            _visual.transform.localPosition =
-                Vector3.zero;
-
-            _visual.transform.localRotation =
-                Quaternion.identity;
-
-            foreach (
-                Collider c in
-                _visual.GetComponentsInChildren<Collider>(true))
-            {
+            foreach (Collider c in _visual.GetComponentsInChildren<Collider>(true))
                 c.enabled = false;
-            }
 
-            _animator =
-                _visual.GetComponent<Animator>();
+            _animator = _visual.GetComponent<Animator>();
+            if (_animator == null) _animator = _visual.AddComponent<Animator>();
 
-            if (_animator == null)
-            {
-                _animator =
-                    _visual.AddComponent<Animator>();
-            }
-
-            Avatar[] avatars =
-                Resources.LoadAll<Avatar>(
-                    "HIGHFLY/Run0/KayKitKnight");
-
+            Avatar[] avatars = Resources.LoadAll<Avatar>("HIGHFLY/Run0/KayKitKnight");
             foreach (Avatar avatar in avatars)
             {
-                if (avatar != null &&
-                    avatar.isValid &&
-                    avatar.isHuman)
+                if (avatar != null && avatar.isValid && avatar.isHuman)
                 {
                     _animator.avatar = avatar;
                     break;
@@ -106,101 +67,113 @@ namespace Highfly.Clean
             }
 
             _animator.applyRootMotion = false;
-
-            _animator.cullingMode =
-                AnimatorCullingMode.AlwaysAnimate;
+            _animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
 
             NormalizeVisual();
             ApplyFallbackTexture();
+            RemoveEmbeddedEquipmentVisuals();
+            AttachSingleSword();
 
-            // IMPORTANT: Knight already includes its weapon visual.
-            // The previous clean reboot instantiated KayKitSword1H again,
-            // producing the crossed/double sword seen on mobile.
-            // Keep the model's own weapon only.
-            Debug.Log(
-                "[CLEAN-RUN0B] KayKit embedded weapon kept • " +
-                "extra AttachSword disabled.");
+            Debug.Log("[RUN0C] Hunter ready • sanitized equipment • one explicit sword.");
+        }
 
-            Debug.Log(
-                "[CLEAN-RUN0B] Hunter ready • human=" +
-                (_animator.avatar != null &&
-                 _animator.avatar.isHuman));
+        private void RemoveEmbeddedEquipmentVisuals()
+        {
+            Renderer[] renderers = _visual.GetComponentsInChildren<Renderer>(true);
+            int disabled = 0;
+
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                Renderer r = renderers[i];
+                if (r == null) continue;
+
+                string path = FullPath(r.transform).ToLowerInvariant();
+
+                if (path.Contains("sword") ||
+                    path.Contains("weapon") ||
+                    path.Contains("shield") ||
+                    path.Contains("dagger") ||
+                    path.Contains("axe") ||
+                    path.Contains("mace") ||
+                    path.Contains("bow") ||
+                    path.Contains("quiver") ||
+                    path.Contains("staff") ||
+                    path.Contains("spear"))
+                {
+                    r.enabled = false;
+                    disabled++;
+                    Debug.Log("[RUN0C] disabled embedded equipment renderer: " + path);
+                }
+            }
+
+            Debug.Log("[RUN0C] embedded equipment renderers disabled=" + disabled);
+        }
+
+        private static string FullPath(Transform t)
+        {
+            string path = t.name;
+            Transform p = t.parent;
+            while (p != null)
+            {
+                path = p.name + "/" + path;
+                p = p.parent;
+            }
+            return path;
+        }
+
+        private void AttachSingleSword()
+        {
+            if (_animator == null || !_animator.isHuman) return;
+
+            Transform hand = _animator.GetBoneTransform(HumanBodyBones.RightHand);
+            GameObject prefab = Resources.Load<GameObject>("HIGHFLY/Run0/KayKitSword1H");
+
+            if (hand == null || prefab == null)
+            {
+                Debug.LogWarning("[RUN0C] single sword not attached: hand/prefab missing.");
+                return;
+            }
+
+            GameObject sword = Instantiate(prefab, hand);
+            sword.name = "HIGHFLY_SINGLE_SWORD";
+            sword.transform.localPosition = Vector3.zero;
+            sword.transform.localRotation = Quaternion.identity;
+            sword.transform.localScale = Vector3.one;
+
+            foreach (Collider c in sword.GetComponentsInChildren<Collider>(true))
+                c.enabled = false;
+
+            Debug.Log("[RUN0C] exactly one explicit KayKit sword attached.");
         }
 
         private void NormalizeVisual()
         {
-            Renderer[] renderers =
-                _visual.GetComponentsInChildren<Renderer>(true);
+            Renderer[] rr = _visual.GetComponentsInChildren<Renderer>(true);
+            if (rr.Length == 0) return;
 
-            if (renderers.Length == 0)
-                return;
+            Bounds bounds = rr[0].bounds;
+            for (int i=1;i<rr.Length;i++) bounds.Encapsulate(rr[i].bounds);
+            if (bounds.size.y <= 0.01f) return;
 
-            Bounds bounds =
-                renderers[0].bounds;
-
-            for (
-                int i = 1;
-                i < renderers.Length;
-                i++)
-            {
-                bounds.Encapsulate(
-                    renderers[i].bounds);
-            }
-
-            if (bounds.size.y <= 0.01f)
-                return;
-
-            float scale =
-                Mathf.Clamp(
-                    1.72f / bounds.size.y,
-                    0.1f,
-                    3f);
-
-            _visual.transform.localScale =
-                Vector3.one * scale;
-
+            float scale = Mathf.Clamp(1.72f / bounds.size.y,0.1f,3f);
+            _visual.transform.localScale = Vector3.one * scale;
             Physics.SyncTransforms();
 
-            bounds =
-                renderers[0].bounds;
+            bounds = rr[0].bounds;
+            for (int i=1;i<rr.Length;i++) bounds.Encapsulate(rr[i].bounds);
 
-            for (
-                int i = 1;
-                i < renderers.Length;
-                i++)
-            {
-                bounds.Encapsulate(
-                    renderers[i].bounds);
-            }
-
-            _visual.transform.position +=
-                Vector3.up *
-                (transform.position.y -
-                 bounds.min.y);
+            _visual.transform.position += Vector3.up * (transform.position.y - bounds.min.y);
         }
 
         private void ApplyFallbackTexture()
         {
-            Texture2D texture =
-                Resources.Load<Texture2D>(
-                    "HIGHFLY/Run0/knight_texture");
+            Texture2D texture = Resources.Load<Texture2D>("HIGHFLY/Run0/knight_texture");
+            Shader shader = Shader.Find("Standard");
+            if (texture == null || shader == null) return;
 
-            if (texture == null)
-                return;
-
-            Shader shader =
-                Shader.Find("Standard");
-
-            if (shader == null)
-                return;
-
-            foreach (
-                Renderer r in
-                _visual.GetComponentsInChildren<Renderer>(true))
+            foreach (Renderer r in _visual.GetComponentsInChildren<Renderer>(true))
             {
-                Material m =
-                    new Material(shader);
-
+                Material m = new Material(shader);
                 m.mainTexture = texture;
                 r.material = m;
             }
@@ -208,97 +181,45 @@ namespace Highfly.Clean
 
         private void Update()
         {
-            if (_controller == null ||
-                _cameraRig == null ||
-                HighflyInputRouter.Instance == null)
-            {
-                return;
-            }
+            if (_controller == null || _cameraRig == null || HighflyInputRouter.Instance == null) return;
 
-            HighflyInputRouter input =
-                HighflyInputRouter.Instance;
+            HighflyInputRouter input = HighflyInputRouter.Instance;
+            if (input.ConsumeAttack()) _animation?.TryAttack();
 
-            if (input.ConsumeAttack())
-                _animation?.TryAttack();
-
-            bool attacking =
-                _animation != null &&
-                _animation.IsAttacking;
-
-            Vector2 raw =
-                attacking
-                    ? Vector2.zero
-                    : input.Move;
+            bool attacking = _animation != null && _animation.IsAttacking;
+            Vector2 raw = attacking ? Vector2.zero : input.Move;
 
             Vector3 desired =
                 _cameraRig.FlatForward * raw.y +
                 _cameraRig.FlatRight * raw.x;
 
-            if (desired.sqrMagnitude > 1f)
-                desired.Normalize();
+            if (desired.sqrMagnitude > 1f) desired.Normalize();
 
-            Vector3 desiredVelocity =
-                desired * MoveSpeed;
-
-            _velocity =
-                Vector3.MoveTowards(
-                    _velocity,
-                    desiredVelocity,
-                    Acceleration *
-                    Time.deltaTime);
+            Vector3 desiredVelocity = desired * MoveSpeed;
+            _velocity = Vector3.MoveTowards(
+                _velocity, desiredVelocity, Acceleration * Time.deltaTime);
 
             if (_controller.isGrounded)
             {
-                if (_verticalVelocity < 0f)
-                    _verticalVelocity = -2f;
-
-                if (!attacking &&
-                    input.ConsumeJump())
-                {
-                    _verticalVelocity =
-                        JumpSpeed;
-                }
+                if (_verticalVelocity < 0f) _verticalVelocity = -2f;
+                if (!attacking && input.ConsumeJump()) _verticalVelocity = JumpSpeed;
             }
 
-            _verticalVelocity -=
-                Gravity *
-                Time.deltaTime;
+            _verticalVelocity -= Gravity * Time.deltaTime;
 
             Vector3 motion = _velocity;
             motion.y = _verticalVelocity;
+            _controller.Move(motion * Time.deltaTime);
 
-            _controller.Move(
-                motion *
-                Time.deltaTime);
-
-            Vector3 planar =
-                new Vector3(
-                    _velocity.x,
-                    0f,
-                    _velocity.z);
-
+            Vector3 planar = new Vector3(_velocity.x,0f,_velocity.z);
             if (planar.sqrMagnitude > 0.04f)
             {
-                Quaternion wanted =
-                    Quaternion.LookRotation(
-                        planar.normalized,
-                        Vector3.up);
-
-                transform.rotation =
-                    Quaternion.RotateTowards(
-                        transform.rotation,
-                        wanted,
-                        RotationSpeed *
-                        Time.deltaTime);
+                Quaternion wanted = Quaternion.LookRotation(planar.normalized,Vector3.up);
+                transform.rotation = Quaternion.RotateTowards(
+                    transform.rotation,wanted,RotationSpeed*Time.deltaTime);
             }
 
-            float normalized =
-                Mathf.Clamp01(
-                    planar.magnitude /
-                    MoveSpeed);
-
-            _animation?.PlayLocomotion(
-                normalized);
+            _animation?.PlayLocomotion(Mathf.Clamp01(planar.magnitude/MoveSpeed));
         }
     }
 }

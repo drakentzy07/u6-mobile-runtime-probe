@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -6,56 +5,11 @@ using UnityEngine.UI;
 
 namespace Highfly.Clean
 {
-    public enum HighflyTouchOwner
-    {
-        None,
-        Movement,
-        Camera,
-        Combat
-    }
-
-    public static class HighflyTouchOwnership
-    {
-        private static readonly Dictionary<int, HighflyTouchOwner> Owners =
-            new Dictionary<int, HighflyTouchOwner>();
-
-        public static bool TryClaim(int pointerId, HighflyTouchOwner owner)
-        {
-            HighflyTouchOwner existing;
-            if (Owners.TryGetValue(pointerId, out existing))
-                return existing == owner;
-
-            Owners[pointerId] = owner;
-            return true;
-        }
-
-        public static bool IsOwnedBy(int pointerId, HighflyTouchOwner owner)
-        {
-            HighflyTouchOwner existing;
-            return Owners.TryGetValue(pointerId, out existing) && existing == owner;
-        }
-
-        public static void Release(int pointerId)
-        {
-            Owners.Remove(pointerId);
-        }
-
-        public static void ReleaseAll()
-        {
-            Owners.Clear();
-        }
-    }
-
-    public sealed class HighflyMobileJoystick :
-        MonoBehaviour,
-        IPointerDownHandler,
-        IDragHandler,
-        IPointerUpHandler
+    public sealed class HighflyMobileJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
     {
         private RectTransform _rect;
         private RectTransform _knob;
         private float _radius = 86f;
-        private float _deadZone = 0.14f;
         private int _pointerId = int.MinValue;
 
         public void Configure(RectTransform knob, float radius)
@@ -65,630 +19,272 @@ namespace Highfly.Clean
             _radius = radius;
         }
 
-        private void Awake()
+        public void OnPointerDown(PointerEventData e)
         {
-            _rect = transform as RectTransform;
+            if (HighflyWebTouchBridge.IsRuntimeWebGL || _pointerId != int.MinValue) return;
+            _pointerId = e.pointerId;
+            UpdateStick(e);
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnDrag(PointerEventData e)
         {
-            if (_pointerId != int.MinValue) return;
-            if (eventData.position.x > Screen.width * 0.50f) return;
-            if (!HighflyTouchOwnership.TryClaim(
-                    eventData.pointerId,
-                    HighflyTouchOwner.Movement))
-                return;
-
-            _pointerId = eventData.pointerId;
-            UpdateStick(eventData);
+            if (HighflyWebTouchBridge.IsRuntimeWebGL || e.pointerId != _pointerId) return;
+            UpdateStick(e);
         }
 
-        public void OnDrag(PointerEventData eventData)
+        public void OnPointerUp(PointerEventData e)
         {
-            if (eventData.pointerId != _pointerId) return;
-            if (!HighflyTouchOwnership.IsOwnedBy(
-                    eventData.pointerId,
-                    HighflyTouchOwner.Movement))
-                return;
-
-            UpdateStick(eventData);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData.pointerId != _pointerId) return;
-
-            HighflyTouchOwnership.Release(_pointerId);
+            if (HighflyWebTouchBridge.IsRuntimeWebGL || e.pointerId != _pointerId) return;
             _pointerId = int.MinValue;
-
-            if (_knob != null)
-                _knob.anchoredPosition = Vector2.zero;
-
+            if (_knob != null) _knob.anchoredPosition = Vector2.zero;
             HighflyInputRouter.Instance?.SetMobileMove(Vector2.zero);
         }
 
-        private void UpdateStick(PointerEventData eventData)
+        private void UpdateStick(PointerEventData e)
         {
             if (_rect == null) return;
-
             Vector2 local;
+
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
-                    _rect,
-                    eventData.position,
-                    eventData.pressEventCamera,
-                    out local))
-                return;
+                    _rect, e.position, e.pressEventCamera, out local)) return;
 
-            Vector2 normalized =
-                Vector2.ClampMagnitude(local / Mathf.Max(1f, _radius), 1f);
-
-            if (_knob != null)
-                _knob.anchoredPosition = normalized * _radius;
-
-            float magnitude = normalized.magnitude;
-            Vector2 analog = Vector2.zero;
-
-            if (magnitude >= _deadZone)
-            {
-                float scaled =
-                    Mathf.InverseLerp(_deadZone, 1f, magnitude);
-
-                analog = normalized.normalized * scaled;
-            }
-
-            HighflyInputRouter.Instance?.SetMobileMove(analog);
-        }
-
-        private void OnDisable()
-        {
-            if (_pointerId != int.MinValue)
-                HighflyTouchOwnership.Release(_pointerId);
-
-            _pointerId = int.MinValue;
-
-            if (_knob != null)
-                _knob.anchoredPosition = Vector2.zero;
-
-            HighflyInputRouter.Instance?.SetMobileMove(Vector2.zero);
+            Vector2 stick = Vector2.ClampMagnitude(local / Mathf.Max(1f, _radius), 1f);
+            HighflyInputRouter.Instance?.SetMobileMove(stick);
         }
     }
 
-    public sealed class HighflyMobileLookZone :
-        MonoBehaviour,
-        IPointerDownHandler,
-        IInitializePotentialDragHandler,
-        IDragHandler,
-        IPointerUpHandler
+    public sealed class HighflyMobileLookZone : MonoBehaviour, IPointerDownHandler, IInitializePotentialDragHandler, IDragHandler, IPointerUpHandler
     {
         private int _pointerId = int.MinValue;
-        private Vector2 _lastPosition;
+        private Vector2 _last;
 
-        public void OnInitializePotentialDrag(PointerEventData eventData)
+        public void OnInitializePotentialDrag(PointerEventData e) => e.useDragThreshold = false;
+
+        public void OnPointerDown(PointerEventData e)
         {
-            eventData.useDragThreshold = false;
+            if (HighflyWebTouchBridge.IsRuntimeWebGL || _pointerId != int.MinValue) return;
+            if (e.position.x < Screen.width * 0.50f) return;
+            _pointerId = e.pointerId;
+            _last = e.position;
+            e.useDragThreshold = false;
         }
 
-        public void OnPointerDown(PointerEventData eventData)
+        public void OnDrag(PointerEventData e)
         {
-            if (_pointerId != int.MinValue) return;
-
-            // The left half can never become camera input.
-            if (eventData.position.x < Screen.width * 0.50f) return;
-
-            if (!HighflyTouchOwnership.TryClaim(
-                    eventData.pointerId,
-                    HighflyTouchOwner.Camera))
-                return;
-
-            _pointerId = eventData.pointerId;
-            _lastPosition = eventData.position;
-            eventData.useDragThreshold = false;
+            if (HighflyWebTouchBridge.IsRuntimeWebGL || e.pointerId != _pointerId) return;
+            Vector2 current = e.position;
+            HighflyInputRouter.Instance?.AddMobileLookDelta(current - _last);
+            _last = current;
         }
 
-        public void OnDrag(PointerEventData eventData)
+        public void OnPointerUp(PointerEventData e)
         {
-            if (eventData.pointerId != _pointerId) return;
-            if (!HighflyTouchOwnership.IsOwnedBy(
-                    eventData.pointerId,
-                    HighflyTouchOwner.Camera))
-                return;
-
-            Vector2 current = eventData.position;
-            Vector2 delta = current - _lastPosition;
-            _lastPosition = current;
-
-            HighflyInputRouter.Instance?.AddMobileLookDelta(delta);
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData.pointerId != _pointerId) return;
-
-            HighflyTouchOwnership.Release(_pointerId);
-            _pointerId = int.MinValue;
-        }
-
-        private void OnDisable()
-        {
-            if (_pointerId != int.MinValue)
-                HighflyTouchOwnership.Release(_pointerId);
-
-            _pointerId = int.MinValue;
+            if (HighflyWebTouchBridge.IsRuntimeWebGL) return;
+            if (e.pointerId == _pointerId) _pointerId = int.MinValue;
         }
     }
 
-    public enum HighflyMobileAction
-    {
-        Attack,
-        Jump
-    }
+    public enum HighflyMobileAction { Attack, Jump }
 
-    public sealed class HighflyMobileActionButton :
-        MonoBehaviour,
-        IPointerDownHandler,
-        IPointerUpHandler,
-        IPointerExitHandler
+    public sealed class HighflyMobileActionButton : MonoBehaviour, IPointerDownHandler
     {
         private HighflyMobileAction _action;
-        private RectTransform _rect;
-        private Image _image;
-        private Vector3 _restScale = Vector3.one;
-        private Color _restColor;
-        private int _pointerId = int.MinValue;
 
-        public void Configure(HighflyMobileAction action)
+        public void Configure(HighflyMobileAction action) => _action = action;
+
+        public void OnPointerDown(PointerEventData e)
         {
-            _action = action;
-            _rect = transform as RectTransform;
-            _image = GetComponent<Image>();
-
-            if (_rect != null)
-                _restScale = _rect.localScale;
-
-            if (_image != null)
-                _restColor = _image.color;
-        }
-
-        public void OnPointerDown(PointerEventData eventData)
-        {
-            if (_pointerId != int.MinValue) return;
-
-            if (!HighflyTouchOwnership.TryClaim(
-                    eventData.pointerId,
-                    HighflyTouchOwner.Combat))
-                return;
-
-            _pointerId = eventData.pointerId;
-
-            if (_rect != null)
-                _rect.localScale = _restScale * 0.92f;
-
-            if (_image != null)
-            {
-                Color c = _restColor;
-                _image.color = new Color(
-                    Mathf.Min(1f, c.r + 0.10f),
-                    Mathf.Min(1f, c.g + 0.14f),
-                    Mathf.Min(1f, c.b + 0.18f),
-                    Mathf.Min(1f, c.a + 0.12f));
-            }
-
-            if (_action == HighflyMobileAction.Attack)
-                HighflyInputRouter.Instance?.QueueAttack();
-            else if (_action == HighflyMobileAction.Jump)
-                HighflyInputRouter.Instance?.QueueJump();
-        }
-
-        public void OnPointerUp(PointerEventData eventData)
-        {
-            if (eventData.pointerId != _pointerId) return;
-
-            HighflyTouchOwnership.Release(_pointerId);
-            _pointerId = int.MinValue;
-            RestoreVisual();
-        }
-
-        public void OnPointerExit(PointerEventData eventData)
-        {
-            // Keep ownership until pointer-up so a sliding combat thumb
-            // cannot accidentally turn into camera input.
-            RestoreVisual();
-        }
-
-        private void RestoreVisual()
-        {
-            if (_rect != null)
-                _rect.localScale = _restScale;
-
-            if (_image != null)
-                _image.color = _restColor;
-        }
-
-        private void OnDisable()
-        {
-            if (_pointerId != int.MinValue)
-                HighflyTouchOwnership.Release(_pointerId);
-
-            _pointerId = int.MinValue;
-            RestoreVisual();
+            if (HighflyWebTouchBridge.IsRuntimeWebGL) return;
+            if (_action == HighflyMobileAction.Attack) HighflyInputRouter.Instance?.QueueAttack();
+            else HighflyInputRouter.Instance?.QueueJump();
         }
     }
 
     public sealed class HighflyMobileControls : MonoBehaviour
     {
-        private const int ReferenceWidth = 1920;
-        private const int ReferenceHeight = 1080;
-
         private Font _font;
-        private Sprite _discSprite;
-        private Sprite _ringSprite;
+        private Sprite _disc;
+        private Sprite _ring;
+        private RectTransform _knob;
 
         private void Awake()
         {
             EnsureEventSystem();
             BuildUI();
-
-            Debug.Log(
-                "[CLEAN-RUN0B] Golden mobile input installed • " +
-                "left=movement • right=camera • multitouch ownership=ON");
+            Debug.Log("[RUN0C] Mobile HUD • direct WebGL touch + native fallback.");
         }
 
-        private void OnApplicationFocus(bool hasFocus)
+        private void Update()
         {
-            if (hasFocus) return;
-
-            HighflyTouchOwnership.ReleaseAll();
-            HighflyInputRouter.Instance?.SetMobileMove(Vector2.zero);
+            if (_knob == null || HighflyInputRouter.Instance == null) return;
+            _knob.anchoredPosition = HighflyInputRouter.Instance.MobileStickVisual * 86f;
         }
 
-        private void EnsureEventSystem()
+        private static void EnsureEventSystem()
         {
-            EventSystem eventSystem = EventSystem.current;
-
-            if (eventSystem == null)
+            EventSystem es = EventSystem.current;
+            if (es == null)
             {
-                GameObject eventSystemGo =
-                    new GameObject("HIGHFLY_EVENT_SYSTEM");
-
-                eventSystem =
-                    eventSystemGo.AddComponent<EventSystem>();
+                GameObject go = new GameObject("HIGHFLY_EVENT_SYSTEM");
+                es = go.AddComponent<EventSystem>();
             }
-
-            if (eventSystem.GetComponent<InputSystemUIInputModule>() == null)
-            {
-                eventSystem.gameObject.AddComponent<InputSystemUIInputModule>();
-            }
+            if (es.GetComponent<InputSystemUIInputModule>() == null)
+                es.gameObject.AddComponent<InputSystemUIInputModule>();
         }
 
         private void BuildUI()
         {
-            _font =
-                Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            _discSprite = CreateRadialSprite(false);
-            _ringSprite = CreateRadialSprite(true);
+            _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            _disc = CreateRadialSprite(false);
+            _ring = CreateRadialSprite(true);
 
             GameObject canvasGo = new GameObject(
                 "HIGHFLY_MOBILE_CONTROLS",
-                typeof(Canvas),
-                typeof(CanvasScaler),
-                typeof(GraphicRaycaster));
-
+                typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasGo.transform.SetParent(transform, false);
 
             Canvas canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 5000;
 
-            CanvasScaler scaler =
-                canvasGo.GetComponent<CanvasScaler>();
-
-            scaler.uiScaleMode =
-                CanvasScaler.ScaleMode.ScaleWithScreenSize;
-
-            scaler.referenceResolution =
-                new Vector2(ReferenceWidth, ReferenceHeight);
-
+            CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
             scaler.matchWidthOrHeight = 0.5f;
 
-            GameObject root = new GameObject(
-                "Controls",
-                typeof(RectTransform));
-
+            GameObject root = new GameObject("Controls", typeof(RectTransform));
             root.transform.SetParent(canvasGo.transform, false);
             Stretch(root.GetComponent<RectTransform>());
 
-            // Look zone must be created first so joystick/buttons render
-            // above it and receive their own pointer events.
             CreateLookZone(root.transform);
             CreateJoystick(root.transform);
-
-            CreateActionButton(
-                root.transform,
-                "SALTO",
-                new Vector2(-335f, 135f),
-                new Vector2(130f, 130f),
-                HighflyMobileAction.Jump,
-                22);
-
-            CreateActionButton(
-                root.transform,
-                "ATQ",
-                new Vector2(-145f, 145f),
-                new Vector2(176f, 176f),
-                HighflyMobileAction.Attack,
-                30);
+            CreateButton(root.transform, "SALTO", new Vector2(-335f,135f), new Vector2(130f,130f), HighflyMobileAction.Jump, 22);
+            CreateButton(root.transform, "ATQ", new Vector2(-145f,145f), new Vector2(176f,176f), HighflyMobileAction.Attack, 30);
         }
 
         private void CreateLookZone(Transform parent)
         {
-            GameObject go = new GameObject(
-                "CAMERA_DERECHA",
-                typeof(RectTransform),
-                typeof(Image),
-                typeof(HighflyMobileLookZone));
-
+            GameObject go = new GameObject("CAMERA_DERECHA", typeof(RectTransform), typeof(Image), typeof(HighflyMobileLookZone));
             go.transform.SetParent(parent, false);
-
-            RectTransform rect = go.GetComponent<RectTransform>();
-            rect.anchorMin = new Vector2(0.50f, 0f);
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
-
+            RectTransform r = go.GetComponent<RectTransform>();
+            r.anchorMin = new Vector2(0.5f,0f);
+            r.anchorMax = Vector2.one;
+            r.offsetMin = Vector2.zero;
+            r.offsetMax = Vector2.zero;
             Image image = go.GetComponent<Image>();
-            image.color = new Color(0f, 0f, 0f, 0.001f);
+            image.color = new Color(0f,0f,0f,0.001f);
             image.raycastTarget = true;
         }
 
         private void CreateJoystick(Transform parent)
         {
-            GameObject baseGo = new GameObject(
-                "JOYSTICK_IZQUIERDA",
-                typeof(RectTransform),
-                typeof(Image),
-                typeof(HighflyMobileJoystick));
-
+            GameObject baseGo = new GameObject("JOYSTICK_IZQUIERDA", typeof(RectTransform), typeof(Image), typeof(HighflyMobileJoystick));
             baseGo.transform.SetParent(parent, false);
+            RectTransform r = baseGo.GetComponent<RectTransform>();
+            r.anchorMin = r.anchorMax = Vector2.zero;
+            r.pivot = new Vector2(0.5f,0.5f);
+            r.sizeDelta = new Vector2(230f,230f);
+            r.anchoredPosition = new Vector2(170f,175f);
+            Image image = baseGo.GetComponent<Image>();
+            image.sprite = _disc;
+            image.color = new Color(0.02f,0.09f,0.16f,0.50f);
 
-            RectTransform baseRect =
-                baseGo.GetComponent<RectTransform>();
-
-            baseRect.anchorMin =
-                baseRect.anchorMax =
-                    new Vector2(0f, 0f);
-
-            baseRect.pivot =
-                new Vector2(0.5f, 0.5f);
-
-            baseRect.sizeDelta =
-                new Vector2(230f, 230f);
-
-            baseRect.anchoredPosition =
-                new Vector2(170f, 175f);
-
-            Image baseImage = baseGo.GetComponent<Image>();
-            baseImage.sprite = _discSprite;
-            baseImage.color =
-                new Color(0.02f, 0.09f, 0.16f, 0.50f);
-            baseImage.raycastTarget = true;
-
-            GameObject knobGo = new GameObject(
-                "Knob",
-                typeof(RectTransform),
-                typeof(Image));
-
+            GameObject knobGo = new GameObject("Knob", typeof(RectTransform), typeof(Image));
             knobGo.transform.SetParent(baseGo.transform, false);
-
-            RectTransform knobRect =
-                knobGo.GetComponent<RectTransform>();
-
-            knobRect.anchorMin =
-                knobRect.anchorMax =
-                    new Vector2(0.5f, 0.5f);
-
-            knobRect.pivot =
-                new Vector2(0.5f, 0.5f);
-
-            knobRect.sizeDelta =
-                new Vector2(96f, 96f);
-
-            knobRect.anchoredPosition = Vector2.zero;
-
+            _knob = knobGo.GetComponent<RectTransform>();
+            _knob.anchorMin = _knob.anchorMax = new Vector2(0.5f,0.5f);
+            _knob.pivot = new Vector2(0.5f,0.5f);
+            _knob.sizeDelta = new Vector2(96f,96f);
             Image knobImage = knobGo.GetComponent<Image>();
-            knobImage.sprite = _discSprite;
-            knobImage.color =
-                new Color(0.15f, 0.72f, 1f, 0.72f);
+            knobImage.sprite = _disc;
+            knobImage.color = new Color(0.15f,0.72f,1f,0.72f);
             knobImage.raycastTarget = false;
 
-            GameObject ringGo = new GameObject(
-                "JoystickRing",
-                typeof(RectTransform),
-                typeof(Image));
-
+            GameObject ringGo = new GameObject("Ring", typeof(RectTransform), typeof(Image));
             ringGo.transform.SetParent(baseGo.transform, false);
+            RectTransform rr = ringGo.GetComponent<RectTransform>();
+            rr.anchorMin = rr.anchorMax = new Vector2(0.5f,0.5f);
+            rr.pivot = new Vector2(0.5f,0.5f);
+            rr.sizeDelta = new Vector2(222f,222f);
+            Image ri = ringGo.GetComponent<Image>();
+            ri.sprite = _ring;
+            ri.color = new Color(0.20f,0.75f,1f,0.46f);
+            ri.raycastTarget = false;
 
-            RectTransform ringRect =
-                ringGo.GetComponent<RectTransform>();
-
-            ringRect.anchorMin =
-                ringRect.anchorMax =
-                    new Vector2(0.5f, 0.5f);
-
-            ringRect.pivot =
-                new Vector2(0.5f, 0.5f);
-
-            ringRect.sizeDelta =
-                new Vector2(222f, 222f);
-
-            Image ringImage = ringGo.GetComponent<Image>();
-            ringImage.sprite = _ringSprite;
-            ringImage.color =
-                new Color(0.20f, 0.75f, 1f, 0.46f);
-            ringImage.raycastTarget = false;
-
-            baseGo
-                .GetComponent<HighflyMobileJoystick>()
-                .Configure(knobRect, 86f);
+            baseGo.GetComponent<HighflyMobileJoystick>().Configure(_knob, 86f);
         }
 
-        private void CreateActionButton(
-            Transform parent,
-            string label,
-            Vector2 anchoredPosition,
-            Vector2 size,
-            HighflyMobileAction action,
-            int fontSize)
+        private void CreateButton(Transform parent, string label, Vector2 position, Vector2 size, HighflyMobileAction action, int fontSize)
         {
-            GameObject go = new GameObject(
-                label,
-                typeof(RectTransform),
-                typeof(Image),
-                typeof(HighflyMobileActionButton));
-
+            GameObject go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(HighflyMobileActionButton));
             go.transform.SetParent(parent, false);
-
-            RectTransform rect =
-                go.GetComponent<RectTransform>();
-
-            rect.anchorMin =
-                rect.anchorMax =
-                    new Vector2(1f, 0f);
-
-            rect.pivot =
-                new Vector2(0.5f, 0.5f);
-
-            rect.sizeDelta = size;
-            rect.anchoredPosition = anchoredPosition;
-
+            RectTransform r = go.GetComponent<RectTransform>();
+            r.anchorMin = r.anchorMax = new Vector2(1f,0f);
+            r.pivot = new Vector2(0.5f,0.5f);
+            r.sizeDelta = size;
+            r.anchoredPosition = position;
             Image image = go.GetComponent<Image>();
-            image.sprite = _discSprite;
-            image.color =
-                new Color(0.015f, 0.035f, 0.07f, 0.82f);
-            image.raycastTarget = true;
+            image.sprite = _disc;
+            image.color = new Color(0.015f,0.035f,0.07f,0.82f);
 
-            GameObject ringGo = new GameObject(
-                "Ring",
-                typeof(RectTransform),
-                typeof(Image));
-
+            GameObject ringGo = new GameObject("Ring", typeof(RectTransform), typeof(Image));
             ringGo.transform.SetParent(go.transform, false);
+            RectTransform rr = ringGo.GetComponent<RectTransform>();
+            Stretch(rr);
+            rr.offsetMin = new Vector2(4f,4f);
+            rr.offsetMax = new Vector2(-4f,-4f);
+            Image ri = ringGo.GetComponent<Image>();
+            ri.sprite = _ring;
+            ri.color = action == HighflyMobileAction.Attack
+                ? new Color(0.10f,0.85f,1f,0.90f)
+                : new Color(0.35f,0.70f,1f,0.82f);
+            ri.raycastTarget = false;
 
-            RectTransform ringRect =
-                ringGo.GetComponent<RectTransform>();
-
-            ringRect.anchorMin = Vector2.zero;
-            ringRect.anchorMax = Vector2.one;
-            ringRect.offsetMin = new Vector2(4f, 4f);
-            ringRect.offsetMax = new Vector2(-4f, -4f);
-
-            Image ring = ringGo.GetComponent<Image>();
-            ring.sprite = _ringSprite;
-            ring.color =
-                action == HighflyMobileAction.Attack
-                    ? new Color(0.10f, 0.85f, 1f, 0.90f)
-                    : new Color(0.35f, 0.70f, 1f, 0.82f);
-            ring.raycastTarget = false;
-
-            GameObject textGo = new GameObject(
-                "Text",
-                typeof(RectTransform),
-                typeof(Text));
-
+            GameObject textGo = new GameObject("Text", typeof(RectTransform), typeof(Text));
             textGo.transform.SetParent(go.transform, false);
+            Stretch(textGo.GetComponent<RectTransform>());
+            Text t = textGo.GetComponent<Text>();
+            t.font = _font;
+            t.text = label;
+            t.fontSize = fontSize;
+            t.alignment = TextAnchor.MiddleCenter;
+            t.color = Color.white;
+            t.raycastTarget = false;
 
-            RectTransform textRect =
-                textGo.GetComponent<RectTransform>();
-
-            Stretch(textRect);
-
-            Text text = textGo.GetComponent<Text>();
-            text.font = _font;
-            text.text = label;
-            text.fontSize = fontSize;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = new Color(0.94f, 0.98f, 1f, 0.97f);
-            text.raycastTarget = false;
-
-            go.GetComponent<HighflyMobileActionButton>()
-                .Configure(action);
+            go.GetComponent<HighflyMobileActionButton>().Configure(action);
         }
 
         private static Sprite CreateRadialSprite(bool ringOnly)
         {
             const int size = 128;
+            Texture2D tex = new Texture2D(size,size,TextureFormat.RGBA32,false);
+            Color32[] pixels = new Color32[size*size];
+            float center = (size-1)*0.5f;
+            float outer = center-1f;
+            float inner = outer*0.84f;
 
-            Texture2D texture =
-                new Texture2D(
-                    size,
-                    size,
-                    TextureFormat.RGBA32,
-                    false);
-
-            texture.name =
-                ringOnly
-                    ? "HF_CLEAN_RING"
-                    : "HF_CLEAN_DISC";
-
-            Color32[] pixels =
-                new Color32[size * size];
-
-            float center = (size - 1) * 0.5f;
-            float outer = center - 1f;
-            float inner = outer * 0.84f;
-
-            for (int y = 0; y < size; y++)
+            for(int y=0;y<size;y++)
+            for(int x=0;x<size;x++)
             {
-                for (int x = 0; x < size; x++)
-                {
-                    float dx = x - center;
-                    float dy = y - center;
-                    float d = Mathf.Sqrt(dx * dx + dy * dy);
-
-                    byte a;
-
-                    if (ringOnly)
-                    {
-                        float edge =
-                            Mathf.Clamp01((outer - d) * 1.5f);
-
-                        float hole =
-                            Mathf.Clamp01((d - inner) * 1.5f);
-
-                        a = (byte)(
-                            255f *
-                            Mathf.Clamp01(
-                                Mathf.Min(edge, hole)));
-                    }
-                    else
-                    {
-                        a = (byte)(
-                            255f *
-                            Mathf.Clamp01(
-                                (outer - d) * 1.5f));
-                    }
-
-                    pixels[y * size + x] =
-                        new Color32(255, 255, 255, a);
-                }
+                float dx=x-center, dy=y-center;
+                float d=Mathf.Sqrt(dx*dx+dy*dy);
+                float a = ringOnly
+                    ? Mathf.Clamp01(Mathf.Min((outer-d)*1.5f,(d-inner)*1.5f))
+                    : Mathf.Clamp01((outer-d)*1.5f);
+                pixels[y*size+x]=new Color32(255,255,255,(byte)(255f*a));
             }
 
-            texture.SetPixels32(pixels);
-            texture.Apply(false, true);
-
-            return Sprite.Create(
-                texture,
-                new Rect(0f, 0f, size, size),
-                new Vector2(0.5f, 0.5f),
-                100f);
+            tex.SetPixels32(pixels);
+            tex.Apply(false,true);
+            return Sprite.Create(tex,new Rect(0,0,size,size),new Vector2(0.5f,0.5f),100f);
         }
 
-        private static void Stretch(RectTransform rect)
+        private static void Stretch(RectTransform r)
         {
-            rect.anchorMin = Vector2.zero;
-            rect.anchorMax = Vector2.one;
-            rect.offsetMin = Vector2.zero;
-            rect.offsetMax = Vector2.zero;
+            r.anchorMin=Vector2.zero;
+            r.anchorMax=Vector2.one;
+            r.offsetMin=Vector2.zero;
+            r.offsetMax=Vector2.zero;
         }
     }
 }
