@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Highfly.Run0H;
 using Highfly.Run0I;
+using Highfly.Run0I2;
 
 namespace Highfly.Combat
 {
@@ -19,6 +20,7 @@ namespace Highfly.Combat
         private ActionKind _action;
         private float _elapsed,_duration;
         private Vector3 _facing,_previousMotionOffset;
+        private float _previousForwardDistance;
         private int _phase=-1,_activeWindow=-1;
         private bool _activeNow,_queuedLight,_parryConfirmed;
         private int _comboStep;
@@ -128,24 +130,26 @@ namespace Highfly.Combat
         private void StartBasic(int step)
         {
             _comboStep = step;
-            _comboExpire = Time.unscaledTime + 0.90f;
+            _comboExpire = Time.unscaledTime + 0.95f;
             _queuedLight = false;
             ActionKind kind = step==1?ActionKind.Basic1:step==2?ActionKind.Basic2:ActionKind.Basic3;
 
-            bool assassin = IsAssassin();
-            string clip = !assassin
-                ? (step==1?"Warrior_A":step==2?"Warrior_B":"Warrior_C")
-                : (step==1?"Assassin_A":step==2?"Assassin_B":"Assassin_C");
+            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            HighflyLoadoutProfile profile=visual!=null?visual.CurrentLoadout:HighflyLoadoutProfile.SwordShield;
+            HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(profile).GetBasic(step);
+            if (pattern==null)
+            {
+                Debug.LogError("[RUN0I.2] No basic strike pattern for "+profile+" step "+step);
+                return;
+            }
 
-            // Preserve the full body phrase instead of cutting at a hardcoded timer.
-            // Lucid's original Animator used 2.0x on hit1 and 1.5x on hit2/3.
-            float speed = assassin ? 1.15f : (step==1?2.00f:1.50f);
-            float sourceLength = HighflyRun0HCharacterVisual.Instance?.GetActionClipLength(clip) ?? 0.75f;
-            float duration = Mathf.Clamp(sourceLength / Mathf.Max(0.05f,speed),0.42f,1.35f);
+            float sourceLength = visual!=null ? visual.GetActionClipLength(pattern.MotionSlot) : 0.75f;
+            float duration = Mathf.Clamp(sourceLength / Mathf.Max(0.05f,pattern.AnimationSpeed),0.38f,1.45f);
 
             BeginAction(kind,duration,PlayerState.Attack);
-            SetPhase(0,clip,speed);
+            SetPhase(0,pattern.MotionSlot,pattern.AnimationSpeed);
             PlayOneShot(_swing);
+            Debug.Log("[RUN0I.2] STRIKE "+profile+" • "+pattern.Id+" • "+pattern.Arrow);
         }
 
         private void StartSonicLeap()
@@ -182,11 +186,10 @@ namespace Highfly.Combat
         private void BeginAction(ActionKind kind,float duration,PlayerState state)
         {
             _action=kind; _duration=duration; _elapsed=0f; _phase=-1; _activeWindow=-1; _activeNow=false;
-            _hitThisWindow.Clear(); _previousMotionOffset=Vector3.zero; _hasPrevTips=false;
+            _hitThisWindow.Clear(); _previousMotionOffset=Vector3.zero; _previousForwardDistance=0f; _hasPrevTips=false;
             // Capture 360-degree stick intent BEFORE locking movement for the action.
             _facing=ResolveCombatForward(_player.HighflyMobileMoveInput);
             _player.currentState=state;
-            _player.SetHighflyMobileMove(Vector2.zero);
             HighflyRun0HCharacterVisual.Instance?.SetActionFacing(_facing);
             HighflyRun0HCharacterVisual.Instance?.SetWeaponTrail(false);
             Debug.Log("[RUN0I] ACTION START " + kind);
@@ -208,24 +211,54 @@ namespace Highfly.Combat
 
         private void UpdateBasic(float now)
         {
+            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            HighflyLoadoutProfile profile=visual!=null?visual.CurrentLoadout:HighflyLoadoutProfile.SwordShield;
+            HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(profile).GetBasic(_comboStep);
+            if (pattern==null) { FinishAction(false); return; }
+
             float n = _duration > 0.0001f ? Mathf.Clamp01(now/_duration) : 1f;
+            UpdateDirectionalFacing(pattern,n);
 
-            float activeStart = _comboStep==1 ? 0.22f : _comboStep==2 ? 0.20f : 0.28f;
-            float activeEnd   = _comboStep==1 ? 0.42f : _comboStep==2 ? 0.43f : 0.62f;
-            float movement    = _comboStep==3 ? 0.30f : 0.18f;
+            float travelN=Mathf.Clamp01(n/Mathf.Max(0.01f,pattern.ActiveEndN));
+            float desiredDistance=pattern.MovementMeters*Mathf.SmoothStep(0f,1f,travelN);
+            MoveForwardDistance(desiredDistance);
 
-            MoveToOffset(_facing * movement * Mathf.Clamp01(n/Mathf.Max(0.01f,activeEnd)));
-            SetActiveWindow(n>=activeStart && n<=activeEnd,0,18f+_comboStep*4f,_comboStep==3?0.065f:0.045f);
+            SetActiveWindow(
+                n>=pattern.ActiveStartN && n<=pattern.ActiveEndN,
+                0,
+                pattern.Damage,
+                pattern.Hitstop);
 
-            // Buffer may be pressed early, but the next body motion cannot replace the current
-            // clip until most of the current phrase has actually played.
-            const float linkNormalized = 0.82f;
-            if (_queuedLight && n>=linkNormalized)
+            if (_queuedLight && n>=pattern.LinkAtN)
             {
                 int next=(_comboStep%3)+1;
                 FinishAction(false);
                 StartBasic(next);
             }
+        }
+
+        private void UpdateDirectionalFacing(HighflyStrikePattern pattern,float normalizedTime)
+        {
+            Vector2 stick=_player.HighflyMobileMoveInput;
+            if (_player.LockOnTarget==null && stick.sqrMagnitude<=0.0225f) return;
+
+            Vector3 desired=ResolveCombatForward(stick);
+            if (desired.sqrMagnitude<0.01f) return;
+
+            float phaseFactor = normalizedTime < pattern.ActiveStartN
+                ? 1f
+                : normalizedTime <= pattern.ActiveEndN ? 0.35f : 0.15f;
+            float maxRadians=Mathf.Deg2Rad*pattern.SteerDegreesPerSecond*phaseFactor*Time.unscaledDeltaTime;
+            _facing=Vector3.RotateTowards(_facing,desired,maxRadians,0f).normalized;
+            HighflyRun0HCharacterVisual.Instance?.SetActionFacing(_facing);
+        }
+
+        private void MoveForwardDistance(float desiredDistance)
+        {
+            if (_controller==null) return;
+            float delta=desiredDistance-_previousForwardDistance;
+            if (Mathf.Abs(delta)>0.00001f) _controller.Move(_facing*delta);
+            _previousForwardDistance=desiredDistance;
         }
 
         private void UpdateSonicLeap(float now)
@@ -313,7 +346,7 @@ namespace Highfly.Combat
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             if (visual==null) return;
             TraceOne(visual.PrimaryBase,visual.PrimaryTip,ref _prevPrimaryTip,damage,hitstop);
-            if (IsAssassin()) TraceOne(visual.SecondaryBase,visual.SecondaryTip,ref _prevSecondaryTip,damage,hitstop);
+            if (visual.UsesSecondaryTrace) TraceOne(visual.SecondaryBase,visual.SecondaryTip,ref _prevSecondaryTip,damage,hitstop);
             _hasPrevTips=true;
         }
 
@@ -398,12 +431,6 @@ namespace Highfly.Combat
             return fallback.sqrMagnitude>0.01f?fallback.normalized:Vector3.forward;
         }
 
-        private bool IsAssassin()
-        {
-            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
-            return visual!=null && visual.Current==HighflyRun0HCharacter.Assassin;
-        }
-
         private void PlayOneShot(AudioClip clip) { if (_audio!=null && clip!=null) _audio.PlayOneShot(clip); }
 
         private void FinishAction(bool allowQueued=true)
@@ -414,7 +441,7 @@ namespace Highfly.Combat
             HighflyRun0HCharacterVisual.Instance?.ClearActionFacing();
 
             _action=ActionKind.None; _elapsed=0f; _duration=0f; _phase=-1; _activeWindow=-1; _activeNow=false;
-            _hitThisWindow.Clear(); _previousMotionOffset=Vector3.zero; _hasPrevTips=false;
+            _hitThisWindow.Clear(); _previousMotionOffset=Vector3.zero; _previousForwardDistance=0f; _hasPrevTips=false;
 
             if (_player.currentState!=PlayerState.Die && _player.currentState!=PlayerState.Interact &&
                 _player.currentState!=PlayerState.UseItem) _player.currentState=PlayerState.Locomotion;
