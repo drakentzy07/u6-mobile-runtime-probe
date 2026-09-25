@@ -27,6 +27,45 @@ namespace Highfly.SkillLab
         public static object Get(int index) => null;
     }
 
+    public static class HighflyCombatLabV010
+    {
+        public static bool TryInterceptLethal(
+            PlayerStats player,
+            float damage,
+            Transform attacker)
+        {
+            return false;
+        }
+    }
+
+    public static class HighflyReflectiveWallState
+    {
+        public static bool TryReflect(
+            PlayerStats player,
+            float damage,
+            float composureDamage,
+            Transform attacker)
+        {
+            return false;
+        }
+    }
+
+    public static class HighflyDonorDefenseState
+    {
+        public static bool TryModifyIncoming(
+            PlayerStats player,
+            ref float damage,
+            ref float composureDamage)
+        {
+            return false;
+        }
+    }
+
+    public sealed class HighflySkillCooldownVisual : MonoBehaviour
+    {
+        public void Configure(int skillSlot, Sprite discSprite) { }
+    }
+
     public static class HighflyCombatFacingV027
     {
         public static void FaceVisual(Vector3 worldDirection) { }
