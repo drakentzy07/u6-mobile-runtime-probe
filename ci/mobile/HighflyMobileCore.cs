@@ -677,7 +677,7 @@ namespace Highfly.Mobile
             CreateButton(parent, "ATQ",      new Vector2(-118f, 132f), new Vector2(184f, 184f), HighflyMobileAction.Attack, 31);
 
             CreateButton(parent, "S1",       new Vector2(-315f, 92f),  new Vector2(110f, 110f), HighflyMobileAction.Skill1, 21);
-            CreateButton(parent, "S2",       new Vector2(-345f, 225f), new Vector2(108f, 108f), HighflyMobileAction.Skill2, 20);
+            CreateButton(parent, "S2\nOFF",  new Vector2(-345f, 225f), new Vector2(108f, 108f), HighflyMobileAction.Skill2, 15);
             CreateButton(parent, "S3",       new Vector2(-300f, 355f), new Vector2(108f, 108f), HighflyMobileAction.Skill3, 20);
             CreateButton(parent, "S4",       new Vector2(-195f, 445f), new Vector2(108f, 108f), HighflyMobileAction.Skill4, 20);
 
