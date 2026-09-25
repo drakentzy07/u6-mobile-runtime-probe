@@ -16,15 +16,17 @@ mergeInto(LibraryManager.library, {
       var canvas = Module['canvas'];
       if (!canvas) return;
 
+      var ua = navigator.userAgent || '';
+      var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+      var touchPoints = navigator.maxTouchPoints || 0;
+      var mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
+      var isTouch = mobileUa || coarse || touchPoints > 0;
+
       canvas.style.touchAction = 'none';
       canvas.style.webkitUserSelect = 'none';
       canvas.style.userSelect = 'none';
       canvas.style.cursor = 'auto';
-      canvas.style.width = '100vw';
-      canvas.style.height = '100vh';
       canvas.style.position = 'fixed';
-      canvas.style.left = '0';
-      canvas.style.top = '0';
       canvas.style.margin = '0';
       canvas.style.padding = '0';
       canvas.oncontextmenu = function () { return false; };
@@ -34,7 +36,7 @@ mergeInto(LibraryManager.library, {
       document.documentElement.style.width = '100%';
       document.documentElement.style.height = '100%';
       document.documentElement.style.overflow = 'hidden';
-      document.documentElement.style.background = '#000';
+      document.documentElement.style.background = '#05070b';
 
       document.body.style.margin = '0';
       document.body.style.padding = '0';
@@ -42,17 +44,43 @@ mergeInto(LibraryManager.library, {
       document.body.style.height = '100%';
       document.body.style.overflow = 'hidden';
       document.body.style.overscrollBehavior = 'none';
-      document.body.style.background = '#000';
+      document.body.style.background = '#05070b';
+
+      if (isTouch) {
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
+        canvas.style.left = '0';
+        canvas.style.top = '0';
+        canvas.style.transform = 'none';
+        canvas.style.border = '0';
+        canvas.style.borderRadius = '0';
+        canvas.style.boxShadow = 'none';
+      } else {
+        var fitDesktopPhone = function () {
+          var aspect = 1180 / 560;
+          var maxW = Math.min(window.innerWidth * 0.96, 1180);
+          var maxH = Math.min(window.innerHeight * 0.92, 560);
+          var w = Math.min(maxW, maxH * aspect);
+          var h = w / aspect;
+          canvas.style.width = Math.round(w) + 'px';
+          canvas.style.height = Math.round(h) + 'px';
+          canvas.style.left = '50%';
+          canvas.style.top = '50%';
+          canvas.style.transform = 'translate(-50%, -50%)';
+          canvas.style.border = '1px solid rgba(80,190,255,.35)';
+          canvas.style.borderRadius = '10px';
+          canvas.style.boxShadow = '0 18px 70px rgba(0,0,0,.65)';
+        };
+        fitDesktopPhone();
+        if (!canvas.__highflyDesktopFitBound) {
+          canvas.__highflyDesktopFitBound = true;
+          window.addEventListener('resize', fitDesktopPhone);
+        }
+      }
 
       if (document.pointerLockElement && document.exitPointerLock) {
         document.exitPointerLock();
       }
-
-      var ua = navigator.userAgent || '';
-      var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-      var touchPoints = navigator.maxTouchPoints || 0;
-      var mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-      var isTouch = mobileUa || coarse || touchPoints > 0;
 
       if (isTouch && !canvas.__highflyImmersiveArmed) {
         canvas.__highflyImmersiveArmed = true;
