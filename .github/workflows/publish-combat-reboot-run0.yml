@@ -1,4 +1,4 @@
-name: Publish HIGHFLY Skills Lab Supremo Run0G
+name: Publish HIGHFLY Skills Lab Supremo Run0H
 
 on:
   push:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   stage:
-    name: Merge current Pages + Skills Lab Supremo Run0G
+    name: Merge current Pages + Skills Lab Supremo Run0H
     runs-on: ubuntu-latest
     steps:
       - name: Download current combined Pages site
@@ -30,14 +30,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: 36028413033
 
-      - name: Download verified Run0G CLEAN WebGL
+      - name: Download verified Run0H LAB WebGL
         uses: actions/download-artifact@v4
         with:
-          name: highfly-run0g-clean-webgl
-          path: run0g
+          name: highfly-run0h-webgl
+          path: run0h
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 36083116254
+          run-id: 36128740409
 
       - name: Assemble combined site
         shell: bash
@@ -54,22 +54,22 @@ jobs:
           test -f site/donor-lab-v27/index.html
           test -f site/combat-reboot-run0/index.html
 
-          test -f run0g/index.html
-          test -d run0g/Build
-          test -f run0g/RUN0G_BUILD.txt
-          test -n "$(find run0g/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
-          test -n "$(find run0g/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
+          test -f run0h/index.html
+          test -d run0h/Build
+          test -f run0h/RUN0H_BUILD.txt
+          test -n "$(find run0h/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
+          test -n "$(find run0h/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
 
           rm -rf site/skills-lab-supremo
           mkdir -p site/skills-lab-supremo
-          cp -a run0g/. site/skills-lab-supremo/
+          cp -a run0h/. site/skills-lab-supremo/
 
           test -f site/skills-lab-supremo/index.html
           test -d site/skills-lab-supremo/Build
           test -n "$(find site/skills-lab-supremo/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
           test -n "$(find site/skills-lab-supremo/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
 
-          echo "HIGHFLY SKILLS LAB SUPREMO • RUN0F • LUCID + DRAGON + KAYKIT • UNITY 6000.6.2 • SOURCE RUN 36075060029 • COMMIT f780ca21988c98498249db9ae1d5887bbd663df9" > site/skills-lab-supremo/published-version.txt
+          echo "HIGHFLY SKILLS LAB SUPREMO • RUN0H • DIRECT LAB • WARRIOR + ASSASSIN • LUCID + DRAGON • UNITY 6000.6.2 • SOURCE RUN 36128740409 • COMMIT 1c7bcdabaaee36caec96f7786595a5d5ed973e33" > site/skills-lab-supremo/published-version.txt
           touch site/.nojekyll
           du -sh site/skills-lab-supremo
 
@@ -82,7 +82,7 @@ jobs:
           path: site
 
   deploy:
-    name: Deploy Pages + Skills Lab Supremo Run0G
+    name: Deploy Pages + Skills Lab Supremo Run0H
     needs: stage
     runs-on: ubuntu-latest
     environment:
