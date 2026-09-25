@@ -111,7 +111,7 @@ namespace Highfly.Combat
             SpawnImpact(transform.position + Vector3.up*1.05f);
             PlayOneShot(_hitSfx);
             if (_elapsed < 0.180f) _elapsed = 0.180f;
-            SetPhase(1,"Sword_Regular_A",1.05f);
+            SetPhase(1,ResolveCounterClip(),1.05f);
             return true;
         }
 
@@ -180,7 +180,8 @@ namespace Highfly.Combat
             _repelReadyAt = Time.unscaledTime + 0.75f;
             _parryConfirmed = false;
             BeginAction(ActionKind.Repel,0.760f,PlayerState.Parry);
-            SetPhase(0,"Sword_Block",1f);
+            string guardClip=HighflyRun0HCharacterVisual.Instance?.ResolveGuardClip() ?? "Sword_Block";
+            SetPhase(0,guardClip,1f);
         }
 
         private void BeginAction(ActionKind kind,float duration,PlayerState state)
@@ -311,7 +312,7 @@ namespace Highfly.Combat
         {
             if (_parryConfirmed)
             {
-                if (now>=0.180f && _phase!=1) SetPhase(1,"Sword_Regular_A",1.05f);
+                if (now>=0.180f && _phase!=1) SetPhase(1,ResolveCounterClip(),1.05f);
                 MoveToOffset(_facing*(0.18f*Mathf.Clamp01(now/0.410f)));
                 SetActiveWindow(now>=0.267f && now<=0.341f,0,26f,0.070f);
             }
@@ -319,6 +320,23 @@ namespace Highfly.Combat
             {
                 SetActiveWindow(false,-1,0f,0f);
                 if (now>=0.360f) { FinishAction(); return; }
+            }
+        }
+
+        private string ResolveCounterClip()
+        {
+            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            if (visual==null) return "Sword_Regular_A";
+            switch (visual.CurrentLoadout)
+            {
+                case HighflyLoadoutProfile.DualDaggers: return "Dagger_A";
+                case HighflyLoadoutProfile.DualSword: return "DualSword_A";
+                case HighflyLoadoutProfile.Axe1H:
+                case HighflyLoadoutProfile.AxeShield: return "Axe_A";
+                case HighflyLoadoutProfile.DualAxe: return "DualAxe_A";
+                case HighflyLoadoutProfile.Spear2H: return "Spear_A";
+                case HighflyLoadoutProfile.Unarmed: return "Melee_Hook";
+                default: return "Warrior_A";
             }
         }
 
