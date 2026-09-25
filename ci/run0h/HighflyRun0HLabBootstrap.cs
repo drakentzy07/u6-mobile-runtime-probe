@@ -297,28 +297,31 @@ namespace Highfly.Run0H
             clr.anchoredPosition = new Vector2(18f, -95f);
             clr.sizeDelta = new Vector2(390f, 30f);
 
-            Button sword1 = CreateButton(panel.transform,"ESPADA 1H",new Vector2(18f,-135f),new Vector2(185f,48f));
+            Button unarmed = CreateButton(panel.transform,"SIN ARMAS",new Vector2(18f,-135f),new Vector2(382f,42f));
+            unarmed.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.EquipPreset(HighflyLoadoutProfile.Unarmed));
+
+            Button sword1 = CreateButton(panel.transform,"ESPADA 1H",new Vector2(18f,-185f),new Vector2(185f,48f));
             sword1.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Sword1H));
 
-            Button dualSword = CreateButton(panel.transform,"DOBLE ESPADA",new Vector2(215f,-135f),new Vector2(185f,48f));
+            Button dualSword = CreateButton(panel.transform,"DOBLE ESPADA",new Vector2(215f,-185f),new Vector2(185f,48f));
             dualSword.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualSword));
 
-            Button swordShield = CreateButton(panel.transform,"ESPADA + ESC",new Vector2(18f,-191f),new Vector2(185f,48f));
+            Button swordShield = CreateButton(panel.transform,"ESPADA + ESC",new Vector2(18f,-241f),new Vector2(185f,48f));
             swordShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.SwordShield));
 
-            Button daggers = CreateButton(panel.transform,"DOBLE DAGA",new Vector2(215f,-191f),new Vector2(185f,48f));
+            Button daggers = CreateButton(panel.transform,"DOBLE DAGA",new Vector2(215f,-241f),new Vector2(185f,48f));
             daggers.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualDaggers));
 
-            Button axe1 = CreateButton(panel.transform,"HACHA 1H",new Vector2(18f,-247f),new Vector2(185f,48f));
+            Button axe1 = CreateButton(panel.transform,"HACHA 1H",new Vector2(18f,-297f),new Vector2(185f,48f));
             axe1.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Axe1H));
 
-            Button dualAxe = CreateButton(panel.transform,"DOBLE HACHA",new Vector2(215f,-247f),new Vector2(185f,48f));
+            Button dualAxe = CreateButton(panel.transform,"DOBLE HACHA",new Vector2(215f,-297f),new Vector2(185f,48f));
             dualAxe.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualAxe));
 
-            Button axeShield = CreateButton(panel.transform,"HACHA + ESC",new Vector2(18f,-303f),new Vector2(185f,48f));
+            Button axeShield = CreateButton(panel.transform,"HACHA + ESC",new Vector2(18f,-353f),new Vector2(185f,48f));
             axeShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.AxeShield));
 
-            Button spear = CreateButton(panel.transform,"LANZA 2H",new Vector2(215f,-303f),new Vector2(185f,48f));
+            Button spear = CreateButton(panel.transform,"LANZA 2H",new Vector2(215f,-353f),new Vector2(185f,48f));
             spear.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Spear2H));
 
             _characterStatus = CreateText(
@@ -330,7 +333,7 @@ namespace Highfly.Run0H
             RectTransform csr = _characterStatus.rectTransform;
             csr.anchorMin = csr.anchorMax = new Vector2(0f, 1f);
             csr.pivot = new Vector2(0f, 1f);
-            csr.anchoredPosition = new Vector2(18f, -362f);
+            csr.anchoredPosition = new Vector2(18f, -414f);
             csr.sizeDelta = new Vector2(390f, 34f);
 
             Text skillsHeader = CreateText(
@@ -342,7 +345,7 @@ namespace Highfly.Run0H
             RectTransform shr = skillsHeader.rectTransform;
             shr.anchorMin = shr.anchorMax = new Vector2(0f, 1f);
             shr.pivot = new Vector2(0f, 1f);
-            shr.anchoredPosition = new Vector2(18f, -410f);
+            shr.anchoredPosition = new Vector2(18f, -460f);
             shr.sizeDelta = new Vector2(390f, 30f);
 
             string[] slots =
@@ -364,13 +367,13 @@ namespace Highfly.Run0H
                 RectTransform rr = row.rectTransform;
                 rr.anchorMin = rr.anchorMax = new Vector2(0f, 1f);
                 rr.pivot = new Vector2(0f, 1f);
-                rr.anchoredPosition = new Vector2(18f, -452f - i * 44f);
+                rr.anchoredPosition = new Vector2(18f, -502f - i * 44f);
                 rr.sizeDelta = new Vector2(390f, 40f);
             }
 
             Text footer = CreateText(
                 panel.transform,
-                "CORE: LUCID MOVEMENT + HIGHFLY MELEE\n1 Hunter • loadout cambia lenguaje corporal • 3 dummies",
+                "CORE: EQUIPMENT → RESOLVER → MELEE\nPresets LAB simulan equipar loot • 1 Hunter • 3 dummies",
                 14,
                 TextAnchor.LowerLeft);
 
