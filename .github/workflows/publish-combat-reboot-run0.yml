@@ -1,4 +1,4 @@
-name: Publish HIGHFLY Skills Lab Supremo Run0F
+name: Publish HIGHFLY Skills Lab Supremo Run0G
 
 on:
   push:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   stage:
-    name: Merge current Pages + Skills Lab Supremo Run0F
+    name: Merge current Pages + Skills Lab Supremo Run0G
     runs-on: ubuntu-latest
     steps:
       - name: Download current combined Pages site
@@ -30,14 +30,14 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: 36028413033
 
-      - name: Download verified Run0F Lucid Dragon KayKit Pages artifact
+      - name: Download verified Run0G CLEAN WebGL
         uses: actions/download-artifact@v4
         with:
-          name: github-pages
-          path: run0f-pages
+          name: highfly-run0g-clean-webgl
+          path: run0g
           github-token: ${{ secrets.GITHUB_TOKEN }}
           repository: ${{ github.repository }}
-          run-id: 36075060029
+          run-id: 36083116254
 
       - name: Assemble combined site
         shell: bash
@@ -54,18 +54,15 @@ jobs:
           test -f site/donor-lab-v27/index.html
           test -f site/combat-reboot-run0/index.html
 
-          test -f run0f-pages/artifact.tar
-          mkdir -p run0f
-          tar -xf run0f-pages/artifact.tar -C run0f
-
-          test -f run0f/index.html
-          test -d run0f/Build
-          test -n "$(find run0f/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
-          test -n "$(find run0f/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
+          test -f run0g/index.html
+          test -d run0g/Build
+          test -f run0g/RUN0G_BUILD.txt
+          test -n "$(find run0g/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
+          test -n "$(find run0g/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
 
           rm -rf site/skills-lab-supremo
           mkdir -p site/skills-lab-supremo
-          cp -a run0f/. site/skills-lab-supremo/
+          cp -a run0g/. site/skills-lab-supremo/
 
           test -f site/skills-lab-supremo/index.html
           test -d site/skills-lab-supremo/Build
@@ -85,7 +82,7 @@ jobs:
           path: site
 
   deploy:
-    name: Deploy Pages + Skills Lab Supremo Run0F
+    name: Deploy Pages + Skills Lab Supremo Run0G
     needs: stage
     runs-on: ubuntu-latest
     environment:
