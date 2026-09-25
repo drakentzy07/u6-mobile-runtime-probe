@@ -33,6 +33,10 @@ namespace Highfly.Combat
         private GameObject _impactPrefab;
 
         public bool ActionBusy => _action != ActionKind.None;
+        public bool IsDefensiveIFrame =>
+            _action == ActionKind.Slide &&
+            _elapsed >= 0.020f &&
+            _elapsed <= 0.160f;
         public string DebugAction => _action.ToString();
         public static int TotalHits { get; private set; }
         public static float TotalDamage { get; private set; }
