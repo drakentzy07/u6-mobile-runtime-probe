@@ -147,18 +147,9 @@ namespace Highfly.Run0H
 
         public string ResolveGuardClip()
         {
-            HighflyGuardStyle guard=HighflyMeleeLibrary.Get(_loadout).Guard;
-            switch (guard)
-            {
-                case HighflyGuardStyle.CrossGuard:
-                    return _loadout==HighflyLoadoutProfile.DualDaggers ? "Dagger_Block" : "Dual_Block";
-                case HighflyGuardStyle.ShieldGuard:
-                    return "Shield_Block";
-                case HighflyGuardStyle.PoleGuard:
-                    return "Pole_Block";
-                default:
-                    return "Sword_Block";
-            }
+            // Sword_Block is the one real guard clip already verified in UAL2.
+            // GuardStyle remains data-driven; dedicated Cross/Shield/Pole poses come next.
+            return "Sword_Block";
         }
 
         public float GetActionClipLength(string clipName)
@@ -290,16 +281,8 @@ namespace Highfly.Run0H
             Transform right = _visualAnimator.GetBoneTransform(HumanBodyBones.RightHand);
             Transform left = _visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
 
-            MeshRenderer[] meshes = _visualRoot.GetComponentsInChildren<MeshRenderer>(true);
-            for (int i = 0; i < meshes.Length; i++)
-            {
-                MeshRenderer mr = meshes[i];
-                if (mr == null) continue;
-                bool nearRight = right != null && Vector3.Distance(mr.bounds.center, right.position) < 0.85f;
-                bool nearLeft = left != null && Vector3.Distance(mr.bounds.center, left.position) < 0.85f;
-                if (nearRight || nearLeft) mr.enabled = false;
-            }
-
+            // RUN0I.2: never hide a body renderer by proximity to the hands.
+            // Only explicit equipment-named child renderers may be hidden.
             Renderer[] renderers = _visualRoot.GetComponentsInChildren<Renderer>(true);
             for (int i = 0; i < renderers.Length; i++)
             {
@@ -443,33 +426,55 @@ namespace Highfly.Run0H
         private static void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
         {
             if (weapon==null) return;
+
+            float targetLength=0.90f;
             switch (loadout)
             {
                 case HighflyLoadoutProfile.Spear2H:
-                    // Quaternius spear arrives with a different forward axis / authoring scale.
-                    weapon.transform.localScale = Vector3.one * 0.62f;
-                    weapon.transform.localRotation = Quaternion.Euler(0f,90f,90f);
-                    weapon.transform.localPosition = new Vector3(0f,-0.02f,0.10f);
+                    targetLength=2.05f;
+                    weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
+                    weapon.transform.localPosition=new Vector3(0f,-0.02f,0.08f);
                     break;
                 case HighflyLoadoutProfile.DualDaggers:
-                    weapon.transform.localScale = Vector3.one * 0.88f;
-                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    targetLength=0.48f;
+                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
                     break;
                 case HighflyLoadoutProfile.DualSword:
-                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    targetLength=0.95f;
+                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
                     break;
                 case HighflyLoadoutProfile.DualAxe:
-                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    targetLength=0.72f;
+                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
+                    break;
+                case HighflyLoadoutProfile.Axe1H:
+                case HighflyLoadoutProfile.AxeShield:
+                    targetLength=0.72f;
                     break;
                 case HighflyLoadoutProfile.SwordShield:
-                case HighflyLoadoutProfile.AxeShield:
-                    if (!primary)
-                    {
-                        weapon.transform.localScale = Vector3.one * 0.90f;
-                        weapon.transform.localRotation = Quaternion.Euler(0f,90f,90f);
-                    }
+                    targetLength=primary?0.95f:0.68f;
+                    if (!primary) weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
                     break;
             }
+
+            NormalizeWeaponWorldLength(weapon,targetLength);
+        }
+
+        private static void NormalizeWeaponWorldLength(GameObject weapon,float targetLength)
+        {
+            Renderer[] rs=weapon.GetComponentsInChildren<Renderer>(true);
+            bool found=false;
+            Bounds b=default;
+            for(int i=0;i<rs.Length;i++)
+            {
+                if(rs[i]==null) continue;
+                if(!found){b=rs[i].bounds;found=true;} else b.Encapsulate(rs[i].bounds);
+            }
+            if(!found) return;
+            float longest=Mathf.Max(b.size.x,Mathf.Max(b.size.y,b.size.z));
+            if(longest<0.0001f) return;
+            float factor=Mathf.Clamp(targetLength/longest,0.05f,20f);
+            weapon.transform.localScale*=factor;
         }
 
         private static GameObject AttachWeapon(GameObject prefab, Transform hand, string name)
