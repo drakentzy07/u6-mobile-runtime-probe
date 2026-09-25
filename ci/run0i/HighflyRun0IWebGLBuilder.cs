@@ -30,13 +30,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[RUN0I.2] Building Directional Melee Core");
+            Debug.Log("[RUN0I.3] Building Single Hunter + Guard Core");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I2_BUILD.txt"),
-                "HIGHFLY RUN0I.2 | DIRECTIONAL MELEE CORE | 9 LOADOUTS | STRIKE GRAMMAR | 360 STEERING | REAL TRACE | UNITY 6000.6.2");
+                "HIGHFLY RUN0I.3 | SINGLE HUNTER GUARD CORE | 9 LOADOUTS | HAND-AWARE TRACE | CROSS/SHIELD/POLE GUARD | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -91,7 +91,16 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I.2] Quality gate: KayKit Knight missing real unarmed punch/kick clips.");
             SaveCopy(unarmedPunch,target+"/Unarmed_Punch.anim","Unarmed_Punch");
             SaveCopy(unarmedKick,target+"/Unarmed_Kick.anim","Unarmed_Kick");
-            Debug.Log("[RUN0I.2] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
+
+            AnimationClip kaykitBlock=FindByTokens(knightClips,"melee","blocking");
+            AnimationClip shieldBash=FindByTokens(knightClips,"block","attack");
+            if (kaykitBlock==null || shieldBash==null)
+                throw new Exception("[RUN0I.3] Quality gate: KayKit Knight missing Melee_Blocking/Melee_Block_Attack.");
+            SaveCopy(kaykitBlock,target+"/KayKit_Block.anim","KayKit_Block");
+            SaveCopy(shieldBash,target+"/Shield_Bash.anim","Shield_Bash");
+
+            Debug.Log("[RUN0I.3] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
+            Debug.Log("[RUN0I.3] GUARD_BANK="+kaykitBlock.name+" | "+shieldBash.name);
 
             // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
             SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_1.anim"),target+"/Warrior_A.anim","Warrior_A");
