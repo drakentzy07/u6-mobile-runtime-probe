@@ -114,7 +114,9 @@ public class PlayerPotion : MonoBehaviour
         // A. 상태 변경 (이제 플레이어는 못 움직임)
         _controller.ChangeState(PlayerState.UseItem);
 
-        // B. 애니메이션 재생
+        // B. Potion is a non-combat action: hide held weapons so the drink pose
+        // never drives a sword/dagger through the Hunter's head.
+        Highfly.Run0H.HighflyRun0HCharacterVisual.Instance?.SetWeaponsVisible(false);
         if (_animator != null) _animator.SetTrigger(AnimID_DoDrink);
     }
     public void UpdateMaxPotions(int level)
@@ -145,6 +147,7 @@ public class PlayerPotion : MonoBehaviour
     }
     public void OnEndDrink()
     {
+        Highfly.Run0H.HighflyRun0HCharacterVisual.Instance?.SetWeaponsVisible(true);
         if (_controller.currentState == PlayerState.UseItem)
         {
             _controller.ChangeState(PlayerState.Locomotion);
