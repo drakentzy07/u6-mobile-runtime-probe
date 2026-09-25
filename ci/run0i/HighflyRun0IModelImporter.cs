@@ -8,7 +8,9 @@ namespace Highfly.Run0I.Editor
         private void OnPreprocessModel()
         {
             if (assetPath.Contains("Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx") ||
-                assetPath.Contains("Assets/Resources/HIGHFLY/Run0H/KayKitRogue.fbx"))
+                assetPath.Contains("Assets/Resources/HIGHFLY/Run0H/KayKitRogue.fbx") ||
+                assetPath.Contains("Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx") ||
+                assetPath.Contains("Assets/Resources/HIGHFLY/Run0H/KayKitRogueHooded.fbx"))
             {
                 ModelImporter importer=(ModelImporter)assetImporter;
                 importer.importAnimation=true;
