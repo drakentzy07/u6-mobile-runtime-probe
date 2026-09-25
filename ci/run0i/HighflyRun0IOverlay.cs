@@ -46,13 +46,13 @@ namespace Highfly.Run0I
             {
                 Text t=all[i]; if (t==null) continue;
                 if (t.text.Contains("RUN0H • BASE ESTABLE"))
-                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I.2 • DIRECTIONAL MELEE");
+                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I.3 • SINGLE HUNTER + GUARD");
                 if (t.text.Contains("SUPER SKILLS • PRÓXIMO RUN0I"))
                     t.text="SKILLS COMPLETAS • QUALITY GATE";
                 if (t.text.StartsWith("S1  LAUNCHER JUMP"))
                     t.text="S1  SONIC LEAP • 0.94s • CD 6s";
                 if (t.text.StartsWith("S2  TWIN SLASH"))
-                    t.text="S2  HORIZONTAL SQUARE • 4 HIT • CD 7s";
+                    t.text="S2  OFF • pendiente weaponTags";
                 if (t.text.StartsWith("S3  PHANTOM DASH"))
                     t.text="S3  BLOQUEADA • siguiente lote completo";
                 if (t.text.StartsWith("S4  MULTI CUT"))
@@ -70,13 +70,13 @@ namespace Highfly.Run0I
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             HighflyLoadoutDefinition load=visual!=null?HighflyMeleeLibrary.Get(visual.CurrentLoadout):null;
             _metrics.text=
-                "RUN0I.2 • DIRECTIONAL MELEE / REAL TRACE\n"+
+                "RUN0I.3 • SINGLE HUNTER / GUARD CORE\n"+
                 "Loadout: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
                 "Guard: "+(load!=null?load.Guard.ToString():"-")+" • Combo: "+(load!=null?load.Grammar:"-")+"\n"+
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
-                "LOCK>target • sin LOCK>joystick 360° • steering por StrikePattern";
+                "1 Hunter • trace por mano • Cross/Shield/Pole guard • S2 OFF";
         }
 
         private void BuildMetrics()
