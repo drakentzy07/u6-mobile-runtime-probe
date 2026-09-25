@@ -257,13 +257,20 @@ public class PlayerStats : CharacterStats
         if (HighflyDonorDefenseState.TryModifyIncoming(this, ref damage, ref resolvedComposureDamage))
             return;
 
-        // 1. 무적 판정 로직 추가
-        if (_playerController != null && _playerController.currentState == PlayerState.Roll)
+        // RUN0I.1: HIGHFLY Combat Core owns defensive timing when present.
+        Highfly.Combat.HighflyLucidCombatBridge highflyBridge = Highfly.Combat.HighflyLucidCombatBridge.Instance;
+        if (highflyBridge != null)
         {
-            return; // 구르기 무적(i-frame)
+            if (highflyBridge.IsDefensiveIFrame) return;
+            if (highflyBridge.TryParryIncoming(damage, resolvedComposureDamage, attacker)) return;
         }
-        // 2. 패링 시도
-        if (_playerController != null && _playerController.currentState == PlayerState.Parry)
+
+        // Legacy fallback is used only when the HIGHFLY bridge is absent.
+        if (highflyBridge == null && _playerController != null && _playerController.currentState == PlayerState.Roll)
+        {
+            return;
+        }
+        if (highflyBridge == null && _playerController != null && _playerController.currentState == PlayerState.Parry)
         {
             if (attacker != null)
             {
