@@ -455,47 +455,124 @@ namespace Highfly.Run0H
             if (weapon==null) return;
 
             float targetLength=0.90f;
+            bool alignSpearGrip=false;
+
             switch (loadout)
             {
                 case HighflyLoadoutProfile.Spear2H:
                     targetLength=2.05f;
+                    // Keep the shaft aligned with the hand; grip is re-centered from real mesh bounds below.
                     weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
-                    weapon.transform.localPosition=new Vector3(0f,-0.02f,0.08f);
+                    alignSpearGrip=true;
                     break;
+
                 case HighflyLoadoutProfile.DualDaggers:
                     targetLength=0.48f;
-                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
+                    // Left hand already has mirrored bone space; do NOT flip the weapon again.
+                    weapon.transform.localRotation=Quaternion.identity;
                     break;
+
                 case HighflyLoadoutProfile.DualSword:
                     targetLength=0.95f;
-                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
+                    // Same forward orientation in each hand. The humanoid skeleton mirrors the left hand.
+                    weapon.transform.localRotation=Quaternion.identity;
                     break;
+
                 case HighflyLoadoutProfile.DualAxe:
                     targetLength=0.72f;
-                    weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
+                    // Rotate around the shaft so the cutting edge faces down/forward.
+                    weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
                     break;
+
                 case HighflyLoadoutProfile.Axe1H:
                     targetLength=0.72f;
+                    weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
                     break;
+
                 case HighflyLoadoutProfile.AxeShield:
-                    targetLength=primary?0.72f:0.68f;
-                    if (!primary)
+                    if (primary)
                     {
-                        weapon.transform.localRotation=Quaternion.Euler(0f,-90f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.12f,0.02f);
+                        targetLength=0.72f;
+                        weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                    }
+                    else
+                    {
+                        targetLength=0.68f;
+                        // Shield face must be vertical, not tray-like.
+                        weapon.transform.localRotation=Quaternion.Euler(90f,0f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.02f,0.10f);
                     }
                     break;
+
                 case HighflyLoadoutProfile.SwordShield:
-                    targetLength=primary?0.95f:0.68f;
-                    if (!primary)
+                    if (primary)
                     {
-                        weapon.transform.localRotation=Quaternion.Euler(0f,-90f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.12f,0.02f);
+                        targetLength=0.95f;
+                        weapon.transform.localRotation=Quaternion.identity;
+                    }
+                    else
+                    {
+                        targetLength=0.68f;
+                        weapon.transform.localRotation=Quaternion.Euler(90f,0f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.02f,0.10f);
                     }
                     break;
             }
 
             NormalizeWeaponWorldLength(weapon,targetLength);
+
+            if (alignSpearGrip)
+                AlignSpearGripToHand(weapon,0.38f);
+        }
+
+        private static void AlignSpearGripToHand(GameObject weapon,float gripFraction)
+        {
+            if (weapon==null) return;
+
+            MeshFilter[] filters=weapon.GetComponentsInChildren<MeshFilter>(true);
+            bool found=false;
+            Vector3 min=Vector3.zero, max=Vector3.zero;
+
+            for (int i=0;i<filters.Length;i++)
+            {
+                MeshFilter mf=filters[i];
+                if (mf==null || mf.sharedMesh==null) continue;
+                Bounds mb=mf.sharedMesh.bounds;
+                Vector3[] corners=new Vector3[8];
+                int k=0;
+                for (int xi=-1;xi<=1;xi+=2)
+                for (int yi=-1;yi<=1;yi+=2)
+                for (int zi=-1;zi<=1;zi+=2)
+                {
+                    Vector3 p=mb.center+Vector3.Scale(mb.extents,new Vector3(xi,yi,zi));
+                    Vector3 world=mf.transform.TransformPoint(p);
+                    Vector3 local=weapon.transform.InverseTransformPoint(world);
+                    corners[k++]=local;
+                }
+
+                for (int j=0;j<corners.Length;j++)
+                {
+                    Vector3 p=corners[j];
+                    if(!found){min=max=p;found=true;}
+                    else {min=Vector3.Min(min,p);max=Vector3.Max(max,p);}
+                }
+            }
+
+            if(!found) return;
+
+            Vector3 size=max-min;
+            int axis=size.x>=size.y && size.x>=size.z ? 0 : (size.y>=size.z ? 1 : 2);
+            Vector3 grip=(min+max)*0.5f;
+            float aMin=axis==0?min.x:(axis==1?min.y:min.z);
+            float aMax=axis==0?max.x:(axis==1?max.y:max.z);
+            float a=Mathf.Lerp(aMin,aMax,Mathf.Clamp01(gripFraction));
+            if(axis==0) grip.x=a;
+            else if(axis==1) grip.y=a;
+            else grip.z=a;
+
+            Vector3 scaled=Vector3.Scale(weapon.transform.localScale,grip);
+            Vector3 rotated=weapon.transform.localRotation*scaled;
+            weapon.transform.localPosition=-rotated;
         }
 
         private static void NormalizeWeaponWorldLength(GameObject weapon,float targetLength)
