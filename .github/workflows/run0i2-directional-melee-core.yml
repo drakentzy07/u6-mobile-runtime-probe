@@ -1,9 +1,9 @@
-name: HIGHFLY Run0I.2 Directional Melee Core
+name: HIGHFLY Run0I.3 Single Hunter Guard Core
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/run0i2-directional-melee-core]
+    branches: [highfly/run0i3-single-hunter-guard-core]
     paths:
       - "ci/**"
       - ".github/workflows/run0i2-directional-melee-core.yml"
@@ -15,12 +15,12 @@ permissions:
   id-token: write
 
 concurrency:
-  group: highfly-run0i2-directional-melee-core
+  group: highfly-run0i3-single-hunter-guard-core
   cancel-in-progress: true
 
 jobs:
   build:
-    name: Build Run0I.2 • Directional Melee Core • Unity 6000.6.2
+    name: Build Run0I.3 • Single Hunter Guard Core • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -151,15 +151,15 @@ jobs:
           grep -q "OverlapCapsuleNonAlloc" "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
           grep -q "HighflyRun0IParkour" "$P/Assets/HIGHFLY/Run0I/HighflyRun0IParkour.cs"
           grep -q "HighflyLoadoutProfile" "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
-          echo "RUN0I2_DIRECTIONAL_MELEE_INSTALLED=1"
+          echo "RUN0I3_SINGLE_HUNTER_GUARD_INSTALLED=1"
 
       - name: Cache Unity Library
         uses: actions/cache@v4
         with:
           path: LucidHost/3D_game/Library
-          key: run0i2-6000.6.2f1-${{ hashFiles('ci/run0i2/**','ci/run0i/**','ci/run0h/HighflyRun0HLabBootstrap.cs','ci/mobile/**','ci/combat/HighflyCombatCore.cs') }}
+          key: run0i3-6000.6.2f1-${{ hashFiles('ci/run0i2/**','ci/run0i/**','ci/run0h/HighflyRun0HLabBootstrap.cs','ci/mobile/**','ci/combat/HighflyCombatCore.cs') }}
           restore-keys: |
-            run0i2-6000.6.2f1-
+            run0i3-6000.6.2f1-
             run0h-6000.6.2f1-
 
       - name: Build WebGL
@@ -184,17 +184,17 @@ jobs:
           sudo chown -R "$(id -u):$(id -g)" "$OUT"
           chmod -R u+rwX "$OUT"
           test -f "$OUT/index.html"
-          test -f "$OUT/RUN0I2_BUILD.txt"
+          test -f "$OUT/RUN0I3_BUILD.txt"
           test -d "$OUT/Build"
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
           test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
-          grep -q "DIRECTIONAL MELEE CORE" "$OUT/RUN0I2_BUILD.txt"
+          grep -q "SINGLE HUNTER GUARD CORE" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4
         with:
-          name: highfly-run0i2-webgl
+          name: highfly-run0i3-webgl
           path: LucidHost/3D_game/build/WebGL
           if-no-files-found: error
           retention-days: 7
@@ -208,13 +208,13 @@ jobs:
           path: LucidHost/3D_game/build/WebGL
 
   deploy:
-    name: Deploy Run0I.2 to GitHub Pages
+    name: Deploy Run0I.3 to GitHub Pages
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: github-pages-run0i2
+      name: github-pages-run0i3
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy Run0I.2
+      - name: Deploy Run0I.3
         id: deployment
         uses: actions/deploy-pages@v4
