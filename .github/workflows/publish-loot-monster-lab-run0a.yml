@@ -98,6 +98,9 @@ jobs:
         run: |
           set -euxo pipefail
           OUT="LucidHost/3D_game/build/WebGL"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          test -w "$OUT"
           test -f "$OUT/index.html"
           test -d "$OUT/Build"
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
