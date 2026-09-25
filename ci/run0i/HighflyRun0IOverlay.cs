@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using Highfly.Combat;
 using Highfly.Run0H;
+using Highfly.Run0I2;
 
 namespace Highfly.Run0I
 {
@@ -45,7 +46,7 @@ namespace Highfly.Run0I
             {
                 Text t=all[i]; if (t==null) continue;
                 if (t.text.Contains("RUN0H • BASE ESTABLE"))
-                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I.1 • BASELINE PURGE");
+                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I.2 • DIRECTIONAL MELEE");
                 if (t.text.Contains("SUPER SKILLS • PRÓXIMO RUN0I"))
                     t.text="SKILLS COMPLETAS • QUALITY GATE";
                 if (t.text.StartsWith("S1  LAUNCHER JUMP"))
@@ -67,15 +68,15 @@ namespace Highfly.Run0I
             if (_metrics==null) return;
             HighflyLucidCombatBridge combat=HighflyLucidCombatBridge.Instance;
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            HighflyLoadoutDefinition load=visual!=null?HighflyMeleeLibrary.Get(visual.CurrentLoadout):null;
             _metrics.text=
-                "RUN0I.1 • 360 FACING / REAL TRACE\n"+
-                "Personaje: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
+                "RUN0I.2 • DIRECTIONAL MELEE / REAL TRACE\n"+
+                "Loadout: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
+                "Guard: "+(load!=null?load.Guard.ToString():"-")+" • Combo: "+(load!=null?load.Grammar:"-")+"\n"+
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
-                "ATQ Basic 1→2→3 • S1 Sonic Leap • S2 Horizontal Square\n"+
-                "DODGE Slide Move • PARRY Repel Counter (0.75s recast) • SALTO double/wall\n"+
-                "360°: LOCK>target • sin LOCK>joystick • neutro>facing";
+                "LOCK>target • sin LOCK>joystick 360° • steering por StrikePattern";
         }
 
         private void BuildMetrics()
@@ -91,7 +92,7 @@ namespace Highfly.Run0I
             panel.transform.SetParent(canvasGo.transform,false);
             RectTransform pr=panel.GetComponent<RectTransform>();
             pr.anchorMin=pr.anchorMax=new Vector2(1f,1f); pr.pivot=new Vector2(1f,1f);
-            pr.anchoredPosition=new Vector2(-24f,-24f); pr.sizeDelta=new Vector2(520f,210f);
+            pr.anchoredPosition=new Vector2(-24f,-24f); pr.sizeDelta=new Vector2(560f,230f);
             panel.GetComponent<Image>().color=new Color(0.018f,0.026f,0.045f,0.90f);
 
             GameObject textGo=new GameObject("Text",typeof(RectTransform),typeof(Text));
