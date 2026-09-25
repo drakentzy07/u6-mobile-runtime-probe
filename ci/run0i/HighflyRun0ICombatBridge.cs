@@ -101,7 +101,7 @@ namespace Highfly.Combat
 
         public bool TryParryIncoming(float damage,float composureDamage,Transform attacker)
         {
-            if (_action != ActionKind.Repel || _parryConfirmed || _elapsed < 0.040f || _elapsed > 0.240f)
+            if (_action != ActionKind.Repel || _parryConfirmed || _elapsed < 0.040f || _elapsed > 0.320f)
                 return false;
 
             _parryConfirmed = true;
@@ -128,19 +128,23 @@ namespace Highfly.Combat
         private void StartBasic(int step)
         {
             _comboStep = step;
-            _comboExpire = Time.unscaledTime + 0.72f;
+            _comboExpire = Time.unscaledTime + 0.90f;
             _queuedLight = false;
             ActionKind kind = step==1?ActionKind.Basic1:step==2?ActionKind.Basic2:ActionKind.Basic3;
-            bool assassin = IsAssassin();
-            float duration = assassin
-                ? (step==1?0.48f:step==2?0.52f:0.62f)
-                : (step==1?0.50f:step==2?0.56f:0.82f);
-            BeginAction(kind,duration,PlayerState.Attack);
 
+            bool assassin = IsAssassin();
             string clip = !assassin
                 ? (step==1?"Warrior_A":step==2?"Warrior_B":"Warrior_C")
                 : (step==1?"Assassin_A":step==2?"Assassin_B":"Assassin_C");
-            SetPhase(0,clip,1f);
+
+            // Preserve the full body phrase instead of cutting at a hardcoded timer.
+            // Lucid's original Animator used 2.0x on hit1 and 1.5x on hit2/3.
+            float speed = assassin ? 1.15f : (step==1?2.00f:1.50f);
+            float sourceLength = HighflyRun0HCharacterVisual.Instance?.GetActionClipLength(clip) ?? 0.75f;
+            float duration = Mathf.Clamp(sourceLength / Mathf.Max(0.05f,speed),0.42f,1.35f);
+
+            BeginAction(kind,duration,PlayerState.Attack);
+            SetPhase(0,clip,speed);
             PlayOneShot(_swing);
         }
 
@@ -169,9 +173,9 @@ namespace Highfly.Combat
 
         private void StartRepel()
         {
-            _repelReadyAt = Time.unscaledTime + 10f;
+            _repelReadyAt = Time.unscaledTime + 0.75f;
             _parryConfirmed = false;
-            BeginAction(ActionKind.Repel,0.690f,PlayerState.Parry);
+            BeginAction(ActionKind.Repel,0.760f,PlayerState.Parry);
             SetPhase(0,"Sword_Block",1f);
         }
 
@@ -192,9 +196,9 @@ namespace Highfly.Combat
         {
             switch (_action)
             {
-                case ActionKind.Basic1: UpdateBasic(now,0.120f,0.210f,0.16f); break;
-                case ActionKind.Basic2: UpdateBasic(now,0.100f,0.190f,0.16f); break;
-                case ActionKind.Basic3: UpdateBasic(now,0.160f,0.280f,0.24f); break;
+                case ActionKind.Basic1:
+                case ActionKind.Basic2:
+                case ActionKind.Basic3: UpdateBasic(now); break;
                 case ActionKind.SonicLeap: UpdateSonicLeap(now); break;
                 case ActionKind.HorizontalSquare: UpdateHorizontalSquare(now); break;
                 case ActionKind.Slide: UpdateSlide(now); break;
@@ -202,11 +206,21 @@ namespace Highfly.Combat
             }
         }
 
-        private void UpdateBasic(float now,float activeStart,float activeEnd,float movement)
+        private void UpdateBasic(float now)
         {
-            MoveToOffset(_facing * movement * Mathf.Clamp01(now/Mathf.Max(0.01f,activeEnd)));
-            SetActiveWindow(now>=activeStart && now<=activeEnd,0,18f+_comboStep*4f,_comboStep==3?0.065f:0.045f);
-            if (_queuedLight && now>=activeEnd+0.045f)
+            float n = _duration > 0.0001f ? Mathf.Clamp01(now/_duration) : 1f;
+
+            float activeStart = _comboStep==1 ? 0.22f : _comboStep==2 ? 0.20f : 0.28f;
+            float activeEnd   = _comboStep==1 ? 0.42f : _comboStep==2 ? 0.43f : 0.62f;
+            float movement    = _comboStep==3 ? 0.30f : 0.18f;
+
+            MoveToOffset(_facing * movement * Mathf.Clamp01(n/Mathf.Max(0.01f,activeEnd)));
+            SetActiveWindow(n>=activeStart && n<=activeEnd,0,18f+_comboStep*4f,_comboStep==3?0.065f:0.045f);
+
+            // Buffer may be pressed early, but the next body motion cannot replace the current
+            // clip until most of the current phrase has actually played.
+            const float linkNormalized = 0.82f;
+            if (_queuedLight && n>=linkNormalized)
             {
                 int next=(_comboStep%3)+1;
                 FinishAction(false);
@@ -271,7 +285,7 @@ namespace Highfly.Combat
             else
             {
                 SetActiveWindow(false,-1,0f,0f);
-                if (now>=0.220f) { FinishAction(); return; }
+                if (now>=0.360f) { FinishAction(); return; }
             }
         }
 
