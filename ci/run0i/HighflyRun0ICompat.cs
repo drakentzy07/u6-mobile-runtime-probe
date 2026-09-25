@@ -30,7 +30,13 @@ namespace Highfly.SkillLab
         public static bool TryReflect(PlayerStats player,float damage,float composureDamage,Transform attacker)
         {
             Highfly.Combat.HighflyLucidCombatBridge bridge=Highfly.Combat.HighflyLucidCombatBridge.Instance;
-            return bridge!=null && bridge.TryParryIncoming(damage,composureDamage,attacker);
+            if (bridge == null) return false;
+
+            // Slide Move: HIGHFLY defensive i-frame is authoritative here.
+            // Damage is intercepted only inside the explicit action window.
+            if (bridge.IsDefensiveIFrame) return true;
+
+            return bridge.TryParryIncoming(damage,composureDamage,attacker);
         }
     }
 
