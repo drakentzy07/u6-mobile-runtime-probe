@@ -18,6 +18,7 @@ namespace Highfly.Run0H
         private const string RogueResource = "HIGHFLY/Run0H/KayKitRogue";
         private const string SwordResource = "HIGHFLY/Run0H/KayKitSword1H";
         private const string DaggerResource = "HIGHFLY/Run0H/KayKitDagger";
+        private const string ShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
         private const float TargetHeight = 1.72f;
 
         private PlayerController _player;
@@ -31,6 +32,7 @@ namespace Highfly.Run0H
         private bool _bound;
 
         private Transform _primaryBase, _primaryTip, _secondaryBase, _secondaryTip;
+        private GameObject _primaryWeaponObject, _secondaryWeaponObject, _shieldObject;
         private TrailRenderer _primaryTrail, _secondaryTrail;
         private PlayableGraph _actionGraph;
         private bool _actionGraphValid;
@@ -165,6 +167,13 @@ namespace Highfly.Run0H
         public void ClearActionFacing()
         {
             if (_visualPivot != null) _visualPivot.transform.localRotation = Quaternion.identity;
+        }
+
+        public void SetWeaponsVisible(bool visible)
+        {
+            if (_primaryWeaponObject != null) _primaryWeaponObject.SetActive(visible);
+            if (_secondaryWeaponObject != null) _secondaryWeaponObject.SetActive(visible);
+            if (_shieldObject != null) _shieldObject.SetActive(visible);
         }
 
         public void SetWeaponTrail(bool enabled)
@@ -305,8 +314,14 @@ namespace Highfly.Run0H
             GameObject prefab = Resources.Load<GameObject>(SwordResource);
             if (hand == null || prefab == null) return;
             GameObject weapon = AttachWeapon(prefab, hand, "HIGHFLY_RUN0I_WARRIOR_SWORD");
+            _primaryWeaponObject = weapon;
             BuildWeaponSockets(weapon, out _primaryBase, out _primaryTip);
             _primaryTrail = BuildTrail(_primaryTip);
+
+            Transform left = _visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            GameObject shieldPrefab = Resources.Load<GameObject>(ShieldResource);
+            if (left != null && shieldPrefab != null)
+                _shieldObject = AttachWeapon(shieldPrefab,left,"HIGHFLY_RUN0I_WARRIOR_SHIELD");
         }
 
         private void AttachAssassinDaggers()
@@ -319,12 +334,14 @@ namespace Highfly.Run0H
             if (right != null)
             {
                 GameObject wr = AttachWeapon(prefab, right, "HIGHFLY_RUN0I_DAGGER_R");
+                _primaryWeaponObject = wr;
                 BuildWeaponSockets(wr, out _primaryBase, out _primaryTip);
                 _primaryTrail = BuildTrail(_primaryTip);
             }
             if (left != null)
             {
                 GameObject wl = AttachWeapon(prefab, left, "HIGHFLY_RUN0I_DAGGER_L");
+                _secondaryWeaponObject = wl;
                 BuildWeaponSockets(wl, out _secondaryBase, out _secondaryTip);
                 _secondaryTrail = BuildTrail(_secondaryTip);
             }
@@ -411,6 +428,7 @@ namespace Highfly.Run0H
             if (_visualPivot != null) Destroy(_visualPivot);
             _visualPivot = null; _visualRoot = null; _visualAnimator = null; _mirror = null;
             _primaryBase = null; _primaryTip = null; _secondaryBase = null; _secondaryTip = null;
+            _primaryWeaponObject = null; _secondaryWeaponObject = null; _shieldObject = null;
             _primaryTrail = null; _secondaryTrail = null;
         }
     }
