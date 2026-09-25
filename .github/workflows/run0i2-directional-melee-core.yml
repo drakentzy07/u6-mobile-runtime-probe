@@ -1,0 +1,206 @@
+name: HIGHFLY Run0I.2 Directional Melee Core
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/run0i2-directional-melee-core]
+    paths:
+      - "ci/**"
+      - ".github/workflows/run0i2-directional-melee-core.yml"
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-run0i2-directional-melee-core
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Run0I.2 • Directional Melee Core • Unity 6000.6.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout probe repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid with Git LFS
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+
+      - name: Remove Unity AI Assistant incompatible with 6000.6.2
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path("LucidHost/3D_game/Packages")
+          for name in ("manifest.json","packages-lock.json"):
+              p=root/name
+              data=json.loads(p.read_text(encoding="utf-8"))
+              data.get("dependencies",{}).pop("com.unity.ai.assistant",None)
+              p.write_text(json.dumps(data,indent=2)+"\n",encoding="utf-8")
+          PY
+
+      - name: Install Run0I complete combat core
+        shell: bash
+        run: |
+          set -euxo pipefail
+          P="LucidHost/3D_game"
+          mkdir -p "$P/Assets/HIGHFLY/Core/Mobile" "$P/Assets/HIGHFLY/Core/Combat"                    "$P/Assets/HIGHFLY/Run0H" "$P/Assets/HIGHFLY/Run0I"                    "$P/Assets/Resources/HIGHFLY/Run0H" "$P/Assets/Resources/HIGHFLY/Run0I"                    "$P/Assets/Plugins/WebGL" "$P/Assets/Editor"
+
+          cp ci/mobile/HighflyMobileCore.cs "$P/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs"
+          cp ci/mobile/HighflyMobileText.cs "$P/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs"
+          cp ci/mobile/HighflyThirdPersonMobileCamera.cs "$P/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs"
+          cp ci/combat/HighflyCombatCore.cs "$P/Assets/HIGHFLY/Core/Combat/HighflyCombatCore.cs"
+          cp ci/run0i2/HighflyDirectionalMeleeCore.cs "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
+          cp ci/run0i/HighflyRun0ICombatBridge.cs "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
+
+          cp ci/run0i/HighflyRun0ICompat.cs "$P/Assets/HIGHFLY/Run0I/HighflyRun0ICompat.cs"
+          cp ci/run0i/HighflyRun0ICharacterVisual.cs "$P/Assets/HIGHFLY/Run0I/HighflyRun0ICharacterVisual.cs"
+          cp ci/run0i/HighflyRun0IParkour.cs "$P/Assets/HIGHFLY/Run0I/HighflyRun0IParkour.cs"
+          cp ci/run0i/HighflyRun0IAttackDummy.cs "$P/Assets/HIGHFLY/Run0I/HighflyRun0IAttackDummy.cs"
+          cp ci/run0i/HighflyRun0IOverlay.cs "$P/Assets/HIGHFLY/Run0I/HighflyRun0IOverlay.cs"
+          cp ci/run0h/HighflyRun0HLabBootstrap.cs "$P/Assets/HIGHFLY/Run0H/HighflyRun0HLabBootstrap.cs"
+
+          cp ci/mobile/MainMenuController.Mobile.cs "$P/Assets/Scripts/Manager/MainMenuController.cs"
+          cp ci/mobile/DialogueUI.Mobile.cs "$P/Assets/Scripts/Interaction/DialogueUI.cs"
+          cp ci/mobile/TutorialUI.Mobile.cs "$P/Assets/Scripts/Interaction/TutorialUI.cs"
+          cp ci/mobile/PlayerInteraction.Mobile.cs "$P/Assets/Scripts/Player/PlayerInteraction.cs"
+          cp ci/mobile/PlayerController.Mobile.cs "$P/Assets/Scripts/Player/PlayerController.cs"
+          cp ci/mobile/PlayerStats.Mobile.cs "$P/Assets/Scripts/Player/PlayerStats.cs"
+          cp ci/mobile/PlayerPotion.Mobile.cs "$P/Assets/Scripts/Player/PlayerPotion.cs"
+
+          cp ci/mobile/HighflyWebGL.jslib "$P/Assets/Plugins/WebGL/HighflyWebGL.jslib"
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions "$P/Assets/InputSystem_Actions.inputactions"
+          cp ci/run0i/HighflyRun0IModelImporter.cs "$P/Assets/Editor/HighflyRun0IModelImporter.cs"
+          cp ci/run0i/HighflyRun0IWebGLBuilder.cs "$P/Assets/Editor/HighflyRun0IWebGLBuilder.cs"
+
+          KAYKIT="$RUNNER_TEMP/KayKit-Adventurers"
+          git clone --filter=blob:none https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0.git "$KAYKIT"
+          git -C "$KAYKIT" checkout 672074b73ba276876a19e8816ecdc5241817ab47
+          git -C "$KAYKIT" lfs install --local || true
+          git -C "$KAYKIT" lfs pull || true
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Knight.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/knight_texture.png" "$P/Assets/Resources/HIGHFLY/Run0H/knight_texture.png"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Rogue.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitRogue.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/RogueHooded.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitRogueHooded.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/Barbarian.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/rogue_texture.png" "$P/Assets/Resources/HIGHFLY/Run0H/rogue_texture.png"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Characters/fbx/barbarian_texture.png" "$P/Assets/Resources/HIGHFLY/Run0H/barbarian_texture.png"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/sword_1handed.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitSword1H.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/axe_1handed.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitAxe1H.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/dagger.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitDagger.fbx"
+          cp "$KAYKIT/addons/kaykit_character_pack_adventures/Assets/fbx/shield_round.fbx" "$P/Assets/Resources/HIGHFLY/Run0H/KayKitShieldRound.fbx"
+
+          # Quaternius Modular Weapons Pack • Spear.fbx • CC0 1.0
+          # Provenance record: https://quaternius.com/packs/medievalweapons.html
+          curl -L --fail --retry 3 "https://raw.githubusercontent.com/DevHuang1/embervale-godot/3f511a60fa9822a7de280a8da95a863525998237/assets/models/weapons/quaternius/Spear.fbx"             -o "$P/Assets/Resources/HIGHFLY/Run0H/QuaterniusSpear.fbx"
+          test -s "$P/Assets/Resources/HIGHFLY/Run0H/QuaterniusSpear.fbx"
+
+          curl -L --fail --retry 3             "https://raw.githubusercontent.com/Magellan36/bunker-game/a3f75bf101c1d454a51bee4e4a77a60a082c0175/assets/models/WIP/FINAL/Universal%20Animation%20Library%202%5BStandard%5D/Universal%20Animation%20Library%202%5BStandard%5D/Unity/UAL2_Standard.fbx"             -o "$P/Assets/HIGHFLY/Run0I/UAL2_Standard.fbx"
+          echo "d26d0e9f4a202d473194c056045143095a605a53ba1d823ef24055be4b86851d  $P/Assets/HIGHFLY/Run0I/UAL2_Standard.fbx" | sha256sum -c -
+
+          KENNEY="https://raw.githubusercontent.com/Calinou/kenney-particle-pack/ab7086639ee73be31abd87feb21bf1402d4e8144/addons/kenney_particle_pack"
+          curl -L --fail --retry 3 "$KENNEY/slash_02.png" -o "$P/Assets/Resources/HIGHFLY/Run0I/slash_02.png"
+
+          cp "$P/Assets/UnityTechnologies/ParticlePack/EffectExamples/Legacy Particles/Prefabs/SparksEffect.prefab"              "$P/Assets/Resources/HIGHFLY/Run0I/SparksEffect.prefab"
+          cp "$P/Assets/SFX/swing.mp3" "$P/Assets/Resources/HIGHFLY/Run0I/swing.mp3"
+          cp "$P/Assets/SFX/longSwing.mp3" "$P/Assets/Resources/HIGHFLY/Run0I/longSwing.mp3"
+          cp "$P/Assets/SFX/Dragon/hit.mp3" "$P/Assets/Resources/HIGHFLY/Run0I/hit.mp3"
+
+          test ! -d "$P/Assets/HIGHFLY/Lab"
+          grep -q "SonicLeap" "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
+          grep -q "OverlapCapsuleNonAlloc" "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
+          grep -q "HighflyRun0IParkour" "$P/Assets/HIGHFLY/Run0I/HighflyRun0IParkour.cs"
+          grep -q "HighflyLoadoutProfile" "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
+          echo "RUN0I2_DIRECTIONAL_MELEE_INSTALLED=1"
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: run0i2-6000.6.2f1-${{ hashFiles('ci/run0i2/**','ci/run0i/**','ci/run0h/HighflyRun0HLabBootstrap.cs','ci/mobile/**','ci/combat/HighflyCombatCore.cs') }}
+          restore-keys: |
+            run0i2-6000.6.2f1-
+            run0h-6000.6.2f1-
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.6.2f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.Run0I.Editor.WebGLBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify Run0I
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          test -f "$OUT/index.html"
+          test -f "$OUT/RUN0I2_BUILD.txt"
+          test -d "$OUT/Build"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
+          test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
+          grep -q "DIRECTIONAL MELEE CORE" "$OUT/RUN0I2_BUILD.txt"
+
+      - name: Upload Run0I WebGL
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-run0i2-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Run0I Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: LucidHost/3D_game/build/WebGL
+
+  deploy:
+    name: Deploy Run0I.2 to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages-run0i2
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Run0I.2
+        id: deployment
+        uses: actions/deploy-pages@v4
