@@ -262,8 +262,12 @@ namespace Highfly.Mobile
                     player?.HighflyMobileLockOn();
                     break;
                 case HighflyMobileAction.JumpClimb:
-                    player?.HighflyMobileJump();
-                    break;
+                    {
+                        var parkour = UnityEngine.Object.FindAnyObjectByType<Highfly.Run0I.HighflyRun0IParkour>();
+                        if (parkour == null || !parkour.RequestJump())
+                            player?.HighflyMobileJump();
+                        break;
+                    }
                 case HighflyMobileAction.Potion:
                     UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
                     break;
