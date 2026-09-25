@@ -74,14 +74,24 @@ namespace Highfly.Run0I.Editor
             Copy(clips,target,"Sword_Dash","Sword_Dash");
             Copy(clips,target,"Sword_Regular_Combo","Sword_Regular_Combo");
             Copy(clips,target,"Melee_Hook","Melee_Hook");
-            Copy(clips,target,"Punch_Jab","Punch_Jab");
-            Copy(clips,target,"Punch_Cross","Punch_Cross");
 
             AnimationClip block=clips.FirstOrDefault(x=>x.name.IndexOf("Sword_Block",StringComparison.OrdinalIgnoreCase)>=0)
                 ?? clips.FirstOrDefault(x=>x.name.IndexOf("Block",StringComparison.OrdinalIgnoreCase)>=0);
             if (block==null)
                 throw new Exception("[RUN0I] No real block/parry clip found in UAL2; quality gate stops build.");
             SaveCopy(block,target+"/Sword_Block.anim","Sword_Block");
+
+            // RUN0I.2: real unarmed body language from the same KayKit family.
+            const string knightSource="Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx";
+            AnimationClip[] knightClips=AssetDatabase.LoadAllAssetsAtPath(knightSource)
+                .OfType<AnimationClip>().Where(x=>x!=null && !x.name.StartsWith("__preview__")).ToArray();
+            AnimationClip unarmedPunch=FindByTokens(knightClips,"unarmed","punch");
+            AnimationClip unarmedKick=FindByTokens(knightClips,"unarmed","kick");
+            if (unarmedPunch==null || unarmedKick==null)
+                throw new Exception("[RUN0I.2] Quality gate: KayKit Knight missing real unarmed punch/kick clips.");
+            SaveCopy(unarmedPunch,target+"/Unarmed_Punch.anim","Unarmed_Punch");
+            SaveCopy(unarmedKick,target+"/Unarmed_Kick.anim","Unarmed_Kick");
+            Debug.Log("[RUN0I.2] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
 
             // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
             SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_1.anim"),target+"/Warrior_A.anim","Warrior_A");
