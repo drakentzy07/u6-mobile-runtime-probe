@@ -14,6 +14,7 @@ public class PlayerPotion : MonoBehaviour
     [Header("Cooltime")]
     public float potionCooldown = 3.0f;
     private float _lastPotionTime;
+    private bool _highflyDrinking;
 
     [Header("References")]
     public PlayerStats _stats;
@@ -82,9 +83,34 @@ public class PlayerPotion : MonoBehaviour
             return;
         }
 
-        // 4. 실행
-        // StartCoroutine(DrinkRoutine());
-        StartToDrink();
+        // RUN0I.1: deterministic potion flow; never depend on imported Animation Events.
+        if (!_highflyDrinking) StartCoroutine(HighflyDrinkRoutine());
+    }
+
+    IEnumerator HighflyDrinkRoutine()
+    {
+        _highflyDrinking = true;
+        _lastPotionTime = Time.time;
+        _controller.ChangeState(PlayerState.UseItem);
+
+        Highfly.Run0H.HighflyRun0HCharacterVisual.Instance?.SetWeaponsVisible(false);
+        if (_animator != null) _animator.SetTrigger(AnimID_DoDrink);
+
+        // Consume during the visible drink gesture, then finish deterministically.
+        yield return new WaitForSecondsRealtime(0.55f);
+        if (currentPotions > 0)
+        {
+            currentPotions--;
+            UpdateUI();
+            _stats.RestoreEgo(restoreAmount);
+            Debug.Log($"<color=cyan>[HIGHFLY] Lucid Drop consumida. Restan: {currentPotions}</color>");
+        }
+
+        yield return new WaitForSecondsRealtime(0.55f);
+        Highfly.Run0H.HighflyRun0HCharacterVisual.Instance?.SetWeaponsVisible(true);
+        if (_controller.currentState == PlayerState.UseItem)
+            _controller.ChangeState(PlayerState.Locomotion);
+        _highflyDrinking = false;
     }
 
     IEnumerator DrinkRoutine()
@@ -132,18 +158,20 @@ public class PlayerPotion : MonoBehaviour
     }
     private void UpdateUI()
     {
-        currentPotionText.text = $"{currentPotions}";
+        if (currentPotionText != null) currentPotionText.text = $"{currentPotions}";
     }
     // ---------------------------
     // Animation Event
     // ---------------------------
     public void OnConsume()
     {
+        // Imported Lucid clip may still emit this event. RUN0I.1 owns consumption
+        // through HighflyDrinkRoutine, so ignore it while that flow is active.
+        if (_highflyDrinking) return;
         _lastPotionTime = Time.time;
-        currentPotions--;
+        if (currentPotions > 0) currentPotions--;
         UpdateUI();
         _stats.RestoreEgo(restoreAmount);
-        Debug.Log($"<color=cyan>[Lucid Drop] 사용! 남은 개수: {currentPotions}</color>");
     }
     public void OnEndDrink()
     {
