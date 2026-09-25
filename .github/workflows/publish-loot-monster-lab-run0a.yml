@@ -71,14 +71,13 @@ jobs:
           grep -q "MAT_GOBLIN_SCRAP_IRON" LucidHost/3D_game/Assets/HIGHFLY/LootLab/HighflyLootCore.cs
           grep -q "AUTO RUN 0A GREEN" LucidHost/3D_game/Assets/HIGHFLY/LootLab/HighflyLootMonsterLabBootstrap.cs
 
-      - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: LucidHost/3D_game/Library
-          key: lootlab-run0a-6000.4.0f1-${{ hashFiles('ci/HighflyCiWebGLBuilder.cs', 'ci/lootlab/**') }}
-          restore-keys: |
-            lootlab-run0a-6000.4.0f1-
-            lucid-6000.4.0f1-webgl-
+      - name: Force fresh Unity Library
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf LucidHost/3D_game/Library
+          rm -rf LucidHost/3D_game/Temp
+          mkdir -p LucidHost/3D_game/Library
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
@@ -92,6 +91,7 @@ jobs:
           targetPlatform: WebGL
           buildMethod: Highfly.CI.WebGLBuilder.Build
           allowDirtyBuild: true
+          customParameters: -job-worker-count 2
 
       - name: Verify WebGL output
         shell: bash
