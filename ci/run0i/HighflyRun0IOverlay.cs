@@ -45,7 +45,7 @@ namespace Highfly.Run0I
             {
                 Text t=all[i]; if (t==null) continue;
                 if (t.text.Contains("RUN0H • BASE ESTABLE"))
-                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I • COMBAT CORE v0.1");
+                    t.text=t.text.Replace("RUN0H • BASE ESTABLE","RUN0I.1 • BASELINE PURGE");
                 if (t.text.Contains("SUPER SKILLS • PRÓXIMO RUN0I"))
                     t.text="SKILLS COMPLETAS • QUALITY GATE";
                 if (t.text.StartsWith("S1  LAUNCHER JUMP"))
@@ -68,13 +68,14 @@ namespace Highfly.Run0I
             HighflyLucidCombatBridge combat=HighflyLucidCombatBridge.Instance;
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             _metrics.text=
-                "RUN0I • REAL TRACE / REAL ACTIVE WINDOWS\n"+
+                "RUN0I.1 • 360 FACING / REAL TRACE\n"+
                 "Personaje: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
                 "ATQ Basic 1→2→3 • S1 Sonic Leap • S2 Horizontal Square\n"+
-                "DODGE Slide Move • PARRY Repel Counter • SALTO double/wall";
+                "DODGE Slide Move • PARRY Repel Counter • SALTO double/wall\n"+
+                "360°: LOCK>target • sin LOCK>joystick • neutro>facing";
         }
 
         private void BuildMetrics()
