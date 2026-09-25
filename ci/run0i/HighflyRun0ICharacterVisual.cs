@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Animations;
 using UnityEngine.Playables;
 using UnityEngine.SceneManagement;
+using Highfly.Run0I2;
 
 namespace Highfly.Run0H
 {
@@ -15,10 +16,14 @@ namespace Highfly.Run0H
         public static HighflyRun0HCharacterVisual Instance { get; private set; }
 
         private const string KnightResource = "HIGHFLY/Run0H/KayKitKnight";
+        private const string BarbarianResource = "HIGHFLY/Run0H/KayKitBarbarian";
         private const string RogueResource = "HIGHFLY/Run0H/KayKitRogue";
+        private const string RogueHoodedResource = "HIGHFLY/Run0H/KayKitRogueHooded";
         private const string SwordResource = "HIGHFLY/Run0H/KayKitSword1H";
+        private const string AxeResource = "HIGHFLY/Run0H/KayKitAxe1H";
         private const string DaggerResource = "HIGHFLY/Run0H/KayKitDagger";
         private const string ShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
+        private const string SpearResource = "HIGHFLY/Run0H/QuaterniusSpear";
         private const float TargetHeight = 1.72f;
 
         private PlayerController _player;
@@ -29,6 +34,7 @@ namespace Highfly.Run0H
         private Animator _visualAnimator;
         private HighflyRun0HAnimatorMirror _mirror;
         private HighflyRun0HCharacter _current = HighflyRun0HCharacter.Warrior;
+        private HighflyLoadoutProfile _loadout = HighflyLoadoutProfile.SwordShield;
         private bool _bound;
 
         private Transform _primaryBase, _primaryTip, _secondaryBase, _secondaryTip;
@@ -39,15 +45,15 @@ namespace Highfly.Run0H
 
         public bool IsBound => _bound;
         public HighflyRun0HCharacter Current => _current;
+        public HighflyLoadoutProfile CurrentLoadout => _loadout;
+        public bool UsesSecondaryTrace => HighflyMeleeLibrary.Get(_loadout).UsesSecondaryTrace;
         public PlayerController Player => _player;
         public Animator VisualAnimator => _visualAnimator;
         public Transform PrimaryBase => _primaryBase;
         public Transform PrimaryTip => _primaryTip;
         public Transform SecondaryBase => _secondaryBase;
         public Transform SecondaryTip => _secondaryTip;
-        public string CurrentLabel => _current == HighflyRun0HCharacter.Warrior
-            ? "KAYKIT WARRIOR • 1 ESPADA"
-            : "KAYKIT ASSASSIN • 2 DAGAS";
+        public string CurrentLabel => HighflyMeleeLibrary.Get(_loadout).Label;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -110,18 +116,18 @@ namespace Highfly.Run0H
             SpawnCurrent();
             _player.animator = _sourceAnimator;
             _bound = _visualAnimator != null;
-            Debug.Log("[RUN0I] CHARACTER BOUND • " + CurrentLabel);
+            Debug.Log("[RUN0I.2] CHARACTER BOUND • " + CurrentLabel);
         }
 
-        public void UseWarrior()
-        {
-            _current = HighflyRun0HCharacter.Warrior;
-            if (_player != null && _sourceAnimator != null) SpawnCurrent();
-        }
+        public void UseWarrior() => UseLoadout(HighflyLoadoutProfile.SwordShield);
+        public void UseAssassin() => UseLoadout(HighflyLoadoutProfile.DualDaggers);
 
-        public void UseAssassin()
+        public void UseLoadout(HighflyLoadoutProfile profile)
         {
-            _current = HighflyRun0HCharacter.Assassin;
+            _loadout = profile;
+            _current = profile == HighflyLoadoutProfile.DualDaggers
+                ? HighflyRun0HCharacter.Assassin
+                : HighflyRun0HCharacter.Warrior;
             if (_player != null && _sourceAnimator != null) SpawnCurrent();
         }
 
@@ -200,17 +206,15 @@ namespace Highfly.Run0H
         private void SpawnCurrent()
         {
             DestroyCurrentVisual();
-            string resource = _current == HighflyRun0HCharacter.Warrior ? KnightResource : RogueResource;
+            string resource = ResolveCharacterResource(_loadout);
             GameObject prefab = Resources.Load<GameObject>(resource);
-            if (prefab == null) { Debug.LogError("[RUN0I] Missing resource: " + resource); return; }
+            if (prefab == null) { Debug.LogError("[RUN0I.2] Missing resource: " + resource); return; }
 
-            _visualPivot = new GameObject("HIGHFLY_RUN0I_VISUAL_PIVOT");
+            _visualPivot = new GameObject("HIGHFLY_RUN0I2_VISUAL_PIVOT");
             _visualPivot.transform.SetParent(_player.transform, false);
 
             _visualRoot = Instantiate(prefab, _visualPivot.transform);
-            _visualRoot.name = _current == HighflyRun0HCharacter.Warrior
-                ? "HIGHFLY_KAYKIT_WARRIOR"
-                : "HIGHFLY_KAYKIT_ASSASSIN";
+            _visualRoot.name = "HIGHFLY_" + _loadout.ToString().ToUpperInvariant();
             _visualRoot.transform.localPosition = Vector3.zero;
             _visualRoot.transform.localRotation = Quaternion.identity;
             _visualRoot.transform.localScale = Vector3.one;
@@ -243,8 +247,7 @@ namespace Highfly.Run0H
             RemoveExistingHandEquipment();
             NormalizeVisual();
 
-            if (_current == HighflyRun0HCharacter.Warrior) AttachWarriorSword();
-            else AttachAssassinDaggers();
+            AttachLoadoutEquipment();
 
             _mirror = _visualRoot.AddComponent<HighflyRun0HAnimatorMirror>();
             _mirror.Bind(_sourceAnimator, _visualAnimator);
@@ -315,43 +318,88 @@ namespace Highfly.Run0H
             if (found) _visualRoot.transform.position += Vector3.up * (_player.transform.position.y - bounds.min.y);
         }
 
-        private void AttachWarriorSword()
+        private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            Transform hand = _visualAnimator.GetBoneTransform(HumanBodyBones.RightHand);
-            GameObject prefab = Resources.Load<GameObject>(SwordResource);
-            if (hand == null || prefab == null) return;
-            GameObject weapon = AttachWeapon(prefab, hand, "HIGHFLY_RUN0I_WARRIOR_SWORD");
-            _primaryWeaponObject = weapon;
-            BuildWeaponSockets(weapon, out _primaryBase, out _primaryTip);
-            _primaryTrail = BuildTrail(_primaryTip);
-
-            Transform left = _visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
-            GameObject shieldPrefab = Resources.Load<GameObject>(ShieldResource);
-            if (left != null && shieldPrefab != null)
-                _shieldObject = AttachWeapon(shieldPrefab,left,"HIGHFLY_RUN0I_WARRIOR_SHIELD");
+            switch (profile)
+            {
+                case HighflyLoadoutProfile.Axe1H:
+                case HighflyLoadoutProfile.DualAxe:
+                case HighflyLoadoutProfile.AxeShield:
+                    return BarbarianResource;
+                case HighflyLoadoutProfile.DualDaggers:
+                    return RogueResource;
+                case HighflyLoadoutProfile.DualSword:
+                case HighflyLoadoutProfile.Spear2H:
+                    return RogueHoodedResource;
+                default:
+                    return KnightResource;
+            }
         }
 
-        private void AttachAssassinDaggers()
+        private void AttachLoadoutEquipment()
         {
-            GameObject prefab = Resources.Load<GameObject>(DaggerResource);
-            if (prefab == null) return;
-            Transform right = _visualAnimator.GetBoneTransform(HumanBodyBones.RightHand);
-            Transform left = _visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            switch (_loadout)
+            {
+                case HighflyLoadoutProfile.Sword1H:
+                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
+                    break;
+                case HighflyLoadoutProfile.DualSword:
+                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
+                    AttachSecondary(SwordResource,"HIGHFLY_SWORD_L");
+                    break;
+                case HighflyLoadoutProfile.SwordShield:
+                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
+                    AttachShield();
+                    break;
+                case HighflyLoadoutProfile.Axe1H:
+                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
+                    break;
+                case HighflyLoadoutProfile.DualAxe:
+                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
+                    AttachSecondary(AxeResource,"HIGHFLY_AXE_L");
+                    break;
+                case HighflyLoadoutProfile.AxeShield:
+                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
+                    AttachShield();
+                    break;
+                case HighflyLoadoutProfile.DualDaggers:
+                    AttachPrimary(DaggerResource,"HIGHFLY_DAGGER_R");
+                    AttachSecondary(DaggerResource,"HIGHFLY_DAGGER_L");
+                    break;
+                case HighflyLoadoutProfile.Spear2H:
+                    AttachPrimary(SpearResource,"HIGHFLY_SPEAR_2H");
+                    break;
+            }
+        }
 
-            if (right != null)
-            {
-                GameObject wr = AttachWeapon(prefab, right, "HIGHFLY_RUN0I_DAGGER_R");
-                _primaryWeaponObject = wr;
-                BuildWeaponSockets(wr, out _primaryBase, out _primaryTip);
-                _primaryTrail = BuildTrail(_primaryTip);
-            }
-            if (left != null)
-            {
-                GameObject wl = AttachWeapon(prefab, left, "HIGHFLY_RUN0I_DAGGER_L");
-                _secondaryWeaponObject = wl;
-                BuildWeaponSockets(wl, out _secondaryBase, out _secondaryTip);
-                _secondaryTrail = BuildTrail(_secondaryTip);
-            }
+        private void AttachPrimary(string resource,string name)
+        {
+            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.RightHand);
+            GameObject prefab=Resources.Load<GameObject>(resource);
+            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing primary "+resource); return; }
+            GameObject weapon=AttachWeapon(prefab,hand,name);
+            _primaryWeaponObject=weapon;
+            BuildWeaponSockets(weapon,out _primaryBase,out _primaryTip);
+            _primaryTrail=BuildTrail(_primaryTip);
+        }
+
+        private void AttachSecondary(string resource,string name)
+        {
+            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            GameObject prefab=Resources.Load<GameObject>(resource);
+            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing secondary "+resource); return; }
+            GameObject weapon=AttachWeapon(prefab,hand,name);
+            _secondaryWeaponObject=weapon;
+            BuildWeaponSockets(weapon,out _secondaryBase,out _secondaryTip);
+            _secondaryTrail=BuildTrail(_secondaryTip);
+        }
+
+        private void AttachShield()
+        {
+            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            GameObject prefab=Resources.Load<GameObject>(ShieldResource);
+            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing shield"); return; }
+            _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
         }
 
         private static GameObject AttachWeapon(GameObject prefab, Transform hand, string name)
