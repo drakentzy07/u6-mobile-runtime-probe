@@ -125,6 +125,13 @@ namespace Highfly.Run0H
             if (_player != null && _sourceAnimator != null) SpawnCurrent();
         }
 
+        public float GetActionClipLength(string clipName)
+        {
+            if (string.IsNullOrWhiteSpace(clipName)) return 0f;
+            AnimationClip clip = Resources.Load<AnimationClip>("HIGHFLY/Run0I/Animations/" + clipName);
+            return clip != null ? clip.length : 0f;
+        }
+
         public bool PlayActionClip(string clipName, float speed = 1f)
         {
             if (_visualAnimator == null || string.IsNullOrWhiteSpace(clipName)) return false;
