@@ -74,6 +74,8 @@ namespace Highfly.Run0I.Editor
             Copy(clips,target,"Sword_Dash","Sword_Dash");
             Copy(clips,target,"Sword_Regular_Combo","Sword_Regular_Combo");
             Copy(clips,target,"Melee_Hook","Melee_Hook");
+            Copy(clips,target,"Punch_Jab","Punch_Jab");
+            Copy(clips,target,"Punch_Cross","Punch_Cross");
 
             AnimationClip block=clips.FirstOrDefault(x=>x.name.IndexOf("Sword_Block",StringComparison.OrdinalIgnoreCase)>=0)
                 ?? clips.FirstOrDefault(x=>x.name.IndexOf("Block",StringComparison.OrdinalIgnoreCase)>=0);
