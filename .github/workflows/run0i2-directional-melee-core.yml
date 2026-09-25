@@ -153,14 +153,15 @@ jobs:
           grep -q "HighflyLoadoutProfile" "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
           echo "RUN0I3_SINGLE_HUNTER_GUARD_INSTALLED=1"
 
-      - name: Cache Unity Library
-        uses: actions/cache@v4
-        with:
-          path: LucidHost/3D_game/Library
-          key: run0i3-6000.6.2f1-${{ hashFiles('ci/run0i2/**','ci/run0i/**','ci/run0h/HighflyRun0HLabBootstrap.cs','ci/mobile/**','ci/combat/HighflyCombatCore.cs') }}
-          restore-keys: |
-            run0i3-6000.6.2f1-
-            run0h-6000.6.2f1-
+      - name: Reset Unity transient cache
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf LucidHost/3D_game/Library
+          rm -rf LucidHost/3D_game/Temp
+          rm -rf LucidHost/3D_game/obj
+          mkdir -p LucidHost/3D_game/Library
+          free -h
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
@@ -173,7 +174,7 @@ jobs:
           unityVersion: 6000.6.2f1
           targetPlatform: WebGL
           buildMethod: Highfly.Run0I.Editor.WebGLBuilder.Build
-          customParameters: -job-worker-count 2
+          customParameters: -job-worker-count 1
           allowDirtyBuild: true
 
       - name: Verify Run0I
