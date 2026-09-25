@@ -201,9 +201,9 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition Unarmed = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Unarmed,"SIN ARMAS",HighflyWeaponKind.None,null,HighflyGuardStyle.WeaponGuard,false,
-            P("UA_HOOK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Melee_Hook",1.00f,.20f,.48f,.18f,240f,9f,.025f),
-            P("UA_REVERSE",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Left,"Melee_Hook",1.05f,.20f,.48f,.18f,240f,9f,.025f),
-            P("UA_FINISH",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Melee_Hook",.92f,.24f,.58f,.24f,190f,12f,.035f,.86f));
+            P("UA_JAB",HighflyStrikeDirection.Thrust,HighflyHandUsage.Left,"Punch_Jab",1.08f,.18f,.44f,.14f,260f,8f,.022f),
+            P("UA_CROSS",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Punch_Cross",1.05f,.20f,.46f,.18f,250f,10f,.026f),
+            P("UA_HOOK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Melee_Hook",.98f,.22f,.52f,.22f,210f,13f,.034f,.84f));
 
         private static readonly HighflyLoadoutDefinition Sword1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Sword1H,"ESPADA 1H",HighflyWeaponKind.Sword,null,HighflyGuardStyle.WeaponGuard,false,
