@@ -5,6 +5,7 @@ namespace Highfly.Run0I2
 {
     public enum HighflyLoadoutProfile
     {
+        Unarmed,
         Sword1H,
         DualSword,
         SwordShield,
@@ -15,7 +16,7 @@ namespace Highfly.Run0I2
         Spear2H
     }
 
-    public enum HighflyWeaponKind { Sword, Axe, Dagger, Spear, Shield }
+    public enum HighflyWeaponKind { None, Sword, Axe, Dagger, Spear, Shield }
     public enum HighflyGuardStyle { WeaponGuard, CrossGuard, ShieldGuard, PoleGuard }
     public enum HighflyStrikeDirection
     {
@@ -32,6 +33,54 @@ namespace Highfly.Run0I2
         Spin
     }
     public enum HighflyHandUsage { Right, Left, Both, Alternating }
+
+    [Serializable]
+    public sealed class HighflyEquipmentState
+    {
+        public HighflyWeaponKind MainHand = HighflyWeaponKind.None;
+        public HighflyWeaponKind OffHand = HighflyWeaponKind.None;
+        public HighflyWeaponKind TwoHand = HighflyWeaponKind.None;
+
+        public void Clear()
+        {
+            MainHand=HighflyWeaponKind.None;
+            OffHand=HighflyWeaponKind.None;
+            TwoHand=HighflyWeaponKind.None;
+        }
+
+        public void SetPreset(HighflyLoadoutProfile profile)
+        {
+            Clear();
+            switch (profile)
+            {
+                case HighflyLoadoutProfile.Sword1H: MainHand=HighflyWeaponKind.Sword; break;
+                case HighflyLoadoutProfile.DualSword: MainHand=HighflyWeaponKind.Sword; OffHand=HighflyWeaponKind.Sword; break;
+                case HighflyLoadoutProfile.SwordShield: MainHand=HighflyWeaponKind.Sword; OffHand=HighflyWeaponKind.Shield; break;
+                case HighflyLoadoutProfile.Axe1H: MainHand=HighflyWeaponKind.Axe; break;
+                case HighflyLoadoutProfile.DualAxe: MainHand=HighflyWeaponKind.Axe; OffHand=HighflyWeaponKind.Axe; break;
+                case HighflyLoadoutProfile.AxeShield: MainHand=HighflyWeaponKind.Axe; OffHand=HighflyWeaponKind.Shield; break;
+                case HighflyLoadoutProfile.DualDaggers: MainHand=HighflyWeaponKind.Dagger; OffHand=HighflyWeaponKind.Dagger; break;
+                case HighflyLoadoutProfile.Spear2H: TwoHand=HighflyWeaponKind.Spear; break;
+            }
+        }
+    }
+
+    public static class HighflyLoadoutResolver
+    {
+        public static HighflyLoadoutProfile Resolve(HighflyEquipmentState state)
+        {
+            if (state==null) return HighflyLoadoutProfile.Unarmed;
+            if (state.TwoHand==HighflyWeaponKind.Spear) return HighflyLoadoutProfile.Spear2H;
+            if (state.MainHand==HighflyWeaponKind.Sword && state.OffHand==HighflyWeaponKind.Sword) return HighflyLoadoutProfile.DualSword;
+            if (state.MainHand==HighflyWeaponKind.Sword && state.OffHand==HighflyWeaponKind.Shield) return HighflyLoadoutProfile.SwordShield;
+            if (state.MainHand==HighflyWeaponKind.Axe && state.OffHand==HighflyWeaponKind.Axe) return HighflyLoadoutProfile.DualAxe;
+            if (state.MainHand==HighflyWeaponKind.Axe && state.OffHand==HighflyWeaponKind.Shield) return HighflyLoadoutProfile.AxeShield;
+            if (state.MainHand==HighflyWeaponKind.Dagger && state.OffHand==HighflyWeaponKind.Dagger) return HighflyLoadoutProfile.DualDaggers;
+            if (state.MainHand==HighflyWeaponKind.Sword) return HighflyLoadoutProfile.Sword1H;
+            if (state.MainHand==HighflyWeaponKind.Axe) return HighflyLoadoutProfile.Axe1H;
+            return HighflyLoadoutProfile.Unarmed;
+        }
+    }
 
     [Serializable]
     public sealed class HighflyStrikePattern
@@ -150,6 +199,12 @@ namespace Highfly.Run0I2
             float damage, float hitstop, float link=0.82f)
             => new HighflyStrikePattern(id,dir,hands,clip,speed,activeA,activeB,move,steer,damage,hitstop,link);
 
+        private static readonly HighflyLoadoutDefinition Unarmed = new HighflyLoadoutDefinition(
+            HighflyLoadoutProfile.Unarmed,"SIN ARMAS",HighflyWeaponKind.None,null,HighflyGuardStyle.WeaponGuard,false,
+            P("UA_HOOK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Melee_Hook",1.00f,.20f,.48f,.18f,240f,9f,.025f),
+            P("UA_REVERSE",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Left,"Melee_Hook",1.05f,.20f,.48f,.18f,240f,9f,.025f),
+            P("UA_FINISH",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Melee_Hook",.92f,.24f,.58f,.24f,190f,12f,.035f,.86f));
+
         private static readonly HighflyLoadoutDefinition Sword1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Sword1H,"ESPADA 1H",HighflyWeaponKind.Sword,null,HighflyGuardStyle.WeaponGuard,false,
             P("S1_VDOWN",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",2.00f,.22f,.46f,.22f,210f,22f,.045f),
@@ -202,6 +257,7 @@ namespace Highfly.Run0I2
         {
             switch (profile)
             {
+                case HighflyLoadoutProfile.Unarmed: return Unarmed;
                 case HighflyLoadoutProfile.Sword1H: return Sword1H;
                 case HighflyLoadoutProfile.DualSword: return DualSword;
                 case HighflyLoadoutProfile.SwordShield: return SwordShield;
@@ -210,7 +266,7 @@ namespace Highfly.Run0I2
                 case HighflyLoadoutProfile.AxeShield: return AxeShield;
                 case HighflyLoadoutProfile.DualDaggers: return DualDaggers;
                 case HighflyLoadoutProfile.Spear2H: return Spear2H;
-                default: return SwordShield;
+                default: return Unarmed;
             }
         }
     }
