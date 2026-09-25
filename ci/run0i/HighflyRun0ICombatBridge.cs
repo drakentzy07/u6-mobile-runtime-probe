@@ -25,7 +25,7 @@ namespace Highfly.Combat
         private float _comboExpire,_hitstopRemaining,_sonicReadyAt,_squareReadyAt,_slideReadyAt,_repelReadyAt;
         private Vector3 _prevPrimaryTip,_prevSecondaryTip;
         private bool _hasPrevTips;
-        private readonly HashSet<int> _hitThisWindow = new HashSet<int>();
+        private readonly HashSet<CharacterStats> _hitThisWindow = new HashSet<CharacterStats>();
         private readonly Collider[] _hits = new Collider[64];
 
         private AudioSource _audio;
@@ -324,8 +324,7 @@ namespace Highfly.Combat
             if (collider.transform==transform || collider.transform.IsChildOf(transform)) return;
             CharacterStats stats=collider.GetComponentInParent<CharacterStats>();
             if (stats==null || stats==_player.GetComponent<PlayerStats>()) return;
-            int id=stats.GetInstanceID();
-            if (!_hitThisWindow.Add(id)) return;
+            if (!_hitThisWindow.Add(stats)) return;
 
             Vector3 contact=collider.ClosestPoint(
                 HighflyRun0HCharacterVisual.Instance?.PrimaryTip!=null
