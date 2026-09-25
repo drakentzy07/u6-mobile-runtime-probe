@@ -275,7 +275,7 @@ namespace Highfly.Run0H
 
             Text title = CreateText(
                 panel.transform,
-                "HIGHFLY • SKILLS LAB SUPREMO\nRUN0I.2 • DIRECTIONAL MELEE",
+                "HIGHFLY • SKILLS LAB SUPREMO\nRUN0I.3 • SINGLE HUNTER + GUARD",
                 24,
                 TextAnchor.UpperLeft);
 
@@ -352,8 +352,8 @@ namespace Highfly.Run0H
             {
                 "ATQ • ComboRecipe según arma",
                 "DIRECCIÓN • ↓ ↑ ← → / \\ X T S",
-                "GUARD • Weapon / Cross / Shield / Pole",
-                "S1/S2 + PARKOUR • regresión intacta"
+                "GUARD • Cross real / Shield real / Pole / Weapon",
+                "S1 legacy test • S2 OFF • PARKOUR intacto"
             };
 
             for (int i = 0; i < slots.Length; i++)
@@ -373,7 +373,7 @@ namespace Highfly.Run0H
 
             Text footer = CreateText(
                 panel.transform,
-                "CORE: EQUIPMENT → RESOLVER → MELEE\nPresets LAB simulan equipar loot • 1 Hunter • 3 dummies",
+                "CORE: EQUIPMENT → RESOLVER → MELEE\n1 Hunter fijo • guard por equipo • 3 dummies",
                 14,
                 TextAnchor.LowerLeft);
 
