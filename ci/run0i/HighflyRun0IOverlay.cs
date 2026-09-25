@@ -74,7 +74,7 @@ namespace Highfly.Run0I
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
                 "ATQ Basic 1→2→3 • S1 Sonic Leap • S2 Horizontal Square\n"+
-                "DODGE Slide Move • PARRY Repel Counter • SALTO double/wall\n"+
+                "DODGE Slide Move • PARRY Repel Counter (0.75s recast) • SALTO double/wall\n"+
                 "360°: LOCK>target • sin LOCK>joystick • neutro>facing";
         }
 
