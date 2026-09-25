@@ -30,13 +30,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[RUN0I.1] Building Baseline Purge");
+            Debug.Log("[RUN0I.2] Building Directional Melee Core");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
-            File.WriteAllText(Path.Combine(output,"RUN0I1_BUILD.txt"),
-                "HIGHFLY RUN0I.1 | BASELINE PURGE | 360 STICK FACING | LUCID WARRIOR COMBO | KAYKIT DUAL ASSASSIN | REAL REPEL | SAFE POTION | UNITY 6000.6.2");
+            File.WriteAllText(Path.Combine(output,"RUN0I2_BUILD.txt"),
+                "HIGHFLY RUN0I.2 | DIRECTIONAL MELEE CORE | 8 LOADOUTS | STRIKE GRAMMAR | 360 STEERING | REAL TRACE | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -103,7 +103,45 @@ namespace Highfly.Run0I.Editor
             SaveCopy(dualChop,target+"/Assassin_A.anim","Assassin_A");
             SaveCopy(dualSlice,target+"/Assassin_B.anim","Assassin_B");
             SaveCopy(dualStab,target+"/Assassin_C.anim","Assassin_C");
-            Debug.Log("[RUN0I.1] ASSASSIN_REAL_DUAL="+dualChop.name+" | "+dualSlice.name+" | "+dualStab.name);
+
+            // Dedicated slots per dual family. Same audited donor bank today; independently replaceable later.
+            SaveCopy(dualChop,target+"/DualSword_A.anim","DualSword_A");
+            SaveCopy(dualSlice,target+"/DualSword_B.anim","DualSword_B");
+            SaveCopy(dualStab,target+"/DualSword_C.anim","DualSword_C");
+            SaveCopy(dualChop,target+"/DualAxe_A.anim","DualAxe_A");
+            SaveCopy(dualSlice,target+"/DualAxe_B.anim","DualAxe_B");
+            SaveCopy(dualStab,target+"/DualAxe_C.anim","DualAxe_C");
+            SaveCopy(dualChop,target+"/Dagger_A.anim","Dagger_A");
+            SaveCopy(dualSlice,target+"/Dagger_B.anim","Dagger_B");
+            SaveCopy(dualStab,target+"/Dagger_C.anim","Dagger_C");
+
+            const string barbarianSource="Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx";
+            AnimationClip[] barbarianClips=AssetDatabase.LoadAllAssetsAtPath(barbarianSource)
+                .OfType<AnimationClip>().Where(x=>x!=null && !x.name.StartsWith("__preview__")).ToArray();
+            AnimationClip axeChop=FindByTokens(barbarianClips,"1h","chop");
+            AnimationClip axeSlice=FindByTokens(barbarianClips,"1h","slice");
+            AnimationClip axeStab=FindByTokens(barbarianClips,"1h","stab");
+            if (axeChop==null || axeSlice==null || axeStab==null)
+                throw new Exception("[RUN0I.2] Quality gate: missing KayKit 1H Chop/Slice/Stab bank for axe family.");
+            SaveCopy(axeChop,target+"/Axe_A.anim","Axe_A");
+            SaveCopy(axeSlice,target+"/Axe_B.anim","Axe_B");
+            SaveCopy(axeStab,target+"/Axe_C.anim","Axe_C");
+
+            const string poleSource="Assets/Resources/HIGHFLY/Run0H/KayKitRogueHooded.fbx";
+            AnimationClip[] poleClips=AssetDatabase.LoadAllAssetsAtPath(poleSource)
+                .OfType<AnimationClip>().Where(x=>x!=null && !x.name.StartsWith("__preview__")).ToArray();
+            AnimationClip poleStab=FindByTokens(poleClips,"2h","stab");
+            AnimationClip poleSlice=FindByTokens(poleClips,"2h","slice");
+            AnimationClip poleChop=FindByTokens(poleClips,"2h","chop");
+            if (poleStab==null || poleSlice==null || poleChop==null)
+                throw new Exception("[RUN0I.2] Quality gate: missing KayKit 2H Stab/Slice/Chop bank for spear family.");
+            SaveCopy(poleStab,target+"/Spear_A.anim","Spear_A");
+            SaveCopy(poleSlice,target+"/Spear_B.anim","Spear_B");
+            SaveCopy(poleChop,target+"/Spear_C.anim","Spear_C");
+
+            Debug.Log("[RUN0I.2] DUAL_BANK="+dualChop.name+" | "+dualSlice.name+" | "+dualStab.name);
+            Debug.Log("[RUN0I.2] AXE_BANK="+axeChop.name+" | "+axeSlice.name+" | "+axeStab.name);
+            Debug.Log("[RUN0I.2] SPEAR_BANK="+poleStab.name+" | "+poleSlice.name+" | "+poleChop.name);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
