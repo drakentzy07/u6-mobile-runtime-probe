@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using Highfly.Mobile;
+using Highfly.Run0I2;
 
 namespace Highfly.Run0H
 {
@@ -267,14 +268,14 @@ namespace Highfly.Run0H
             pr.anchorMin = pr.anchorMax = new Vector2(0f, 1f);
             pr.pivot = new Vector2(0f, 1f);
             pr.anchoredPosition = new Vector2(24f, -24f);
-            pr.sizeDelta = new Vector2(430f, 575f);
+            pr.sizeDelta = new Vector2(430f, 730f);
 
             panel.GetComponent<Image>().color =
                 new Color(0.018f, 0.026f, 0.045f, 0.93f);
 
             Text title = CreateText(
                 panel.transform,
-                "HIGHFLY • SKILLS LAB SUPREMO\nRUN0H • BASE ESTABLE",
+                "HIGHFLY • SKILLS LAB SUPREMO\nRUN0I.2 • DIRECTIONAL MELEE",
                 24,
                 TextAnchor.UpperLeft);
 
@@ -286,7 +287,7 @@ namespace Highfly.Run0H
 
             Text charLabel = CreateText(
                 panel.transform,
-                "PERSONAJE",
+                "LOADOUT DE COMBATE",
                 18,
                 TextAnchor.MiddleLeft);
 
@@ -296,23 +297,29 @@ namespace Highfly.Run0H
             clr.anchoredPosition = new Vector2(18f, -95f);
             clr.sizeDelta = new Vector2(390f, 30f);
 
-            Button warrior = CreateButton(
-                panel.transform,
-                "GUERRERO",
-                new Vector2(18f, -135f),
-                new Vector2(185f, 54f));
+            Button sword1 = CreateButton(panel.transform,"ESPADA 1H",new Vector2(18f,-135f),new Vector2(185f,48f));
+            sword1.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Sword1H));
 
-            warrior.onClick.AddListener(() =>
-                HighflyRun0HCharacterVisual.Instance?.UseWarrior());
+            Button dualSword = CreateButton(panel.transform,"DOBLE ESPADA",new Vector2(215f,-135f),new Vector2(185f,48f));
+            dualSword.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualSword));
 
-            Button assassin = CreateButton(
-                panel.transform,
-                "ASESINO",
-                new Vector2(215f, -135f),
-                new Vector2(185f, 54f));
+            Button swordShield = CreateButton(panel.transform,"ESPADA + ESC",new Vector2(18f,-191f),new Vector2(185f,48f));
+            swordShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.SwordShield));
 
-            assassin.onClick.AddListener(() =>
-                HighflyRun0HCharacterVisual.Instance?.UseAssassin());
+            Button daggers = CreateButton(panel.transform,"DOBLE DAGA",new Vector2(215f,-191f),new Vector2(185f,48f));
+            daggers.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualDaggers));
+
+            Button axe1 = CreateButton(panel.transform,"HACHA 1H",new Vector2(18f,-247f),new Vector2(185f,48f));
+            axe1.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Axe1H));
+
+            Button dualAxe = CreateButton(panel.transform,"DOBLE HACHA",new Vector2(215f,-247f),new Vector2(185f,48f));
+            dualAxe.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualAxe));
+
+            Button axeShield = CreateButton(panel.transform,"HACHA + ESC",new Vector2(18f,-303f),new Vector2(185f,48f));
+            axeShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.AxeShield));
+
+            Button spear = CreateButton(panel.transform,"LANZA 2H",new Vector2(215f,-303f),new Vector2(185f,48f));
+            spear.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Spear2H));
 
             _characterStatus = CreateText(
                 panel.transform,
@@ -323,28 +330,27 @@ namespace Highfly.Run0H
             RectTransform csr = _characterStatus.rectTransform;
             csr.anchorMin = csr.anchorMax = new Vector2(0f, 1f);
             csr.pivot = new Vector2(0f, 1f);
-            csr.anchoredPosition = new Vector2(18f, -198f);
+            csr.anchoredPosition = new Vector2(18f, -362f);
             csr.sizeDelta = new Vector2(390f, 34f);
 
             Text skillsHeader = CreateText(
                 panel.transform,
-                "SUPER SKILLS • PRÓXIMO RUN0I",
+                "GRAMÁTICA DIRECCIONAL",
                 18,
                 TextAnchor.MiddleLeft);
 
             RectTransform shr = skillsHeader.rectTransform;
             shr.anchorMin = shr.anchorMax = new Vector2(0f, 1f);
             shr.pivot = new Vector2(0f, 1f);
-            shr.anchoredPosition = new Vector2(18f, -250f);
+            shr.anchoredPosition = new Vector2(18f, -410f);
             shr.sizeDelta = new Vector2(390f, 30f);
 
             string[] slots =
             {
-                "S1  LAUNCHER JUMP   • salto + knock-up",
-                "S2  TWIN SLASH       • corte doble",
-                "S3  PHANTOM DASH   • dash + corte",
-                "S4  MULTI CUT         • ráfaga dagas",
-                "S5  AERIAL PURSUIT • persecución aérea"
+                "ATQ • ComboRecipe según arma",
+                "DIRECCIÓN • ↓ ↑ ← → / \\ X T S",
+                "GUARD • Weapon / Cross / Shield / Pole",
+                "S1/S2 + PARKOUR • regresión intacta"
             };
 
             for (int i = 0; i < slots.Length; i++)
@@ -358,13 +364,13 @@ namespace Highfly.Run0H
                 RectTransform rr = row.rectTransform;
                 rr.anchorMin = rr.anchorMax = new Vector2(0f, 1f);
                 rr.pivot = new Vector2(0f, 1f);
-                rr.anchoredPosition = new Vector2(18f, -295f - i * 48f);
+                rr.anchoredPosition = new Vector2(18f, -452f - i * 44f);
                 rr.sizeDelta = new Vector2(390f, 40f);
             }
 
             Text footer = CreateText(
                 panel.transform,
-                "BASE: LUCID MOVEMENT + DRAGON COMBAT\nJoystick/cámara congelados • sin prólogo • 3 dummies",
+                "CORE: LUCID MOVEMENT + HIGHFLY MELEE\n1 Hunter • loadout cambia lenguaje corporal • 3 dummies",
                 14,
                 TextAnchor.LowerLeft);
 
