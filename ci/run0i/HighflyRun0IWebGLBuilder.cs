@@ -30,13 +30,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[RUN0I.3] Building Single Hunter + Guard Core");
+            Debug.Log("[RUN0I.3-LITE] Building Single Hunter + Guard Core");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY RUN0I.3 | SINGLE HUNTER GUARD CORE | 9 LOADOUTS | HAND-AWARE TRACE | CROSS/SHIELD/POLE GUARD | UNITY 6000.6.2");
+                "HIGHFLY RUN0I.3 LITE | SINGLE HUNTER GUARD CORE | 9 LOADOUTS | HAND-AWARE TRACE | CROSS GUARD | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -92,14 +92,11 @@ namespace Highfly.Run0I.Editor
             SaveCopy(unarmedPunch,target+"/Unarmed_Punch.anim","Unarmed_Punch");
             SaveCopy(unarmedKick,target+"/Unarmed_Kick.anim","Unarmed_Kick");
 
-            // Guard / bash live in the universal combat bank, not in Knight.fbx.
-            AnimationClip universalBlock=Find(clips,"Melee_Blocking");
-            AnimationClip shieldBash=Find(clips,"Melee_Block_Attack");
-            SaveCopy(universalBlock,target+"/KayKit_Block.anim","KayKit_Block");
-            SaveCopy(shieldBash,target+"/Shield_Bash.anim","Shield_Bash");
-
-            Debug.Log("[RUN0I.3] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
-            Debug.Log("[RUN0I.3] GUARD_BANK="+universalBlock.name+" | "+shieldBash.name);
+            // RUN0I.3 Lite: do not depend on unverified block/bash names.
+            // CrossGuard uses already-audited dual strike poses. Shield/Pole/Weapon guard
+            // fall back to the known-good Sword_Block from the existing UAL2 bank.
+            Debug.Log("[RUN0I.3-LITE] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
+            Debug.Log("[RUN0I.3-LITE] GUARD_BANK=known-good Sword_Block + dual cross poses");
 
             // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
             SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_1.anim"),target+"/Warrior_A.anim","Warrior_A");
