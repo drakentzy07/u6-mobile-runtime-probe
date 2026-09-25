@@ -147,9 +147,48 @@ namespace Highfly.Run0H
 
         public string ResolveGuardClip()
         {
-            // Sword_Block is the one real guard clip already verified in UAL2.
-            // GuardStyle remains data-driven; dedicated Cross/Shield/Pole poses come next.
-            return "Sword_Block";
+            switch (_loadout)
+            {
+                case HighflyLoadoutProfile.DualSword: return "DualSword_C";
+                case HighflyLoadoutProfile.DualDaggers: return "Dagger_C";
+                case HighflyLoadoutProfile.DualAxe: return "DualAxe_C";
+                case HighflyLoadoutProfile.SwordShield:
+                case HighflyLoadoutProfile.AxeShield: return "KayKit_Block";
+                case HighflyLoadoutProfile.Spear2H: return "Sword_Block";
+                case HighflyLoadoutProfile.Unarmed: return "KayKit_Block";
+                default: return "Sword_Block";
+            }
+        }
+
+        public bool PlayGuardPose()
+        {
+            string clipName=ResolveGuardClip();
+            HighflyGuardStyle guard=HighflyMeleeLibrary.Get(_loadout).Guard;
+            if (guard==HighflyGuardStyle.CrossGuard)
+                return PlayActionPose(clipName,0.48f);
+            return PlayActionClip(clipName,1f);
+        }
+
+        public bool PlayActionPose(string clipName,float normalizedTime)
+        {
+            if (_visualAnimator==null || string.IsNullOrWhiteSpace(clipName)) return false;
+            AnimationClip clip=Resources.Load<AnimationClip>("HIGHFLY/Run0I/Animations/"+clipName);
+            if (clip==null)
+            {
+                Debug.LogWarning("[RUN0I.3] Missing guard pose clip: "+clipName);
+                return false;
+            }
+
+            StopActionClip();
+            if (_mirror!=null) _mirror.enabled=false;
+
+            AnimationClipPlayable playable=AnimationPlayableUtilities.PlayClip(_visualAnimator,clip,out _actionGraph);
+            playable.SetApplyFootIK(false);
+            playable.SetTime(Mathf.Clamp01(normalizedTime)*clip.length);
+            playable.SetSpeed(0d);
+            _actionGraph.Evaluate(0f);
+            _actionGraphValid=true;
+            return true;
         }
 
         public float GetActionClipLength(string clipName)
@@ -334,22 +373,8 @@ namespace Highfly.Run0H
 
         private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            switch (profile)
-            {
-                case HighflyLoadoutProfile.Unarmed:
-                    return KnightResource;
-                case HighflyLoadoutProfile.Axe1H:
-                case HighflyLoadoutProfile.DualAxe:
-                case HighflyLoadoutProfile.AxeShield:
-                    return BarbarianResource;
-                case HighflyLoadoutProfile.DualDaggers:
-                    return RogueResource;
-                case HighflyLoadoutProfile.DualSword:
-                case HighflyLoadoutProfile.Spear2H:
-                    return RogueHoodedResource;
-                default:
-                    return KnightResource;
-            }
+            // One persistent Hunter: equipment changes combat language, never the body/model.
+            return KnightResource;
         }
 
         private void AttachLoadoutEquipment()
@@ -416,11 +441,13 @@ namespace Highfly.Run0H
 
         private void AttachShield()
         {
-            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            Transform forearm=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
+            if (forearm==null) forearm=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
             GameObject prefab=Resources.Load<GameObject>(ShieldResource);
-            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing shield"); return; }
-            _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
+            if (forearm==null || prefab==null) { Debug.LogError("[RUN0I.3] Missing shield"); return; }
+            _shieldObject=AttachWeapon(prefab,forearm,"HIGHFLY_SHIELD_L");
             TuneWeaponTransform(_shieldObject,_loadout,false);
+            BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
 
         private static void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
@@ -448,12 +475,23 @@ namespace Highfly.Run0H
                     weapon.transform.localRotation=Quaternion.Euler(primary?0f:180f,0f,0f);
                     break;
                 case HighflyLoadoutProfile.Axe1H:
-                case HighflyLoadoutProfile.AxeShield:
                     targetLength=0.72f;
+                    break;
+                case HighflyLoadoutProfile.AxeShield:
+                    targetLength=primary?0.72f:0.68f;
+                    if (!primary)
+                    {
+                        weapon.transform.localRotation=Quaternion.Euler(0f,-90f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.12f,0.02f);
+                    }
                     break;
                 case HighflyLoadoutProfile.SwordShield:
                     targetLength=primary?0.95f:0.68f;
-                    if (!primary) weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
+                    if (!primary)
+                    {
+                        weapon.transform.localRotation=Quaternion.Euler(0f,-90f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.12f,0.02f);
+                    }
                     break;
             }
 
