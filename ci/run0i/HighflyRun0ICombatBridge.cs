@@ -89,7 +89,7 @@ namespace Highfly.Combat
                     if (!ActionBusy && Time.unscaledTime >= _sonicReadyAt) StartSonicLeap();
                     break;
                 case HighflyCombatAction.Skill2:
-                    if (!ActionBusy && Time.unscaledTime >= _squareReadyAt) StartHorizontalSquare();
+                    Debug.Log("[RUN0I.3] Skill2 legacy locked until weapon-tag migration.");
                     break;
                 case HighflyCombatAction.Skill3:
                 case HighflyCombatAction.Skill4:
@@ -180,8 +180,10 @@ namespace Highfly.Combat
             _repelReadyAt = Time.unscaledTime + 0.75f;
             _parryConfirmed = false;
             BeginAction(ActionKind.Repel,0.760f,PlayerState.Parry);
-            string guardClip=HighflyRun0HCharacterVisual.Instance?.ResolveGuardClip() ?? "Sword_Block";
-            SetPhase(0,guardClip,1f);
+            _phase=0;
+            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            if (visual==null || !visual.PlayGuardPose())
+                SetPhase(0,"Sword_Block",1f);
         }
 
         private void BeginAction(ActionKind kind,float duration,PlayerState state)
@@ -363,9 +365,43 @@ namespace Highfly.Combat
         {
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             if (visual==null) return;
-            TraceOne(visual.PrimaryBase,visual.PrimaryTip,ref _prevPrimaryTip,damage,hitstop);
-            if (visual.UsesSecondaryTrace) TraceOne(visual.SecondaryBase,visual.SecondaryTip,ref _prevSecondaryTip,damage,hitstop);
+
+            bool tracePrimary=true;
+            bool traceSecondary=visual.UsesSecondaryTrace;
+
+            if (_action==ActionKind.Basic1 || _action==ActionKind.Basic2 || _action==ActionKind.Basic3)
+            {
+                HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(visual.CurrentLoadout).GetBasic(_comboStep);
+                if (pattern!=null)
+                {
+                    tracePrimary=pattern.Hands==HighflyHandUsage.Right ||
+                                 pattern.Hands==HighflyHandUsage.Both ||
+                                 pattern.Hands==HighflyHandUsage.Alternating;
+                    traceSecondary=pattern.Hands==HighflyHandUsage.Left ||
+                                   pattern.Hands==HighflyHandUsage.Both ||
+                                   pattern.Hands==HighflyHandUsage.Alternating;
+                }
+
+                if (visual.CurrentLoadout==HighflyLoadoutProfile.Unarmed)
+                {
+                    TraceUnarmed(damage,hitstop);
+                    _hasPrevTips=false;
+                    return;
+                }
+            }
+
+            if (tracePrimary)
+                TraceOne(visual.PrimaryBase,visual.PrimaryTip,ref _prevPrimaryTip,damage,hitstop);
+            if (traceSecondary)
+                TraceOne(visual.SecondaryBase,visual.SecondaryTip,ref _prevSecondaryTip,damage,hitstop);
             _hasPrevTips=true;
+        }
+
+        private void TraceUnarmed(float damage,float hitstop)
+        {
+            Vector3 center=transform.position+Vector3.up*0.92f+_facing*0.58f;
+            int count=Physics.OverlapSphereNonAlloc(center,0.34f,_hits,~0,QueryTriggerInteraction.Collide);
+            for (int i=0;i<count;i++) ResolveHit(_hits[i],damage,hitstop);
         }
 
         private void TraceOne(Transform weaponBase,Transform weaponTip,ref Vector3 previousTip,float damage,float hitstop)
