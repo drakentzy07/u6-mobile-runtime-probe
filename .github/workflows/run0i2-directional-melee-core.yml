@@ -39,6 +39,19 @@ jobs:
           docker-images: false
           swap-storage: false
 
+      - name: Add swap for Unity import
+        shell: bash
+        run: |
+          set -euxo pipefail
+          sudo swapoff -a || true
+          sudo rm -f /swapfile
+          sudo fallocate -l 8G /swapfile
+          sudo chmod 600 /swapfile
+          sudo mkswap /swapfile
+          sudo swapon /swapfile
+          free -h
+          swapon --show
+
       - name: Download pinned Lucid with Git LFS
         shell: bash
         run: |
@@ -160,6 +173,7 @@ jobs:
           unityVersion: 6000.6.2f1
           targetPlatform: WebGL
           buildMethod: Highfly.Run0I.Editor.WebGLBuilder.Build
+          customParameters: -job-worker-count 2
           allowDirtyBuild: true
 
       - name: Verify Run0I
