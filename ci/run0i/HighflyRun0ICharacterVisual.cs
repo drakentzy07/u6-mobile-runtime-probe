@@ -34,7 +34,8 @@ namespace Highfly.Run0H
         private Animator _visualAnimator;
         private HighflyRun0HAnimatorMirror _mirror;
         private HighflyRun0HCharacter _current = HighflyRun0HCharacter.Warrior;
-        private HighflyLoadoutProfile _loadout = HighflyLoadoutProfile.SwordShield;
+        private readonly HighflyEquipmentState _equipment = new HighflyEquipmentState();
+        private HighflyLoadoutProfile _loadout = HighflyLoadoutProfile.Unarmed;
         private bool _bound;
 
         private Transform _primaryBase, _primaryTip, _secondaryBase, _secondaryTip;
@@ -46,6 +47,7 @@ namespace Highfly.Run0H
         public bool IsBound => _bound;
         public HighflyRun0HCharacter Current => _current;
         public HighflyLoadoutProfile CurrentLoadout => _loadout;
+        public HighflyEquipmentState Equipment => _equipment;
         public bool UsesSecondaryTrace => HighflyMeleeLibrary.Get(_loadout).UsesSecondaryTrace;
         public PlayerController Player => _player;
         public Animator VisualAnimator => _visualAnimator;
@@ -122,13 +124,25 @@ namespace Highfly.Run0H
         public void UseWarrior() => UseLoadout(HighflyLoadoutProfile.SwordShield);
         public void UseAssassin() => UseLoadout(HighflyLoadoutProfile.DualDaggers);
 
-        public void UseLoadout(HighflyLoadoutProfile profile)
+        public void UseLoadout(HighflyLoadoutProfile profile) => EquipPreset(profile);
+
+        public void EquipPreset(HighflyLoadoutProfile profile)
         {
-            _loadout = profile;
-            _current = profile == HighflyLoadoutProfile.DualDaggers
+            _equipment.SetPreset(profile);
+            ResolveEquipmentLoadout();
+        }
+
+        public void ResolveEquipmentLoadout()
+        {
+            _loadout = HighflyLoadoutResolver.Resolve(_equipment);
+            _current = _loadout == HighflyLoadoutProfile.DualDaggers
                 ? HighflyRun0HCharacter.Assassin
                 : HighflyRun0HCharacter.Warrior;
             if (_player != null && _sourceAnimator != null) SpawnCurrent();
+            Debug.Log("[RUN0I.2] EQUIPMENT -> "+_loadout+
+                " • main="+_equipment.MainHand+
+                " • off="+_equipment.OffHand+
+                " • two="+_equipment.TwoHand);
         }
 
         public float GetActionClipLength(string clipName)
@@ -322,6 +336,8 @@ namespace Highfly.Run0H
         {
             switch (profile)
             {
+                case HighflyLoadoutProfile.Unarmed:
+                    return KnightResource;
                 case HighflyLoadoutProfile.Axe1H:
                 case HighflyLoadoutProfile.DualAxe:
                 case HighflyLoadoutProfile.AxeShield:
@@ -340,6 +356,8 @@ namespace Highfly.Run0H
         {
             switch (_loadout)
             {
+                case HighflyLoadoutProfile.Unarmed:
+                    break;
                 case HighflyLoadoutProfile.Sword1H:
                     AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
                     break;
