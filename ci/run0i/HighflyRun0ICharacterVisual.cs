@@ -145,6 +145,22 @@ namespace Highfly.Run0H
                 " • two="+_equipment.TwoHand);
         }
 
+        public string ResolveGuardClip()
+        {
+            HighflyGuardStyle guard=HighflyMeleeLibrary.Get(_loadout).Guard;
+            switch (guard)
+            {
+                case HighflyGuardStyle.CrossGuard:
+                    return _loadout==HighflyLoadoutProfile.DualDaggers ? "Dagger_Block" : "Dual_Block";
+                case HighflyGuardStyle.ShieldGuard:
+                    return "Shield_Block";
+                case HighflyGuardStyle.PoleGuard:
+                    return "Pole_Block";
+                default:
+                    return "Sword_Block";
+            }
+        }
+
         public float GetActionClipLength(string clipName)
         {
             if (string.IsNullOrWhiteSpace(clipName)) return 0f;
@@ -289,7 +305,7 @@ namespace Highfly.Run0H
             {
                 Renderer r = renderers[i];
                 if (r == null) continue;
-                string path = FullPath(r.transform).ToLowerInvariant();
+                string path = RelativePathBelowRoot(r.transform,_visualRoot.transform).ToLowerInvariant();
                 if (path.Contains("sword") || path.Contains("weapon") || path.Contains("shield") ||
                     path.Contains("dagger") || path.Contains("axe") || path.Contains("mace") ||
                     path.Contains("bow") || path.Contains("quiver") || path.Contains("staff") ||
@@ -298,10 +314,11 @@ namespace Highfly.Run0H
             }
         }
 
-        private static string FullPath(Transform t)
+        private static string RelativePathBelowRoot(Transform t,Transform root)
         {
-            string path = t.name;
-            for (Transform p = t.parent; p != null; p = p.parent) path = p.name + "/" + path;
+            string path=t.name;
+            for (Transform p=t.parent; p!=null && p!=root; p=p.parent)
+                path=p.name+"/"+path;
             return path;
         }
 
@@ -396,6 +413,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing primary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
+            TuneWeaponTransform(weapon,_loadout,true);
             _primaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _primaryBase,out _primaryTip);
             _primaryTrail=BuildTrail(_primaryTip);
@@ -407,6 +425,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing secondary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
+            TuneWeaponTransform(weapon,_loadout,false);
             _secondaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _secondaryBase,out _secondaryTip);
             _secondaryTrail=BuildTrail(_secondaryTip);
@@ -418,6 +437,39 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(ShieldResource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing shield"); return; }
             _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
+            TuneWeaponTransform(_shieldObject,_loadout,false);
+        }
+
+        private static void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
+        {
+            if (weapon==null) return;
+            switch (loadout)
+            {
+                case HighflyLoadoutProfile.Spear2H:
+                    // Quaternius spear arrives with a different forward axis / authoring scale.
+                    weapon.transform.localScale = Vector3.one * 0.62f;
+                    weapon.transform.localRotation = Quaternion.Euler(0f,90f,90f);
+                    weapon.transform.localPosition = new Vector3(0f,-0.02f,0.10f);
+                    break;
+                case HighflyLoadoutProfile.DualDaggers:
+                    weapon.transform.localScale = Vector3.one * 0.88f;
+                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    break;
+                case HighflyLoadoutProfile.DualSword:
+                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    break;
+                case HighflyLoadoutProfile.DualAxe:
+                    weapon.transform.localRotation = Quaternion.Euler(primary?0f:180f,0f,0f);
+                    break;
+                case HighflyLoadoutProfile.SwordShield:
+                case HighflyLoadoutProfile.AxeShield:
+                    if (!primary)
+                    {
+                        weapon.transform.localScale = Vector3.one * 0.90f;
+                        weapon.transform.localRotation = Quaternion.Euler(0f,90f,90f);
+                    }
+                    break;
+            }
         }
 
         private static GameObject AttachWeapon(GameObject prefab, Transform hand, string name)
