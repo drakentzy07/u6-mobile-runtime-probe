@@ -101,7 +101,7 @@ namespace Highfly.Combat
 
         public bool TryParryIncoming(float damage,float composureDamage,Transform attacker)
         {
-            if (_action != ActionKind.Repel || _parryConfirmed || _elapsed < 0.050f || _elapsed > 0.140f)
+            if (_action != ActionKind.Repel || _parryConfirmed || _elapsed < 0.040f || _elapsed > 0.240f)
                 return false;
 
             _parryConfirmed = true;
@@ -131,12 +131,14 @@ namespace Highfly.Combat
             _comboExpire = Time.unscaledTime + 0.72f;
             _queuedLight = false;
             ActionKind kind = step==1?ActionKind.Basic1:step==2?ActionKind.Basic2:ActionKind.Basic3;
-            float duration = step==1?0.40f:step==2?0.37f:0.57f;
+            bool assassin = IsAssassin();
+            float duration = assassin
+                ? (step==1?0.48f:step==2?0.52f:0.62f)
+                : (step==1?0.50f:step==2?0.56f:0.82f);
             BeginAction(kind,duration,PlayerState.Attack);
 
-            bool assassin = IsAssassin();
             string clip = !assassin
-                ? (step==1?"Sword_Regular_A":step==2?"Sword_Regular_B":"Sword_Regular_C")
+                ? (step==1?"Warrior_A":step==2?"Warrior_B":"Warrior_C")
                 : (step==1?"Assassin_A":step==2?"Assassin_B":"Assassin_C");
             SetPhase(0,clip,1f);
             PlayOneShot(_swing);
@@ -177,8 +179,10 @@ namespace Highfly.Combat
         {
             _action=kind; _duration=duration; _elapsed=0f; _phase=-1; _activeWindow=-1; _activeNow=false;
             _hitThisWindow.Clear(); _previousMotionOffset=Vector3.zero; _hasPrevTips=false;
-            _player.currentState=state; _player.SetHighflyMobileMove(Vector2.zero);
-            _facing=ResolveCombatForward();
+            // Capture 360-degree stick intent BEFORE locking movement for the action.
+            _facing=ResolveCombatForward(_player.HighflyMobileMoveInput);
+            _player.currentState=state;
+            _player.SetHighflyMobileMove(Vector2.zero);
             HighflyRun0HCharacterVisual.Instance?.SetActionFacing(_facing);
             HighflyRun0HCharacterVisual.Instance?.SetWeaponTrail(false);
             Debug.Log("[RUN0I] ACTION START " + kind);
@@ -356,19 +360,26 @@ namespace Highfly.Combat
             _previousMotionOffset=desiredOffset;
         }
 
-        private Vector3 ResolveCombatForward()
+        private Vector3 ResolveCombatForward(Vector2 stick)
         {
+            // LOCK has first authority.
             if (_player.LockOnTarget!=null)
             {
                 Vector3 to=_player.LockOnTarget.position-transform.position; to.y=0f;
                 if (to.sqrMagnitude>0.01f) return to.normalized;
             }
-            Transform cam=_player.cameraTransform;
-            if (cam!=null)
+
+            // No lock: the left stick chooses the attack direction over the full 360 degrees.
+            if (stick.sqrMagnitude>0.0225f && _player.cameraTransform!=null)
             {
-                Vector3 f=cam.forward; f.y=0f;
-                if (f.sqrMagnitude>0.01f) return f.normalized;
+                Transform cam=_player.cameraTransform;
+                Vector3 f=cam.forward; f.y=0f; f.Normalize();
+                Vector3 r=cam.right; r.y=0f; r.Normalize();
+                Vector3 dir=f*stick.y+r*stick.x;
+                if (dir.sqrMagnitude>0.01f) return dir.normalized;
             }
+
+            // Neutral stick: preserve the Hunter's current facing. Camera never chooses attack direction.
             Vector3 fallback=transform.forward; fallback.y=0f;
             return fallback.sqrMagnitude>0.01f?fallback.normalized:Vector3.forward;
         }
