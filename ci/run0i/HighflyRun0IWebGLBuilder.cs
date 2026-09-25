@@ -36,7 +36,7 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I2_BUILD.txt"),
-                "HIGHFLY RUN0I.2 | DIRECTIONAL MELEE CORE | 8 LOADOUTS | STRIKE GRAMMAR | 360 STEERING | REAL TRACE | UNITY 6000.6.2");
+                "HIGHFLY RUN0I.2 | DIRECTIONAL MELEE CORE | 9 LOADOUTS | STRIKE GRAMMAR | 360 STEERING | REAL TRACE | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
