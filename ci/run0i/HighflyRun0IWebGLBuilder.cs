@@ -92,15 +92,14 @@ namespace Highfly.Run0I.Editor
             SaveCopy(unarmedPunch,target+"/Unarmed_Punch.anim","Unarmed_Punch");
             SaveCopy(unarmedKick,target+"/Unarmed_Kick.anim","Unarmed_Kick");
 
-            AnimationClip kaykitBlock=FindByTokens(knightClips,"melee","blocking");
-            AnimationClip shieldBash=FindByTokens(knightClips,"block","attack");
-            if (kaykitBlock==null || shieldBash==null)
-                throw new Exception("[RUN0I.3] Quality gate: KayKit Knight missing Melee_Blocking/Melee_Block_Attack.");
-            SaveCopy(kaykitBlock,target+"/KayKit_Block.anim","KayKit_Block");
+            // Guard / bash live in the universal combat bank, not in Knight.fbx.
+            AnimationClip universalBlock=Find(clips,"Melee_Blocking");
+            AnimationClip shieldBash=Find(clips,"Melee_Block_Attack");
+            SaveCopy(universalBlock,target+"/KayKit_Block.anim","KayKit_Block");
             SaveCopy(shieldBash,target+"/Shield_Bash.anim","Shield_Bash");
 
             Debug.Log("[RUN0I.3] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
-            Debug.Log("[RUN0I.3] GUARD_BANK="+kaykitBlock.name+" | "+shieldBash.name);
+            Debug.Log("[RUN0I.3] GUARD_BANK="+universalBlock.name+" | "+shieldBash.name);
 
             // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
             SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_1.anim"),target+"/Warrior_A.anim","Warrior_A");
