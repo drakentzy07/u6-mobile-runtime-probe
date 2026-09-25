@@ -30,13 +30,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[RUN0I] Building Combat Core v0.1");
+            Debug.Log("[RUN0I.1] Building Baseline Purge");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
-            File.WriteAllText(Path.Combine(output,"RUN0I_BUILD.txt"),
-                "HIGHFLY RUN0I | COMBAT CORE v0.1 | REAL TRACE | SONIC LEAP | HORIZONTAL SQUARE | SLIDE | REPEL | PARKOUR | UNITY 6000.6.2");
+            File.WriteAllText(Path.Combine(output,"RUN0I1_BUILD.txt"),
+                "HIGHFLY RUN0I.1 | BASELINE PURGE | 360 STICK FACING | LUCID WARRIOR COMBO | KAYKIT DUAL ASSASSIN | REAL REPEL | SAFE POTION | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -81,26 +81,29 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] No real block/parry clip found in UAL2; quality gate stops build.");
             SaveCopy(block,target+"/Sword_Block.anim","Sword_Block");
 
-            AnimationClip[] assassin=clips.Where(x=>
-                    x.name.IndexOf("Dagger",StringComparison.OrdinalIgnoreCase)>=0 ||
-                    x.name.IndexOf("Knife",StringComparison.OrdinalIgnoreCase)>=0 ||
-                    x.name.IndexOf("Dual",StringComparison.OrdinalIgnoreCase)>=0)
-                .Take(3).ToArray();
+            // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
+            SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_1.anim"),target+"/Warrior_A.anim","Warrior_A");
+            SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_2.anim"),target+"/Warrior_B.anim","Warrior_B");
+            SaveCopy(LoadDirect("Assets/Animation/Player/Player_slash_3.anim"),target+"/Warrior_C.anim","Warrior_C");
 
-            if (assassin.Length>=3)
-            {
-                SaveCopy(assassin[0],target+"/Assassin_A.anim","Assassin_A");
-                SaveCopy(assassin[1],target+"/Assassin_B.anim","Assassin_B");
-                SaveCopy(assassin[2],target+"/Assassin_C.anim","Assassin_C");
-                Debug.Log("[RUN0I] ASSASSIN_REAL_DAGGER_CLIPS="+string.Join(",",assassin.Select(x=>x.name)));
-            }
-            else
-            {
-                SaveCopy(Find(clips,"Sword_Dash"),target+"/Assassin_A.anim","Assassin_A");
-                SaveCopy(Find(clips,"Sword_Regular_Combo"),target+"/Assassin_B.anim","Assassin_B");
-                SaveCopy(Find(clips,"Melee_Hook"),target+"/Assassin_C.anim","Assassin_C");
-                Debug.Log("[RUN0I] ASSASSIN_DISTINCT_FULLBODY_FALLBACK=UAL2 Sword_Dash/Sword_Regular_Combo/Melee_Hook");
-            }
+            // Assassin may NOT fall back to sword/hammer clips anymore.
+            // Pull real dual-wield motions from the KayKit Rogue FBX already shipped by this run.
+            const string rogueSource="Assets/Resources/HIGHFLY/Run0H/KayKitRogue.fbx";
+            AnimationClip[] rogueClips=AssetDatabase.LoadAllAssetsAtPath(rogueSource)
+                .OfType<AnimationClip>()
+                .Where(x=>x!=null && !x.name.StartsWith("__preview__"))
+                .ToArray();
+
+            AnimationClip dualChop=FindByTokens(rogueClips,"dual","chop");
+            AnimationClip dualSlice=FindByTokens(rogueClips,"dual","slice");
+            AnimationClip dualStab=FindByTokens(rogueClips,"dual","stab");
+            if (dualChop==null || dualSlice==null || dualStab==null)
+                throw new Exception("[RUN0I.1] Quality gate: KayKit Rogue has no complete Dualwield Chop/Slice/Stab trio. Refusing sword-like proxy fallback.");
+
+            SaveCopy(dualChop,target+"/Assassin_A.anim","Assassin_A");
+            SaveCopy(dualSlice,target+"/Assassin_B.anim","Assassin_B");
+            SaveCopy(dualStab,target+"/Assassin_C.anim","Assassin_C");
+            Debug.Log("[RUN0I.1] ASSASSIN_REAL_DUAL="+dualChop.name+" | "+dualSlice.name+" | "+dualStab.name);
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -110,6 +113,22 @@ namespace Highfly.Run0I.Editor
         private static void Copy(AnimationClip[] clips,string target,string lookup,string output)
         {
             SaveCopy(Find(clips,lookup),target+"/"+output+".anim",output);
+        }
+
+        private static AnimationClip LoadDirect(string path)
+        {
+            AnimationClip clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(path);
+            if (clip==null) throw new Exception("[RUN0I.1] Missing direct animation: "+path);
+            return clip;
+        }
+
+        private static AnimationClip FindByTokens(AnimationClip[] clips,params string[] tokens)
+        {
+            return clips.FirstOrDefault(clip =>
+            {
+                string n=clip.name.ToLowerInvariant();
+                return tokens.All(t=>n.Contains(t.ToLowerInvariant()));
+            });
         }
 
         private static AnimationClip Find(AnimationClip[] clips,string name)
