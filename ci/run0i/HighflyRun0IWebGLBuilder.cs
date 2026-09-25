@@ -35,7 +35,7 @@ namespace Highfly.Run0I.Editor
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
-            File.WriteAllText(Path.Combine(output,"RUN0I2_BUILD.txt"),
+            File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
                 "HIGHFLY RUN0I.3 | SINGLE HUNTER GUARD CORE | 9 LOADOUTS | HAND-AWARE TRACE | CROSS/SHIELD/POLE GUARD | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
