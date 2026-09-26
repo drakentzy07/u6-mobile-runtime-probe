@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# republish: skills 0ae9a4d66340cc00a1c8aca2bcef3dc3b50efda0
 
 on:
   workflow_dispatch:
