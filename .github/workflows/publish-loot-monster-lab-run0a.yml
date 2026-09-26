@@ -160,7 +160,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euxo pipefail
-          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core" or .name=="Lucid WebGL Pages") | .id' | head -n1)"
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100" --jq '[.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core" or .name=="Lucid WebGL Pages")][0].id')"
           test -n "$RUN_ID"
           echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
           echo "Using canonical Pages run: $RUN_ID"
