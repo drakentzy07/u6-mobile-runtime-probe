@@ -66,7 +66,7 @@ public class PlayerController : MonoBehaviour
     public bool IsLockOn => _lockOnSystem != null && _lockOnSystem.isLockOn; 
     public Transform LockOnTarget => _lockOnSystem != null ? _lockOnSystem.currentTarget : null;
     public Transform cameraRoot;
-    public Vector2 HighflyMobileMoveInput => _highflyMobileMove;
+    public Vector2 HighflyMobileMoveInput => _highflyMobileInput ? _highflyMobileMove : _inputMove;
     public bool HighflyMobileInputActive => _highflyMobileInput;
     public bool HighflyIsGrounded => _isGrounded;
     public float HighflyVerticalSpeed => _verticalVelocity.y;
@@ -925,6 +925,7 @@ public class PlayerController : MonoBehaviour
     {
         _highflyMobileMove = Vector2.zero;
         _highflyMobileSprintHeld = false;
+        _highflyMobileInput = false;
     }
 
     // --- Helper Functions ---
