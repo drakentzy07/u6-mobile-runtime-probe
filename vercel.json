@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    {"source":"/","destination":"/interior_factory/web/if01a.html"},
+    {"source":"/forge","destination":"/interior_factory/web/if01a.html"}
+  ]
+}
