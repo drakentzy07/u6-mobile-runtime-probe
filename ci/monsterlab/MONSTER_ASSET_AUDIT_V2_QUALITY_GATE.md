@@ -305,3 +305,89 @@ Open quality gaps remain:
 
 Policy remains:
 VACANT > MEDIOCRE > LEGALLY DOUBTFUL.
+
+
+## PASS 04 — Compatibility-first Hunter + safe monster expansion
+
+Hunter search policy changed:
+VISUAL QUALITY is no longer the first gate for the player character.
+For the Skill Lab bottleneck, priority is:
+1. Unity Humanoid / Mecanim or clean Mixamo-compatible humanoid rig
+2. correct hand/finger bones
+3. T-pose/A-pose and stable retargeting
+4. predictable weapon sockets / IK compatibility
+5. clear commercial license
+6. mobile viability
+7. visual quality
+
+Compatibility candidates:
+- Synty Sidekick FREE Starter Pack
+  - FREE / Standard Unity Asset Store EULA
+  - fully rigged Unity Humanoid / Mecanim
+  - modular human parts
+  - Unity 2021.3+, URP/Built-in
+  - can bake modular parts into one optimized prefab
+  - primary compatibility-first candidate
+
+- LOWPO Adventure Character Pack
+  - CC0
+  - free Basic Adventurer / Healer / Monk
+  - standard FBX
+  - fully rigged humanoid T-pose
+  - Mixamo compatible
+  - Basic Adventurer includes sword
+  - strong calibration candidate
+
+- Stylized Player Character (Free)
+  - FREE / Standard Unity Asset Store EULA
+  - Humanoid rig compatible with Unity + Mixamo
+  - Idle / Walk / Run in-place
+  - PBR 2K/4K
+  - Built-in / URP / HDRP
+  - candidate for appearance + compatibility test
+
+- Low Poly 3D Male Knight Fantasy Character
+  - FREE / Standard Unity Asset Store EULA
+  - humanoid-rig tagged
+  - 2.9 MB
+  - very lightweight compatibility fallback
+
+- Shyr Base Character
+  - CC0
+  - fully rigged humanoid
+  - explicitly Mixamo-compatible
+  - includes armored sword character + attacks
+  - use as CONTROL RIG, not necessarily final art
+
+Weapon-grip architecture requirement:
+- normalize all weapons to canonical local forward/up axes
+- each weapon gets WeaponGripProfile:
+  RightGrip pose
+  LeftGrip pose
+  Shield/Forearm pose
+  category offset
+- one-hand weapons parent to primary hand socket
+- dual weapons use independent left/right grip profiles
+- two-hand weapons parent to primary hand and use left-hand IK against weapon LeftGrip target
+- shields use dedicated left-hand/forearm profile
+- do not encode weapon correction into individual attack clips
+
+If the CC0/Mecanim control character shows the same grip defect, the bug is in HIGHFLY attachment/IK/weapon-axis logic, not in character art.
+
+Safe free monster shortlist with clear license:
+- RPG Ogre Pack PBR/Mobile — FREE / Standard Unity Asset Store EULA
+- Creep Horror Creature — FREE / Standard Unity Asset Store EULA
+- 01_Monster: Lizard — FREE / Standard Unity Asset Store EULA
+- [Free] Fantasy Monster 10 (Rig + Animation) — FREE / Standard Unity Asset Store EULA
+- Stylized Zombie (Low Poly) — FREE / Standard Unity Asset Store EULA
+- Undead Skeleton Enemies — FREE / Standard Unity Asset Store EULA
+
+Continue using already-owned CC0:
+- KayKit Skeletons
+- Quaternius Ultimate Monsters
+- Quaternius Easy Enemy
+- Quaternius Animated Animals
+- Treant CC0
+- Gobkit ecology
+
+No need to download duplicates merely to increase asset count.
