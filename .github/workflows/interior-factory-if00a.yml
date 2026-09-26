@@ -30,3 +30,6 @@ jobs:
           }
           console.log('Semantic layout match: PASS');
           NODE
+
+      - name: Syntax-check Interior Editor v5
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v5.html
