@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# republish: melee-fusion2b private-run-36272250830
 # republish: melee-fusion2 private-run-36267369905
 # republish: melee-fusion private-run-36262118568
 # republish: skills 5a86eef37eb875689f52db217300cf58fd53a8ac
@@ -107,12 +108,26 @@ jobs:
           test -d incoming/melee-fusion2/Build
           grep -q "MELEE FUSION 2" incoming/melee-fusion2/RUN0I3_BUILD.txt
 
+      - name: Download private MELEE FUSION 2B artifact bridge
+        shell: bash
+        env:
+          MELEE_FUSION2B_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-3578-820e-9396-ac159fc9670a/raw?se=2026-09-26T22%3A30%3A20Z&sp=r&sv=2026-02-06&sr=b&scid=9efc1e92-5bad-572d-a813-2435c8fe1d72&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T11%3A29%3A08Z&ske=2026-09-27T11%3A29%3A08Z&sks=b&skv=2026-02-06&sig=hadDIJ047I8mSwXtrMl4SjZD9lFjJrf19m2rKoSjNqY%3D"
+        run: |
+          set -euxo pipefail
+          mkdir -p incoming/melee-fusion2b
+          curl --fail --location --retry 5 "$MELEE_FUSION2B_URL" -o /tmp/melee-fusion2b.zip
+          unzip -q /tmp/melee-fusion2b.zip -d incoming/melee-fusion2b
+          test -f incoming/melee-fusion2b/index.html
+          test -f incoming/melee-fusion2b/RUN0I3_BUILD.txt
+          test -d incoming/melee-fusion2b/Build
+          grep -q "MELEE FUSION 2B" incoming/melee-fusion2b/RUN0I3_BUILD.txt
+
       - name: Assemble canonical site
         shell: bash
         run: |
           set -euxo pipefail
           rm -rf site
-          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2
+          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2 site/melee-fusion2b
 
           test -f incoming/skills/index.html
           test -f incoming/skills/RUN0I3_BUILD.txt
@@ -126,6 +141,7 @@ jobs:
           cp -a incoming/loot/. site/loot-monster-lab-run0a/
           cp -a incoming/melee-fusion/. site/melee-fusion/
           cp -a incoming/melee-fusion2/. site/melee-fusion2/
+          cp -a incoming/melee-fusion2b/. site/melee-fusion2b/
           touch site/.nojekyll
 
       - name: Validate publisher invariants
@@ -154,11 +170,17 @@ jobs:
           grep -q "MELEE FUSION 2" site/melee-fusion2/RUN0I3_BUILD.txt
           test -d site/melee-fusion2/Build
 
+          test -f site/melee-fusion2b/index.html
+          test -f site/melee-fusion2b/RUN0I3_BUILD.txt
+          grep -q "MELEE FUSION 2B" site/melee-fusion2b/RUN0I3_BUILD.txt
+          test -d site/melee-fusion2b/Build
+
           echo "HIGHFLY_PUBLISHER_OK=1" > site/PUBLISHER.txt
           echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
           echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
           echo "MELEE_FUSION_RUN=36262118568" >> site/PUBLISHER.txt
           echo "MELEE_FUSION2_RUN=36267369905" >> site/PUBLISHER.txt
+          echo "MELEE_FUSION2B_RUN=36272250830" >> site/PUBLISHER.txt
           du -sh site
 
       - name: Configure GitHub Pages
