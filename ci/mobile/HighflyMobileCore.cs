@@ -460,6 +460,8 @@ namespace Highfly.Mobile
         private Sprite _ringSprite;
         private float _nextPlayerProbe;
         private bool _mobileMode;
+        private bool _touchInputMode;
+        public static bool TouchInputActive { get; private set; }
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         [DllImport("__Internal")] private static extern int HF_IsTouchDevice();
@@ -484,13 +486,15 @@ namespace Highfly.Mobile
         {
             DontDestroyOnLoad(gameObject);
 
-            // The Skill Lab intentionally renders the exact mobile HUD/input layout on desktop
-            // so PC iteration matches the S23 Ultra control topology.
-            _mobileMode = Application.isMobilePlatform || HighflySkillLabMode.IsActive;
+            // Render the same phone HUD on desktop for visual parity, but do not let
+            // that force the runtime into touch-input authority.
+            _touchInputMode = Application.isMobilePlatform;
 
 #if UNITY_WEBGL && !UNITY_EDITOR
-            try { _mobileMode = _mobileMode || HF_IsTouchDevice() != 0; } catch { }
+            try { _touchInputMode = _touchInputMode || HF_IsTouchDevice() != 0; } catch { }
 #endif
+            TouchInputActive = _touchInputMode;
+            _mobileMode = _touchInputMode || HighflySkillLabMode.IsActive;
 
             if (!_mobileMode)
             {
@@ -500,7 +504,7 @@ namespace Highfly.Mobile
 
             Application.targetFrameRate = 60;
             Screen.sleepTimeout = SleepTimeout.NeverSleep;
-            Input.multiTouchEnabled = true;
+            Input.multiTouchEnabled = _touchInputMode;
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -622,9 +626,11 @@ namespace Highfly.Mobile
 
             var image = go.GetComponent<Image>();
             image.color = new Color(0f, 0f, 0f, 0.001f);
-            image.raycastTarget = true;
+            image.raycastTarget = _touchInputMode;
 
-            go.GetComponent<HighflyLookZone>().Configure(0.32f);
+            HighflyLookZone lookZone = go.GetComponent<HighflyLookZone>();
+            lookZone.Configure(0.32f);
+            lookZone.enabled = _touchInputMode;
         }
 
         private void CreateJoystick(Transform parent)
@@ -667,7 +673,10 @@ namespace Highfly.Mobile
             ringImage.color = new Color(0.20f, 0.75f, 1f, 0.42f);
             ringImage.raycastTarget = false;
 
-            baseGo.GetComponent<HighflyJoystick>().Configure(knobRect, 86f);
+            HighflyJoystick joystick = baseGo.GetComponent<HighflyJoystick>();
+            joystick.Configure(knobRect, 86f);
+            joystick.enabled = _touchInputMode;
+            baseImage.raycastTarget = _touchInputMode;
 
         }
 
