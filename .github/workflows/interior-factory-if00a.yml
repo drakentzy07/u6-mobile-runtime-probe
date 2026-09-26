@@ -1,0 +1,22 @@
+name: Interior Factory IF-00A
+on:
+  pull_request:
+    paths:
+      - 'interior_factory/**'
+      - '.github/workflows/interior-factory-if00a.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Validate InteriorSpec
+        run: node interior_factory/src/validate-spec.mjs
+      - name: Regenerate approved layout
+        run: node interior_factory/src/generate-smithy.mjs > /tmp/IF-00A-layout.json
+      - name: Compare deterministic output
+        run: diff -u interior_factory/runs/IF-00A-layout.json /tmp/IF-00A-layout.json
