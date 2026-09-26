@@ -214,11 +214,11 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition DualSword = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualSword,"DOBLE ESPADA",HighflyWeaponKind.Sword,HighflyWeaponKind.Sword,HighflyGuardStyle.CrossGuard,true,
-            // Official dual grammar: right high -> low opposite diagonal, left mirrored diagonal,
-            // then both blades open horizontally from the crossed guard.
-            P("DS_DIAG_R",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"DualSword_A",1.18f,.17f,.44f,.28f,250f,19f,.038f),
-            P("DS_DIAG_L",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"DualSword_B",1.18f,.17f,.46f,.30f,260f,20f,.040f),
-            P("DS_CROSS_OUT",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualSword_C",1.12f,.22f,.63f,.38f,220f,28f,.060f,.84f));
+            // Final stability pass: use the proven Lucid 1->2->3 body language.
+            // Dual cross-guard remains independent, so parry still crosses both blades.
+            P("DS_CLASSIC_A",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Warrior_A",1.72f,.18f,.45f,.25f,230f,19f,.038f),
+            P("DS_CLASSIC_B",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Warrior_B",1.48f,.18f,.50f,.28f,220f,21f,.043f),
+            P("DS_CLASSIC_C",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Warrior_C",1.42f,.24f,.66f,.36f,185f,29f,.062f,.84f));
 
         private static readonly HighflyLoadoutDefinition SwordShield = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.SwordShield,"ESPADA + ESCUDO",HighflyWeaponKind.Sword,HighflyWeaponKind.Shield,HighflyGuardStyle.ShieldGuard,false,
@@ -248,9 +248,10 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition DualDaggers = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualDaggers,"DOBLE DAGA",HighflyWeaponKind.Dagger,HighflyWeaponKind.Dagger,HighflyGuardStyle.CrossGuard,true,
-            P("DG_DIAG_R",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"DualSword_A",1.62f,.12f,.35f,.22f,350f,17f,.029f,.74f),
-            P("DG_DIAG_L",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"DualSword_B",1.58f,.13f,.38f,.24f,345f,19f,.033f,.75f),
-            P("DG_CROSS_OUT",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualSword_C",1.42f,.17f,.53f,.28f,310f,24f,.047f,.78f));
+            // Restore the audited dagger bank: slice -> chop -> real dual stab.
+            P("DG_SLICE",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Dagger_A",1.58f,.13f,.36f,.22f,340f,17f,.029f,.74f),
+            P("DG_CHOP",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Dagger_B",1.52f,.14f,.40f,.24f,330f,19f,.033f,.75f),
+            P("DG_STAB",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Dagger_C",1.42f,.16f,.52f,.30f,300f,25f,.048f,.78f));
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,

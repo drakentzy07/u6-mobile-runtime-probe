@@ -478,77 +478,120 @@ namespace Highfly.Run0H
             BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
 
-        private static void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
+        private void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
         {
             if (weapon==null) return;
 
             float targetLength=0.90f;
             bool alignSpearGrip=false;
 
+            // ClaudeCraft uses the authored KayKit handslot accessory transform before
+            // falling back to numeric grip tables. We can do even better here because
+            // the original KayKit accessory nodes are still present in this exact rig:
+            // their renderers are hidden, but their transforms remain authoritative.
+            bool authoredGrip=TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
+
             switch (loadout)
             {
                 case HighflyLoadoutProfile.Spear2H:
                     targetLength=2.05f;
-                    // Revert to the stable hand placement: the automatic grip recentering
-                    // was pulling the shaft back into the forearm.
+                    // Quaternius spear is not a KayKit handslot accessory. Keep the
+                    // known shaft orientation, then seat a real grip point on the hand.
                     weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
-                    weapon.transform.localPosition=new Vector3(0f,-0.02f,0.08f);
-                    alignSpearGrip=false;
+                    weapon.transform.localPosition=Vector3.zero;
+                    alignSpearGrip=true;
                     break;
 
                 case HighflyLoadoutProfile.DualDaggers:
                     targetLength=0.48f;
-                    // Left hand already has mirrored bone space; do NOT flip the weapon again.
-                    weapon.transform.localRotation=Quaternion.identity;
+                    if(!authoredGrip)
+                    {
+                        weapon.transform.localRotation=primary
+                            ? Quaternion.Euler(0f,180f,0f)
+                            : Quaternion.identity;
+                        weapon.transform.localPosition=new Vector3(primary?-0.0095f:0.0095f,0.378f,0f);
+                    }
                     break;
 
                 case HighflyLoadoutProfile.DualSword:
                     targetLength=0.95f;
-                    // Same forward orientation in each hand. The humanoid skeleton mirrors the left hand.
-                    weapon.transform.localRotation=Quaternion.identity;
+                    if(!authoredGrip)
+                    {
+                        weapon.transform.localRotation=primary
+                            ? Quaternion.Euler(0f,180f,0f)
+                            : Quaternion.identity;
+                        weapon.transform.localPosition=new Vector3(0f,0.555f,0f);
+                    }
                     break;
 
                 case HighflyLoadoutProfile.DualAxe:
                     targetLength=0.72f;
-                    // The left humanoid hand is already mirrored. Applying the same 180°
-                    // correction to both hands inverted the left cutting edge upward.
-                    weapon.transform.localRotation=primary
-                        ? Quaternion.Euler(0f,180f,0f)
-                        : Quaternion.identity;
+                    if(!authoredGrip)
+                    {
+                        weapon.transform.localRotation=primary
+                            ? Quaternion.Euler(0f,180f,0f)
+                            : Quaternion.identity;
+                        weapon.transform.localPosition=new Vector3(primary?0.232f:-0.232f,0.382f,0f);
+                    }
                     break;
 
                 case HighflyLoadoutProfile.Axe1H:
                     targetLength=0.72f;
-                    weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                    if(!authoredGrip)
+                    {
+                        weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                        weapon.transform.localPosition=new Vector3(0.232f,0.382f,0f);
+                    }
                     break;
 
                 case HighflyLoadoutProfile.AxeShield:
-                    if (primary)
+                    if(primary)
                     {
                         targetLength=0.72f;
-                        weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                        if(!authoredGrip)
+                        {
+                            weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                            weapon.transform.localPosition=new Vector3(0.232f,0.382f,0f);
+                        }
                     }
                     else
                     {
                         targetLength=0.68f;
-                        // Left-hand mount + outward face. The extra 180° turns the shield
-                        // away from the body instead of showing its back to the player.
-                        weapon.transform.localRotation=Quaternion.Euler(90f,180f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.00f,0.04f);
+                        if(!authoredGrip)
+                        {
+                            weapon.transform.localRotation=Quaternion.identity;
+                            weapon.transform.localPosition=new Vector3(0f,0.017f,0.177f);
+                        }
                     }
                     break;
 
                 case HighflyLoadoutProfile.SwordShield:
-                    if (primary)
+                    if(primary)
                     {
                         targetLength=0.95f;
-                        weapon.transform.localRotation=Quaternion.identity;
+                        if(!authoredGrip)
+                        {
+                            weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                            weapon.transform.localPosition=new Vector3(0f,0.555f,0f);
+                        }
                     }
                     else
                     {
                         targetLength=0.68f;
-                        weapon.transform.localRotation=Quaternion.Euler(90f,180f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.00f,0.04f);
+                        if(!authoredGrip)
+                        {
+                            weapon.transform.localRotation=Quaternion.identity;
+                            weapon.transform.localPosition=new Vector3(0f,0.017f,0.177f);
+                        }
+                    }
+                    break;
+
+                case HighflyLoadoutProfile.Sword1H:
+                    targetLength=0.95f;
+                    if(!authoredGrip)
+                    {
+                        weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.555f,0f);
                     }
                     break;
             }
@@ -556,7 +599,77 @@ namespace Highfly.Run0H
             NormalizeWeaponWorldLength(weapon,targetLength);
 
             if (alignSpearGrip)
-                AlignSpearGripToHand(weapon,0.38f);
+                AlignSpearGripToHand(weapon,0.30f);
+        }
+
+        private bool TryApplyAuthoredKayKitGrip(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
+        {
+            if(weapon==null || _visualAnimator==null) return false;
+
+            HumanBodyBones bone=primary ? HumanBodyBones.RightHand : HumanBodyBones.LeftHand;
+            Transform hand=_visualAnimator.GetBoneTransform(bone);
+            if(hand==null) return false;
+
+            string referenceName=null;
+            switch(loadout)
+            {
+                case HighflyLoadoutProfile.Sword1H:
+                    if(primary) referenceName="1H_Sword";
+                    break;
+                case HighflyLoadoutProfile.DualSword:
+                    referenceName=primary ? "1H_Sword" : "1H_Sword_Offhand";
+                    break;
+                case HighflyLoadoutProfile.SwordShield:
+                    referenceName=primary ? "1H_Sword" : "Round_Shield";
+                    break;
+                case HighflyLoadoutProfile.Axe1H:
+                    if(primary) referenceName="1H_Axe";
+                    break;
+                case HighflyLoadoutProfile.DualAxe:
+                    referenceName=primary ? "1H_Axe" : "1H_Axe_Offhand";
+                    break;
+                case HighflyLoadoutProfile.AxeShield:
+                    referenceName=primary ? "1H_Axe" : "Round_Shield";
+                    break;
+                case HighflyLoadoutProfile.DualDaggers:
+                    referenceName=primary ? "Knife" : "Knife_Offhand";
+                    break;
+            }
+
+            if(string.IsNullOrEmpty(referenceName)) return false;
+
+            Transform reference=FindNamedDescendant(hand,referenceName);
+            if(reference==null)
+            {
+                Debug.Log("[RUN0I.3] authored grip missing under "+bone+": "+referenceName+"; using audited fallback");
+                return false;
+            }
+
+            weapon.transform.localPosition=hand.InverseTransformPoint(reference.position);
+            weapon.transform.localRotation=Quaternion.Inverse(hand.rotation)*reference.rotation;
+            Debug.Log("[RUN0I.3] authored grip applied "+referenceName+" -> "+weapon.name);
+            return true;
+        }
+
+        private static Transform FindNamedDescendant(Transform root,string exactName)
+        {
+            if(root==null) return null;
+            string wanted=NormalizeGripName(exactName);
+
+            Transform[] all=root.GetComponentsInChildren<Transform>(true);
+            for(int i=0;i<all.Length;i++)
+            {
+                Transform t=all[i];
+                if(t==null) continue;
+                if(NormalizeGripName(t.name)==wanted) return t;
+            }
+            return null;
+        }
+
+        private static string NormalizeGripName(string value)
+        {
+            if(string.IsNullOrEmpty(value)) return string.Empty;
+            return value.Replace("[","").Replace("]","").Replace(".","").Replace(":","").Replace("_","").ToLowerInvariant();
         }
 
         private static void AlignSpearGripToHand(GameObject weapon,float gripFraction)
