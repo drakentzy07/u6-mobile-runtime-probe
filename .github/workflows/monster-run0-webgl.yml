@@ -1,0 +1,173 @@
+name: HIGHFLY Monster Run0 Goblin Encounter
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/monster-run0-goblin-core]
+    paths:
+      - "ci/monsterlab/**"
+      - "ci/mobile/**"
+      - "ci/combat/**"
+      - ".github/workflows/monster-run0-webgl.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: highfly-monster-run0-goblin
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Monster Run0 • Goblins + Golden Camera • Unity 6000.6.2
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout probe repo
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: false
+
+      - name: Download pinned Lucid with Git LFS
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir LucidHost
+          git -C LucidHost init
+          git -C LucidHost remote add origin https://github.com/DohunWi/3D-Action.git
+          git -C LucidHost lfs install --local
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost fetch --depth 1 origin da73b5be7ffa7216c48e196c4a69fe3ff66c6c65
+          GIT_LFS_SKIP_SMUDGE=1 git -C LucidHost checkout --detach FETCH_HEAD
+          git -C LucidHost lfs pull
+          test -f LucidHost/3D_game/ProjectSettings/ProjectVersion.txt
+
+      - name: Remove Unity AI Assistant incompatible with 6000.6.2
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("LucidHost/3D_game/Packages")
+          for name in ("manifest.json", "packages-lock.json"):
+              p = root / name
+              data = json.loads(p.read_text(encoding="utf-8"))
+              data.get("dependencies", {}).pop("com.unity.ai.assistant", None)
+              p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+          PY
+          ! grep -q '"com.unity.ai.assistant"' LucidHost/3D_game/Packages/manifest.json
+          ! grep -q '"com.unity.ai.assistant"' LucidHost/3D_game/Packages/packages-lock.json
+
+      - name: Prove Golden Skill Lab camera contract
+        shell: bash
+        run: |
+          set -euxo pipefail
+          grep -Fq "Only HighflyLookZone may call AddLookDelta" ci/mobile/HighflyThirdPersonMobileCamera.cs
+          grep -Fq "if (eventData.position.x < Screen.width * 0.50f) return;" ci/mobile/HighflyMobileCore.cs
+          grep -Fq "player?.SetHighflyMobileMove(analog);" ci/mobile/HighflyMobileCore.cs
+          grep -Fq "cameraRoot.rotation = preservedCameraRootRotation;" ci/mobile/PlayerController.Mobile.cs
+          echo "GOLDEN_CAMERA_CONTRACT_OK=1"
+
+      - name: Install Monster Run0 foundation
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/Core/Combat
+          mkdir -p LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0
+          mkdir -p LucidHost/3D_game/Assets/Plugins/WebGL
+          mkdir -p LucidHost/3D_game/Assets/Editor
+
+          cp ci/mobile/HighflyMobileCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileCore.cs
+          cp ci/mobile/HighflyMobileText.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyMobileText.cs
+          cp ci/mobile/HighflyThirdPersonMobileCamera.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Mobile/HighflyThirdPersonMobileCamera.cs
+
+          cp ci/combat/HighflyCombatCore.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyCombatCore.cs
+          cp ci/combat/HighflyLucidCombatBridge.cs LucidHost/3D_game/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs
+
+          cp ci/monsterlab/HighflyMonsterCore.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterCore.cs
+          cp ci/monsterlab/HighflyMonsterAuthoring.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterAuthoring.cs
+          cp ci/monsterlab/HighflyMonsterRuntimeSystems.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterRuntimeSystems.cs
+          cp ci/monsterlab/HighflyMonsterOrchestration.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterOrchestration.cs
+          cp ci/monsterlab/HighflyMonsterRun0Compat.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterRun0Compat.cs
+          cp ci/monsterlab/HighflyMonsterRun0Bootstrap.cs LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterRun0Bootstrap.cs
+
+          cp ci/mobile/MainMenuController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Manager/MainMenuController.cs
+          cp ci/mobile/DialogueUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/DialogueUI.cs
+          cp ci/mobile/TutorialUI.Mobile.cs LucidHost/3D_game/Assets/Scripts/Interaction/TutorialUI.cs
+          cp ci/mobile/PlayerInteraction.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerInteraction.cs
+          cp ci/mobile/PlayerController.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerController.cs
+          cp ci/mobile/PlayerStats.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerStats.cs
+          cp ci/mobile/PlayerPotion.Mobile.cs LucidHost/3D_game/Assets/Scripts/Player/PlayerPotion.cs
+
+          cp ci/mobile/HighflyWebGL.jslib LucidHost/3D_game/Assets/Plugins/WebGL/HighflyWebGL.jslib
+          cp ci/mobile/InputSystem_Actions.Mobile.inputactions LucidHost/3D_game/Assets/InputSystem_Actions.inputactions
+          cp ci/monsterlab/HighflyMonsterWebGLBuilder.cs LucidHost/3D_game/Assets/Editor/HighflyMonsterWebGLBuilder.cs
+
+          grep -Fq "public static bool IsActive => true;" LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterRun0Compat.cs
+          grep -Fq "HIGHFLY_MONSTER_RUN0_BOOTSTRAP" LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterRun0Bootstrap.cs
+          grep -Fq "GOBLIN_005" LucidHost/3D_game/Assets/HIGHFLY/MonsterRun0/HighflyMonsterCore.cs
+          grep -Fq "RewardContext" ci/monsterlab/MONSTER_CORE_STATUS.md
+          echo "MONSTER_RUN0_FOUNDATION_INSTALLED=1"
+
+      - name: Cache Unity Library
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: monster-run0-6000.6.2f1-${{ hashFiles('ci/monsterlab/**', 'ci/mobile/**', 'ci/combat/**') }}
+          restore-keys: |
+            monster-run0-6000.6.2f1-
+            run0h-6000.6.2f1-
+
+      - name: Build Monster Run0 WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.6.2f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.MonsterLab.Editor.WebGLBuilder.Build
+          allowDirtyBuild: true
+
+      - name: Verify Monster Run0 WebGL
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+
+          test -f "$OUT/index.html"
+          test -f "$OUT/MONSTER_RUN0_BUILD.txt"
+          test -d "$OUT/Build"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
+          test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
+          grep -Fq "GOLDEN SKILL LAB CAMERA" "$OUT/MONSTER_RUN0_BUILD.txt"
+          grep -Fq "REWARD CONTEXT 1.2" "$OUT/MONSTER_RUN0_BUILD.txt"
+          echo "MONSTER_RUN0_WEBGL_OK=1"
+          du -sh "$OUT"
+
+      - name: Upload Monster Run0 WebGL
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-monster-run0-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
