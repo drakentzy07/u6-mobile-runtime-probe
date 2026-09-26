@@ -271,9 +271,9 @@ function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000
    const fine=keys.AltLeft||keys.AltRight,fast=keys.ShiftLeft||keys.ShiftRight;
    const rec=selected?records.get(selected.userData.recordId):null;
    if(selected&&!rec?.locked){
-    const speed=fine?.18:(fast?1.55:.62);selected.position.addScaledVector(_move,speed*dt);scheduleSave();
+    const speed=fine ? .18 : (fast ? 1.55 : .62);selected.position.addScaledVector(_move,speed*dt);scheduleSave();
    }else{
-    const speed=fine?.45:(fast?4.2:1.65),delta=_move.multiplyScalar(speed*dt);camera.position.add(delta);orbit.target.add(delta);
+    const speed=fine ? .45 : (fast ? 4.2 : 1.65),delta=_move.multiplyScalar(speed*dt);camera.position.add(delta);orbit.target.add(delta);
    }
   }
  }else if(play.isLocked){
