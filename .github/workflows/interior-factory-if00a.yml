@@ -63,7 +63,7 @@ jobs:
       - name: Guard v18 showroom premium
         shell: bash
         run: |
-          grep -q "GLASS IS VERTICAL" interior_factory/web/interior-editor-v18.html
+          grep -q "Vidrio vertical PREMIUM ESPADAS" interior_factory/web/interior-editor-v18.html
           grep -q "SECOND ROOM" interior_factory/web/interior-editor-v18.html
           grep -q "normalizedText" interior_factory/web/interior-editor-v18.html
           grep -q "nombreES" interior_factory/web/interior-editor-v18.html
