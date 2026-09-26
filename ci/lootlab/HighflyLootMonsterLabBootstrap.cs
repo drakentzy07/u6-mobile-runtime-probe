@@ -23,6 +23,8 @@ namespace Highfly.LootLab
         private Text _statusText;
         private Text _eventText;
         private Font _font;
+        private HighflyLabPlayerMovement _movement;
+        private bool _proximityPickupArmed;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -49,6 +51,18 @@ namespace Highfly.LootLab
                 p.y = 0.65f + 0.15f * Mathf.Sin(Time.unscaledTime * 3f);
                 _worldDrop.transform.position = p;
             }
+
+            if (_pendingManifest != null && _worldDrop != null && _hunter != null)
+            {
+                float distance = Vector3.Distance(_hunter.transform.position, _worldDrop.transform.position);
+                if (distance <= 1.35f && _proximityPickupArmed)
+                {
+                    _proximityPickupArmed = false;
+                    PickupLoot();
+                    SetEvent("Pickup por proximidad OK → loot recogido caminando.");
+                }
+            }
+
             RefreshStatus();
         }
 
@@ -115,6 +129,8 @@ namespace Highfly.LootLab
             _hunter.transform.position = new Vector3(-5.5f, 1f, -1.5f);
             _hunter.transform.localScale = new Vector3(0.9f, 1.05f, 0.9f);
             SetMaterialColor(_hunter, new Color(0.1f, 0.8f, 0.95f, 1f));
+            _movement = _hunter.AddComponent<HighflyLabPlayerMovement>();
+            _movement.Configure(5.4f, new Vector2(-8.2f, 8.2f), new Vector2(-4.8f, 4.8f));
             CreateWorldLabel("HUNTER", new Vector3(-5.5f, 2.65f, -1.5f));
         }
 
@@ -146,23 +162,57 @@ namespace Highfly.LootLab
             scaler.matchWidthOrHeight = 0.5f;
             canvasGo.AddComponent<GraphicRaycaster>();
 
-            var header = CreatePanel(canvas.transform, "Header", new Vector2(0.015f, 0.74f), new Vector2(0.51f, 0.985f));
-            _statusText = CreateText(header.transform, "Status", 27, TextAnchor.UpperLeft);
-            Stretch(_statusText.rectTransform, 20f, 20f, 20f, 20f);
+            var header = CreatePanel(canvas.transform, "Header", new Vector2(0.015f, 0.73f), new Vector2(0.44f, 0.985f));
+            _statusText = CreateText(header.transform, "Status", 23, TextAnchor.UpperLeft);
+            Stretch(_statusText.rectTransform, 16f, 16f, 14f, 14f);
 
-            var controls = CreatePanel(canvas.transform, "Controls", new Vector2(0.66f, 0.08f), new Vector2(0.985f, 0.96f));
+            var controls = CreatePanel(canvas.transform, "Controls", new Vector2(0.755f, 0.08f), new Vector2(0.985f, 0.95f));
             CreateControls(controls.transform);
 
-            var eventPanel = CreatePanel(canvas.transform, "Event", new Vector2(0.015f, 0.025f), new Vector2(0.62f, 0.14f));
-            _eventText = CreateText(eventPanel.transform, "EventText", 25, TextAnchor.MiddleLeft);
-            Stretch(_eventText.rectTransform, 18f, 18f, 12f, 12f);
+            var eventPanel = CreatePanel(canvas.transform, "Event", new Vector2(0.19f, 0.025f), new Vector2(0.70f, 0.115f));
+            _eventText = CreateText(eventPanel.transform, "EventText", 21, TextAnchor.MiddleLeft);
+            Stretch(_eventText.rectTransform, 16f, 16f, 10f, 10f);
 
-            var title = CreateText(canvas.transform, "BuildTitle", 23, TextAnchor.UpperCenter);
-            title.text = "HIGHFLY LOOT / MONSTER LAB • RUN0A";
+            CreateJoystick(canvas.transform);
+
+            var title = CreateText(canvas.transform, "BuildTitle", 20, TextAnchor.UpperCenter);
+            title.text = "HIGHFLY LOOT / MONSTER LAB • RUN0A.1  |  MOVER: JOYSTICK / WASD";
             var tr = title.rectTransform;
             tr.anchorMin = new Vector2(0.23f, 0.95f);
             tr.anchorMax = new Vector2(0.77f, 0.995f);
             tr.offsetMin = tr.offsetMax = Vector2.zero;
+        }
+
+        private void CreateJoystick(Transform parent)
+        {
+            var baseGo = new GameObject("MOVE_JOYSTICK", typeof(RectTransform), typeof(Image), typeof(HighflyLabVirtualJoystick));
+            baseGo.transform.SetParent(parent, false);
+            var baseRect = (RectTransform)baseGo.transform;
+            baseRect.anchorMin = new Vector2(0.025f, 0.035f);
+            baseRect.anchorMax = new Vector2(0.165f, 0.285f);
+            baseRect.offsetMin = Vector2.zero;
+            baseRect.offsetMax = Vector2.zero;
+            baseGo.GetComponent<Image>().color = new Color(0.08f, 0.13f, 0.23f, 0.72f);
+
+            var knobGo = new GameObject("Knob", typeof(RectTransform), typeof(Image));
+            knobGo.transform.SetParent(baseGo.transform, false);
+            var knobRect = (RectTransform)knobGo.transform;
+            knobRect.anchorMin = new Vector2(0.30f, 0.30f);
+            knobRect.anchorMax = new Vector2(0.70f, 0.70f);
+            knobRect.offsetMin = Vector2.zero;
+            knobRect.offsetMax = Vector2.zero;
+            knobGo.GetComponent<Image>().color = new Color(0.16f, 0.76f, 0.96f, 0.92f);
+
+            var joystick = baseGo.GetComponent<HighflyLabVirtualJoystick>();
+            joystick.Configure(baseRect, knobRect);
+            if (_movement != null) _movement.SetJoystick(joystick);
+
+            var label = CreateText(parent, "MoveLabel", 18, TextAnchor.LowerCenter);
+            label.text = "MOVER";
+            var lr = label.rectTransform;
+            lr.anchorMin = new Vector2(0.025f, 0.285f);
+            lr.anchorMax = new Vector2(0.165f, 0.33f);
+            lr.offsetMin = lr.offsetMax = Vector2.zero;
         }
 
         private void CreateControls(Transform parent)
@@ -170,8 +220,8 @@ namespace Highfly.LootLab
             string[] labels = { "SPAWN GOBLIN", "KILL GOBLIN", "PICKUP LOOT", "FORJAR ESPADA", "EQUIPAR ESPADA", "SAVE", "LOAD", "RESET", "AUTO RUN 0A" };
             Action[] actions = { SpawnGoblin, KillGoblin, PickupLoot, CraftSword, EquipSword, Save, Load, ResetLab, RunAutomatedHappyPath };
             float top = 0.93f;
-            const float height = 0.085f;
-            const float gap = 0.012f;
+            const float height = 0.072f;
+            const float gap = 0.010f;
             for (int i = 0; i < labels.Length; i++)
             {
                 float yMax = top - i * (height + gap);
@@ -229,6 +279,7 @@ namespace Highfly.LootLab
             _worldDrop.transform.position = new Vector3(0.2f, 0.65f, 2.3f);
             _worldDrop.transform.localScale = Vector3.one * 0.8f;
             SetMaterialColor(_worldDrop, new Color(0.75f, 0.45f, 0.08f, 1f));
+            _proximityPickupArmed = true;
         }
 
         private void PickupLoot()
@@ -238,6 +289,7 @@ namespace Highfly.LootLab
             _pendingManifest = null;
             if (_worldDrop != null) Destroy(_worldDrop);
             _worldDrop = null;
+            _proximityPickupArmed = false;
             SetEvent("Pickup OK → +3 Iron / +1 Leather.");
         }
 
@@ -319,6 +371,8 @@ namespace Highfly.LootLab
             if (_worldDrop != null) Destroy(_worldDrop);
             if (_swordVisual != null) Destroy(_swordVisual);
             _goblin = null; _worldDrop = null; _swordVisual = null; _pendingManifest = null; _lastContext = null;
+            _proximityPickupArmed = false;
+            if (_hunter != null) _hunter.transform.position = new Vector3(-5.5f, 1f, -1.5f);
             _inventory.Clear(); _ledger.Clear(); _equipment.mainHand = null; _equipment.offHand = null;
             PlayerPrefs.DeleteKey(SaveKey);
             PlayerPrefs.Save();
@@ -432,6 +486,109 @@ namespace Highfly.LootLab
             go.AddComponent<EventSystem>();
             go.AddComponent<StandaloneInputModule>();
             DontDestroyOnLoad(go);
+        }
+    }
+
+    public sealed class HighflyLabPlayerMovement : MonoBehaviour
+    {
+        private float _speed = 5f;
+        private Vector2 _xBounds = new Vector2(-8f, 8f);
+        private Vector2 _zBounds = new Vector2(-5f, 5f);
+        private HighflyLabVirtualJoystick _joystick;
+
+        public void Configure(float speed, Vector2 xBounds, Vector2 zBounds)
+        {
+            _speed = speed;
+            _xBounds = xBounds;
+            _zBounds = zBounds;
+        }
+
+        public void SetJoystick(HighflyLabVirtualJoystick joystick)
+        {
+            _joystick = joystick;
+        }
+
+        private void Update()
+        {
+            Vector2 move = _joystick != null ? _joystick.Value : Vector2.zero;
+
+            float x = 0f;
+            float y = 0f;
+            if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) x -= 1f;
+            if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) x += 1f;
+            if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) y -= 1f;
+            if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) y += 1f;
+
+            var keyboard = new Vector2(x, y);
+            if (keyboard.sqrMagnitude > 0.01f) move = keyboard.normalized;
+            if (move.sqrMagnitude > 1f) move.Normalize();
+
+            if (move.sqrMagnitude <= 0.0001f) return;
+
+            Vector3 direction = new Vector3(move.x, 0f, move.y);
+            transform.position += direction * (_speed * Time.unscaledDeltaTime);
+
+            Vector3 p = transform.position;
+            p.x = Mathf.Clamp(p.x, _xBounds.x, _xBounds.y);
+            p.z = Mathf.Clamp(p.z, _zBounds.x, _zBounds.y);
+            p.y = 1f;
+            transform.position = p;
+
+            if (direction.sqrMagnitude > 0.001f)
+                transform.forward = Vector3.Slerp(transform.forward, direction.normalized, 14f * Time.unscaledDeltaTime);
+        }
+    }
+
+    public sealed class HighflyLabVirtualJoystick : MonoBehaviour, IPointerDownHandler, IDragHandler, IPointerUpHandler
+    {
+        private RectTransform _baseRect;
+        private RectTransform _knob;
+        private Vector2 _value;
+
+        public Vector2 Value => _value;
+
+        public void Configure(RectTransform baseRect, RectTransform knob)
+        {
+            _baseRect = baseRect;
+            _knob = knob;
+            _value = Vector2.zero;
+        }
+
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            UpdateValue(eventData);
+        }
+
+        public void OnDrag(PointerEventData eventData)
+        {
+            UpdateValue(eventData);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            _value = Vector2.zero;
+            if (_knob != null) _knob.anchoredPosition = Vector2.zero;
+        }
+
+        private void UpdateValue(PointerEventData eventData)
+        {
+            if (_baseRect == null || _knob == null) return;
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    _baseRect,
+                    eventData.position,
+                    eventData.pressEventCamera,
+                    out Vector2 local))
+                return;
+
+            Vector2 half = _baseRect.rect.size * 0.5f;
+            if (half.x <= 0f || half.y <= 0f) return;
+
+            Vector2 normalized = new Vector2(local.x / half.x, local.y / half.y);
+            _value = Vector2.ClampMagnitude(normalized, 1f);
+
+            float radius = Mathf.Min(half.x, half.y) * 0.42f;
+            _knob.anchoredPosition = _value * radius;
         }
     }
 }
