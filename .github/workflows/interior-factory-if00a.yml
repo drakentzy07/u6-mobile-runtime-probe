@@ -55,8 +55,8 @@ jobs:
           grep -q "snapBottomToY" interior_factory/web/interior-editor-v18.html
           grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v18.html
           grep -q "Vidrio vertical" interior_factory/web/interior-editor-v18.html
-          grep -q "Horno de barro" interior_factory/web/interior-editor-v18.html
-          grep -q "Gran fragua" interior_factory/web/interior-editor-v18.html
+          grep -q "Horno medieval" interior_factory/web/interior-editor-v18.html
+          grep -q "Fragua suprema" interior_factory/web/interior-editor-v18.html
           grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v18.html
           echo "V18 feature guards: PASS"
 
@@ -97,7 +97,7 @@ jobs:
           grep -q "Fila baja" interior_factory/web/interior-editor-v18.html
           grep -q "Fila alta" interior_factory/web/interior-editor-v18.html
           if grep -q "restaurant_180" interior_factory/web/interior-editor-v18.html; then
-            echo "Forbidden kitchen oven asset still seeded in v17"
+            echo "Forbidden kitchen oven asset still seeded in v18"
             exit 1
           fi
           echo "V18 supreme visual pass guards: PASS"
