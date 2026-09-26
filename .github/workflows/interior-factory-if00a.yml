@@ -54,8 +54,8 @@ jobs:
         run: |
           grep -q "snapBottomToY" interior_factory/web/interior-editor-v15.html
           grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v15.html
-          grep -q "Exhibidor PREMIUM ESPADAS" interior_factory/web/interior-editor-v15.html
-          grep -q "Exhibidor LANZAS" interior_factory/web/interior-editor-v15.html
+          grep -q "ramp('PREMIUM ESPADAS'" interior_factory/web/interior-editor-v15.html
+          grep -q "ramp('LANZAS'" interior_factory/web/interior-editor-v15.html
           grep -q "Gran fragua" interior_factory/web/interior-editor-v15.html
           grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v15.html
           echo "V15 feature guards: PASS"
@@ -63,8 +63,8 @@ jobs:
       - name: Guard v15 showroom premium
         shell: bash
         run: |
-          grep -q "Exhibidor PREMIUM ESPADAS" interior_factory/web/interior-editor-v15.html
-          grep -q "Exhibidor PREMIUM MIXTA" interior_factory/web/interior-editor-v15.html
+          grep -q "ramp('PREMIUM ESPADAS'" interior_factory/web/interior-editor-v15.html
+          grep -q "ramp('PREMIUM MIXTA'" interior_factory/web/interior-editor-v15.html
           grep -q "normalizedText" interior_factory/web/interior-editor-v15.html
           grep -q "nombreES" interior_factory/web/interior-editor-v15.html
           grep -q "Dintel puerta" interior_factory/web/interior-editor-v15.html
