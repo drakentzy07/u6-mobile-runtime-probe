@@ -144,13 +144,14 @@ namespace Highfly.Run0I.Editor
             SaveCopy(dualSlice,target+"/DualSword_B.anim","DualSword_B");
             SaveCopy(dualStab,target+"/DualSword_C.anim","DualSword_C");
 
-            SaveCopy(dualChop,target+"/DualAxe_A.anim","DualAxe_A");
-            SaveCopy(dualStab,target+"/DualAxe_B.anim","DualAxe_B");
-            SaveCopy(dualSlice,target+"/DualAxe_C.anim","DualAxe_C");
+            // Keep slot C on the observed cross-like dual pose so Parry can freeze it.
+            SaveCopy(dualSlice,target+"/DualAxe_A.anim","DualAxe_A");
+            SaveCopy(dualChop,target+"/DualAxe_B.anim","DualAxe_B");
+            SaveCopy(dualStab,target+"/DualAxe_C.anim","DualAxe_C");
 
-            SaveCopy(dualStab,target+"/Dagger_A.anim","Dagger_A");
-            SaveCopy(dualSlice,target+"/Dagger_B.anim","Dagger_B");
-            SaveCopy(dualChop,target+"/Dagger_C.anim","Dagger_C");
+            SaveCopy(dualSlice,target+"/Dagger_A.anim","Dagger_A");
+            SaveCopy(dualChop,target+"/Dagger_B.anim","Dagger_B");
+            SaveCopy(dualStab,target+"/Dagger_C.anim","Dagger_C");
 
             const string barbarianSource="Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx";
             AnimationClip[] barbarianClips=AssetDatabase.LoadAllAssetsAtPath(barbarianSource)
