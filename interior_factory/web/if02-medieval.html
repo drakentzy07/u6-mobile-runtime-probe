@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>HIGHFLY — Forja Medieval v2</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#08090d;color:#edf2fa;font-family:system-ui}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}.box{background:#0b111bdd;border:1px solid #33445f;border-radius:11px;padding:9px 11px;backdrop-filter:blur(8px)}
+#tl{position:absolute;left:12px;top:12px}.title{font:800 13px ui-monospace;letter-spacing:.08em}.sub{font:11px ui-monospace;color:#a3b0c3;margin-top:4px}
+#tr{position:absolute;right:12px;top:12px;text-align:right}.ok{color:#75efad}.load{color:#ffd27d}.bad{color:#ff8989}
+#bl{position:absolute;left:12px;bottom:12px;font:11px ui-monospace;color:#b8c3d4}
+#br{position:absolute;right:12px;bottom:12px;font:11px ui-monospace;color:#c8d3e5;text-align:right}
+#cross{position:absolute;left:50%;top:50%;width:8px;height:8px;border:1px solid #fff8;border-radius:50%;transform:translate(-50%,-50%)}
+.pill{display:inline-block;margin-top:5px;padding:3px 7px;border:1px solid #465979;border-radius:999px;font:10px ui-monospace;color:#cbd7e8}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div id="tl" class="box"><div class="title">HIGHFLY // INTERIOR FACTORY</div><div class="sub">FORJA MEDIEVAL VISUAL v2 · CURATED BLACKSMITH ONLY</div><div class="pill">PB TIENDA → ESCALERA → SUBSUELO TALLER</div></div>
+  <div id="tr" class="box"><div id="status" class="title load">CARGANDO ASSETS…</div><div id="count" class="sub">0/0</div></div>
+  <div id="cross"></div>
+  <div id="bl" class="box">CLICK para capturar mouse · WASD mover · Shift correr · ESC liberar mouse</div>
+  <div id="br" class="box"><div id="zone">ZONA: TIENDA</div><div class="sub">La escalera conecta físicamente ambos pisos</div></div>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const ROOT='https://raw.githubusercontent.com/GeorgeQLe/assets-kaykit-3d-props/main/assets/kaykit/';
+const A={
+ tools:ROOT+'rpg-tools-bits-1.0/Assets/gltf/',
+ weapons:ROOT+'fantasy-weapons-bits-1.0/Assets/gltf/',
+ resources:ROOT+'resource-bits-1.0/Assets/gltf/',
+ furniture:ROOT+'furniture-bits-1.0/Assets/gltf/',
+ proto:ROOT+'prototype-bits-1.1/Assets/gltf/',
+ block:ROOT+'block-bits-1.0/Assets/gltf/'
+};
+const ALLOWED_PREFIXES=Object.values(A);
+const FORBIDDEN=/restaurant|kitchen|pizza|stove|dish|food_/i;
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x08090d);
+scene.fog=new THREE.FogExp2(0x08090d,.022);
+
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.05,90);
+camera.position.set(7,1.65,10.1);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.05;
+document.body.prepend(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0x7388a8,0x281d16,1.15));
+const moon=new THREE.DirectionalLight(0xb7c9e8,1.35); moon.position.set(-4,8,8); scene.add(moon);
+
+const mat={
+ stone:new THREE.MeshStandardMaterial({color:0x5f574d,roughness:.95}),
+ stoneDark:new THREE.MeshStandardMaterial({color:0x3d3833,roughness:1}),
+ plaster:new THREE.MeshStandardMaterial({color:0x8b7a62,roughness:.96}),
+ timber:new THREE.MeshStandardMaterial({color:0x49301f,roughness:.9}),
+ timber2:new THREE.MeshStandardMaterial({color:0x654326,roughness:.88}),
+ iron:new THREE.MeshStandardMaterial({color:0x62666d,metalness:.72,roughness:.42}),
+ ember:new THREE.MeshStandardMaterial({color:0xef7e28,emissive:0xff4b0a,emissiveIntensity:2.0,roughness:.55}),
+ coal:new THREE.MeshStandardMaterial({color:0x171616,roughness:1}),
+ stair:new THREE.MeshStandardMaterial({color:0x5a4330,roughness:.9})
+};
+function box(x,y,z,w,h,d,m=mat.stone,cast=true){
+ const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y+h/2,z);o.castShadow=cast;o.receiveShadow=true;scene.add(o);return o;
+}
+function beam(x,y,z,w,h,d){return box(x,y,z,w,h,d,mat.timber);}
+function stoneWall(x,y,z,w,h,d){
+ box(x,y,z,w,.01,.01,.01); // noop placeholder avoided by renderer
+ const base=box(x,y,z,w,h*.36,d,mat.stone);
+ const top=box(x,y+h*.36,z,w,h*.64,d,mat.plaster);
+ return [base,top];
+}
+// remove accidental noop helper object created above by not using stoneWall.
+
+const UP=0, LOW=-4.2;
+function floorPanel(x,z,w,d,y=UP,m=mat.stoneDark){box(x,y-.18,z,w,.18,d,m,false)}
+// Upper floor with real stair opening at right rear.
+floorPanel(4.45,6,8.9,12,UP);
+floorPanel(12.25,6,3.5,12,UP);
+floorPanel(10.55,2.25,3.2,4.5,UP);
+floorPanel(10.55,10.6,3.2,2.8,UP);
+// Basement full floor.
+floorPanel(7,6,14,12,LOW,mat.stoneDark);
+
+// Exterior/interior walls — stone lower course + plaster/timber upper.
+function wallSegment(x,z,w,d,y=UP,h=3.25){
+ box(x,y,z,w,h*.34,d,mat.stone);
+ box(x,y+h*.34,z,w,h*.66,d,mat.plaster);
+ beam(x,y+h*.32,z,w,.14,d+.05);
+ beam(x,y+h-.14,z,w,.14,d+.05);
+}
+// Upper room perimeter with entrance gap.
+wallSegment(3.1,.08,6.2,.22); wallSegment(11.7,.08,4.6,.22);
+wallSegment(.08,6,.22,12); wallSegment(13.92,6,.22,12);
+wallSegment(3.6,11.92,7.2,.22); wallSegment(11.8,11.92,4.2,.22);
+// Timber uprights
+for(const x of [0.15,3.6,7,10.4,13.85]){beam(x,UP,.12,.16,3.25,.25);beam(x,UP,11.88,.16,3.25,.25)}
+for(const z of [1.6,4.5,7.5,10.5]){beam(.12,UP,z,.25,3.25,.16);beam(13.88,UP,z,.25,3.25,.16)}
+// Basement heavy stone walls.
+for(const p of [[7,LOW,0.08,14,.25],[7,LOW,11.92,14,.25],[.08,LOW,6,.25,12],[13.92,LOW,6,.25,12]]) box(p[0],p[1],p[2],p[3],3.2,p[4],mat.stone);
+// Basement ceiling beams, preserving stairwell.
+for(let z=1;z<11.7;z+=1.5){if(z>4.2&&z<9.1) continue; beam(7,LOW+3.05,z,13.4,.18,.18)}
+
+// Shop counter: medieval timber, no kitchen assets.
+box(6.7,UP,8.55,4.0,.92,.82,mat.timber2);box(6.7,UP+.92,8.55,4.25,.16,1.0,mat.timber);
+for(const x of [5.2,8.2]) beam(x,UP,8.55,.18,.92,.85);
+
+// Real staircase — 13 timber steps descending into workshop.
+const stairX=10.55, zTop=9.0, zBottom=4.15, steps=13;
+for(let i=0;i<steps;i++){
+ const t=i/(steps-1), y=UP-(4.0*t), z=zTop+(zBottom-zTop)*t;
+ box(stairX,y-.17,z,2.15,.22,.48,mat.stair);
+}
+beam(9.38,LOW+.15,6.55,.12,4.35,5.2); beam(11.72,LOW+.15,6.55,.12,4.35,5.2);
+for(let i=0;i<7;i++){const t=i/6,z=zTop+(zBottom-zTop)*t,y=UP-(4*t)+.85;beam(9.35,y,z,.12,.12,.12);beam(11.75,y,z,.12,.12,.12)}
+
+// Basement medieval masonry forge, custom coherent architecture.
+box(1.65,LOW,2.05,2.55,1.1,1.55,mat.stone);
+box(1.65,LOW+1.1,2.05,2.2,.5,1.25,mat.stoneDark);
+box(1.65,LOW+1.32,2.05,1.35,.16,.72,mat.ember);
+for(const x of [.72,2.58]) box(x,LOW+1.55,2.05,.42,1.35,1.15,mat.stone);
+box(1.65,LOW+2.45,2.05,2.65,.3,1.45,mat.stone);
+box(1.65,LOW+2.75,2.05,1.2,.55,1.05,mat.stoneDark);
+const fire=new THREE.PointLight(0xff5b18,18,9,2);fire.position.set(1.65,LOW+1.75,2.0);scene.add(fire);
+const shopLight=new THREE.PointLight(0xffb45a,7,12,2);shopLight.position.set(6.5,2.35,7.9);scene.add(shopLight);
+
+const loader=new GLTFLoader(),cache=new Map();
+let total=0,done=0,failed=0;const status=document.querySelector('#status'),count=document.querySelector('#count');
+function update(ok){done++;if(!ok)failed++;count.textContent=done+'/'+total;if(done===total){status.textContent=failed?('ASSETS '+(total-failed)+' OK · '+failed+' FALLBACK'):'ASSETS MEDIEVALES: OK';status.className='title '+(failed?'load':'ok')}}
+async function source(url){
+ if(FORBIDDEN.test(url)||!ALLOWED_PREFIXES.some(p=>url.startsWith(p)))throw new Error('Asset rejected by medieval whitelist: '+url);
+ if(!cache.has(url)){total++;count.textContent=done+'/'+total;cache.set(url,loader.loadAsync(url).then(g=>{update(true);return g.scene}).catch(e=>{console.error(e);update(false);return null}))}
+ return cache.get(url)
+}
+async function put(url,x,y,z,size=1,ry=0,rx=0,rz=0,name='asset'){
+ const s=await source(url);if(!s)return null;const o=s.clone(true);o.name=name;o.rotation.set(rx,ry,rz);
+ o.traverse(n=>{if(n.isMesh){n.castShadow=true;n.receiveShadow=true}});
+ let b=new THREE.Box3().setFromObject(o),v=b.getSize(new THREE.Vector3()),mx=Math.max(v.x,v.y,v.z)||1;o.scale.multiplyScalar(size/mx);
+ b=new THREE.Box3().setFromObject(o);const c=b.getCenter(new THREE.Vector3());
+ o.position.set(x-c.x,y-b.min.y,z-c.z);scene.add(o);return o
+}
+
+// SHOP — real medieval/fantasy props, coherent KayKit family.
+await Promise.all([
+ put(A.proto+'Weaponrack_Decorated.gltf',1.15,UP,3.0,2.15,Math.PI/2,0,0,'weapon-rack'),
+ put(A.proto+'Weaponrack_Decorated.gltf',12.85,UP,3.0,2.15,-Math.PI/2,0,0,'weapon-rack'),
+ put(A.furniture+'shelf_B_large_decorated.gltf',1.1,UP,7.0,2.1,Math.PI/2,0,0,'shelf'),
+ put(A.furniture+'shelf_B_large_decorated.gltf',12.9,UP,7.0,2.1,-Math.PI/2,0,0,'shelf'),
+ put(A.block+'chest.gltf',3.05,UP,9.7,1.15,0,0,0,'chest'),
+ put(A.block+'barrel.gltf',2.0,UP,9.7,.9,0,0,0,'barrel'),
+ put(A.tools+'blueprint_stacked.gltf',7.5,UP+1.07,8.5,.52,0,0,0,'blueprints'),
+ put(A.tools+'lantern.gltf',5.65,UP+1.07,8.5,.54,0,0,0,'lantern'),
+ put(A.resources+'Gold_Bars_Stack_Small.gltf',6.55,UP+1.07,8.5,.46,0,0,0,'gold-bars'),
+ put(A.weapons+'sword_F.gltf',3.2,UP+.9,1.0,1.35,0,0,-Math.PI/2,'display-sword'),
+ put(A.weapons+'axe_C.gltf',4.55,UP+.9,1.0,1.25,0,0,-Math.PI/2,'display-axe'),
+ put(A.weapons+'shield_C.gltf',8.95,UP+.72,1.0,1.15,0,Math.PI/2,0,'display-shield'),
+ put(A.weapons+'spear_B.gltf',10.45,UP+.7,1.0,1.65,0,0,-Math.PI/2,'display-spear')
+]);
+
+// WORKSHOP — blacksmith-only.
+await Promise.all([
+ put(A.tools+'anvil.gltf',4.25,LOW,2.35,1.35,0,0,0,'anvil'),
+ put(A.tools+'grindstone.gltf',7.15,LOW,2.15,1.35,Math.PI/2,0,0,'grindstone'),
+ put(A.tools+'bucket_metal.gltf',3.05,LOW,3.3,.7,0,0,0,'quench-bucket'),
+ put(A.furniture+'table_medium_long.gltf',4.25,LOW,7.15,2.4,0,0,0,'workbench'),
+ put(A.proto+'Weaponrack.gltf',12.75,LOW,6.3,2.05,-Math.PI/2,0,0,'unfinished-rack'),
+ put(A.resources+'Iron_Bars_Stack_Large.gltf',8.55,LOW,7.1,1.0,0,0,0,'iron-bars'),
+ put(A.resources+'Copper_Bars_Stack_Medium.gltf',8.45,LOW,8.45,.8,0,0,0,'copper-bars'),
+ put(A.resources+'Wood_Log_Stack.gltf',2.0,LOW,6.0,1.25,0,0,0,'firewood'),
+ put(A.resources+'Containers_Crate_Medium_Wood.gltf',9.9,LOW,8.55,.92,0,0,0,'crate'),
+ put(A.block+'barrel.gltf',12.75,LOW,9.3,.9,0,0,0,'barrel'),
+ put(A.tools+'hammer.gltf',3.25,LOW+.87,7.05,.55,Math.PI/2,0,0,'hammer'),
+ put(A.tools+'tongs.gltf',3.95,LOW+.87,7.05,.64,Math.PI/2,0,0,'tongs'),
+ put(A.tools+'file.gltf',4.65,LOW+.87,7.05,.52,Math.PI/2,0,0,'file'),
+ put(A.tools+'chisel.gltf',5.3,LOW+.87,7.05,.46,Math.PI/2,0,0,'chisel'),
+ put(A.tools+'saw.gltf',5.95,LOW+.87,7.05,.7,Math.PI/2,0,0,'saw'),
+ put(A.tools+'torch.gltf',.65,LOW+1.15,5.0,.7,0,0,0,'torch'),
+ put(A.tools+'torch.gltf',13.35,LOW+1.15,5.0,.7,0,0,0,'torch')
+]);
+
+// Torch lights basement.
+for(const x of [.7,13.3]){const l=new THREE.PointLight(0xff983c,4.5,6,2);l.position.set(x,LOW+1.7,5);scene.add(l)}
+
+const controls=new PointerLockControls(camera,renderer.domElement);
+renderer.domElement.addEventListener('click',()=>controls.lock());
+const keys={};addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
+let level='UPPER',last=performance.now();
+const zone=document.querySelector('#zone');
+function stairHeight(x,z){
+ if(x<9.15||x>11.85||z<4.0||z>9.15)return null;
+ const t=THREE.MathUtils.clamp((9.0-z)/(9.0-4.15),0,1);
+ return 1.65-4.0*t;
+}
+function walkY(){
+ const sy=stairHeight(camera.position.x,camera.position.z);
+ if(sy!==null){
+   if(camera.position.z<4.28)level='LOWER';
+   if(camera.position.z>8.88)level='UPPER';
+   zone.textContent='ZONA: ESCALERA';
+   return sy;
+ }
+ zone.textContent=level==='UPPER'?'ZONA: TIENDA':'ZONA: TALLER';
+ return level==='UPPER'?1.65:LOW+1.65;
+}
+function collide(){
+ camera.position.x=THREE.MathUtils.clamp(camera.position.x,.45,13.55);
+ camera.position.z=THREE.MathUtils.clamp(camera.position.z,.45,11.55);
+ // Prevent magically crossing floors except through stair corridor.
+ if(level==='UPPER' && camera.position.z<4.0 && camera.position.x>9.15) camera.position.z=4.0;
+ if(level==='LOWER' && camera.position.z>9.15 && camera.position.x>9.15) camera.position.z=9.15;
+}
+function loop(now){
+ requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.05);last=now;
+ if(controls.isLocked){
+   let x=(keys.KeyD?1:0)-(keys.KeyA?1:0),z=(keys.KeyW?1:0)-(keys.KeyS?1:0),l=Math.hypot(x,z)||1;
+   const sp=(keys.ShiftLeft||keys.ShiftRight)?4.7:2.8;
+   controls.moveRight((x/l)*sp*dt);controls.moveForward((z/l)*sp*dt);collide();camera.position.y=walkY();
+ }
+ const pulse=1.7+Math.sin(now*.009)*.35;fire.intensity=16+pulse*2;
+ renderer.render(scene,camera)
+}
+requestAnimationFrame(loop);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body></html>
