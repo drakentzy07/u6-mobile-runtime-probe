@@ -214,7 +214,7 @@ namespace Highfly.LootLab
             Stretch(_eventText.rectTransform, 10f, 10f, 8f, 8f);
 
             var title = CreateText(canvas.transform, "BuildTitle", 18, TextAnchor.UpperCenter);
-            title.text = "HIGHFLY LOOT / MONSTER LAB • RUN0B PREP • GOLDEN MOVE + GOLDEN CAMERA";
+            title.text = "HIGHFLY LOOT / MONSTER LAB • RUN0B GOLDEN • SKILL LAB MOVE + CAMERA REUSED";
             RectTransform tr = title.rectTransform;
             tr.anchorMin = new Vector2(0.27f, 0.985f);
             tr.anchorMax = new Vector2(0.83f, 1f);
