@@ -66,7 +66,7 @@ public class PlayerController : MonoBehaviour
     public bool IsLockOn => _lockOnSystem != null && _lockOnSystem.isLockOn; 
     public Transform LockOnTarget => _lockOnSystem != null ? _lockOnSystem.currentTarget : null;
     public Transform cameraRoot;
-    public Vector2 HighflyMobileMoveInput => _highflyMobileInput ? _highflyMobileMove : _inputMove;
+    public Vector2 HighflyMobileMoveInput => ResolveHighflyMoveInput();
     public bool HighflyMobileInputActive => _highflyMobileInput;
     public bool HighflyIsGrounded => _isGrounded;
     public float HighflyVerticalSpeed => _verticalVelocity.y;
@@ -274,10 +274,10 @@ public class PlayerController : MonoBehaviour
         }
         _verticalVelocity.y += gravity * Time.deltaTime;
 
-        // 입력값 읽기
-        _inputMove = _highflyMobileInput
-            ? _highflyMobileMove
-            : _inputActions.Player.Move.ReadValue<Vector2>();
+        // Read the effective move input. Hardware/InputAction movement wins whenever
+        // it is actually non-zero, even if the browser/device was misdetected as touch-capable.
+        // HIGHFLY's direct mobile joystick remains the fallback on Android/WebGL touch.
+        _inputMove = ResolveHighflyMoveInput();
 
         // 상태별 업데이트
         switch (currentState)
@@ -906,6 +906,23 @@ public class PlayerController : MonoBehaviour
         // D. 매니저에게 부활 요청
         // -> 마지막 세이브 로드 + 돈 0원 처리 + 씬 재시작
         GameManager.Instance.RespawnAtAltar();
+    }
+
+    private Vector2 ResolveHighflyMoveInput()
+    {
+        Vector2 actionMove = Vector2.zero;
+        if (_inputActions != null)
+        {
+            try { actionMove = _inputActions.Player.Move.ReadValue<Vector2>(); }
+            catch { actionMove = Vector2.zero; }
+        }
+
+        if (actionMove.sqrMagnitude > 0.0001f)
+            return Vector2.ClampMagnitude(actionMove, 1f);
+
+        return _highflyMobileInput
+            ? _highflyMobileMove
+            : actionMove;
     }
 
     // HIGHFLY mobile direct-input bridge.
