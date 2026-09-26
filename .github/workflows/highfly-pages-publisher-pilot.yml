@@ -1,0 +1,106 @@
+name: HIGHFLY Pages Publisher Pilot
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - highfly/pages-publisher-pilot
+    paths:
+      - ".github/workflows/highfly-pages-publisher-pilot.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: highfly-pages-publisher-pilot
+  cancel-in-progress: true
+
+jobs:
+  assemble:
+    name: Assemble Skills + Loot without deployment
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Resolve latest successful lab runs
+        id: runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+
+          SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/run0i3-single-hunter-guard-core&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
+          LOOT_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1)"
+
+          test -n "$SKILLS_RUN"
+          test -n "$LOOT_RUN"
+
+          echo "skills_run=$SKILLS_RUN" >> "$GITHUB_OUTPUT"
+          echo "loot_run=$LOOT_RUN" >> "$GITHUB_OUTPUT"
+          echo "Skills source run: $SKILLS_RUN"
+          echo "Loot source run: $LOOT_RUN"
+
+      - name: Download latest Skills artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-run0i3-webgl
+          path: incoming/skills
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.skills_run }}
+
+      - name: Download latest Loot artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-loot-run0a-webgl
+          path: incoming/loot
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.loot_run }}
+
+      - name: Assemble isolated combined site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf site
+          mkdir -p site/loot-monster-lab-run0a
+
+          test -f incoming/skills/index.html
+          test -f incoming/skills/RUN0I3_BUILD.txt
+          test -d incoming/skills/Build
+
+          test -f incoming/loot/index.html
+          test -f incoming/loot/RUN0A_BUILD.txt
+          test -d incoming/loot/Build
+
+          cp -a incoming/skills/. site/
+          cp -a incoming/loot/. site/loot-monster-lab-run0a/
+          touch site/.nojekyll
+
+      - name: Validate publisher invariants
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          test -f site/index.html
+          test -f site/RUN0I3_BUILD.txt
+          grep -q "SINGLE HUNTER GUARD CORE" site/RUN0I3_BUILD.txt
+
+          test -f site/loot-monster-lab-run0a/index.html
+          test -f site/loot-monster-lab-run0a/RUN0A_BUILD.txt
+          grep -q "HIGHFLY_LOOT_MONSTER_LAB_RUN0A=1" site/loot-monster-lab-run0a/RUN0A_BUILD.txt
+
+          test -d site/Build
+          test -d site/loot-monster-lab-run0a/Build
+
+          echo "PUBLISHER_PILOT_OK=1" > site/PUBLISHER_PILOT.txt
+          du -sh site
+          find site -maxdepth 2 -type f | sort | head -80
+
+      - name: Upload combined pilot artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-pages-combined-pilot
+          path: site
+          if-no-files-found: error
+          retention-days: 3
