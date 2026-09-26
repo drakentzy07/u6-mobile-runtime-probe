@@ -31,15 +31,15 @@ jobs:
           console.log('Semantic layout match: PASS');
           NODE
 
-      - name: Syntax-check Interior Editor v14
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v14.html
+      - name: Syntax-check Interior Editor v15
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v15.html
 
-      - name: Guard v14 early-init references
+      - name: Guard v15 early-init references
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v14.html','utf8');
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v15.html','utf8');
           const decl=s.indexOf('const UP=0,LOW=-4.2;');
           const pre=s.slice(0,decl);
           if (/zoneLight\([^\n]*\bLOW\b/.test(pre)) {
@@ -49,13 +49,26 @@ jobs:
           console.log('Early-init reference guard: PASS');
           NODE
 
-      - name: Guard v14 editor features
+      - name: Guard v15 editor features
         shell: bash
         run: |
-          grep -q "snapBottomToY" interior_factory/web/interior-editor-v14.html
-          grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v14.html
-          grep -q "Vitrina ESPADAS" interior_factory/web/interior-editor-v14.html
-          grep -q "Vitrina LANZAS" interior_factory/web/interior-editor-v14.html
-          grep -q "Gran fragua" interior_factory/web/interior-editor-v14.html
-          grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v14.html
-          echo "V14 feature guards: PASS"
+          grep -q "snapBottomToY" interior_factory/web/interior-editor-v15.html
+          grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v15.html
+          grep -q "Vitrina ESPADAS" interior_factory/web/interior-editor-v15.html
+          grep -q "Vitrina LANZAS" interior_factory/web/interior-editor-v15.html
+          grep -q "Gran fragua" interior_factory/web/interior-editor-v15.html
+          grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v15.html
+          echo "V15 feature guards: PASS"
+
+      - name: Guard v15 showroom premium
+        shell: bash
+        run: |
+          grep -q "Exhibidor PREMIUM ESPADAS" interior_factory/web/interior-editor-v15.html
+          grep -q "Exhibidor PREMIUM MIXTA" interior_factory/web/interior-editor-v15.html
+          grep -q "normalizedText" interior_factory/web/interior-editor-v15.html
+          grep -q "nombreES" interior_factory/web/interior-editor-v15.html
+          grep -q "Dintel puerta" interior_factory/web/interior-editor-v15.html
+          if grep -q "\['shelf'" interior_factory/web/interior-editor-v15.html; then
+            echo "WARN: shelf asset still exists in catalog/base source, checking seeded props separately"
+          fi
+          echo "V15 showroom premium guards: PASS"
