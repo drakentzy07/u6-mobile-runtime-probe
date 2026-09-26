@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using Highfly.Mobile;
 using Highfly.Run0I2;
@@ -71,12 +72,20 @@ namespace Highfly.Run0H
                     SetupLab(player);
             }
 
+            if (_setup && _player != null && IsDesktopQuickTest())
+                _player.ReleaseHighflyMobileInput();
+
             if (_setup && _player != null && Time.unscaledTime >= _nextSafetyCheck)
             {
                 _nextSafetyCheck = Time.unscaledTime + 0.15f;
                 CheckBounds();
                 RefreshCharacterStatus();
             }
+        }
+
+        private static bool IsDesktopQuickTest()
+        {
+            return !HighflyMobileBootstrap.TouchInputActive && Keyboard.current != null;
         }
 
         private void SetupLab(PlayerController player)
@@ -109,7 +118,10 @@ namespace Highfly.Run0H
 
             _player.transform.position = LabSpawn;
             _player.transform.rotation = Quaternion.identity;
-            _player.SetHighflyMobileMove(Vector2.zero);
+            if (IsDesktopQuickTest())
+                _player.ReleaseHighflyMobileInput();
+            else
+                _player.SetHighflyMobileMove(Vector2.zero);
 
             if (cc != null) cc.enabled = true;
         }
@@ -373,7 +385,7 @@ namespace Highfly.Run0H
 
             Text footer = CreateText(
                 panel.transform,
-                "CORE: EQUIPMENT → RESOLVER → MELEE\n1 Hunter fijo • guard por equipo • 3 dummies",
+                "CORE: EQUIPMENT → RESOLVER → MELEE\nPC: WASD + RMB cámara • Android: joystick + touch",
                 14,
                 TextAnchor.LowerLeft);
 
