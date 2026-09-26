@@ -113,8 +113,16 @@ jobs:
           grep -q "AL PISO" interior_factory/web/interior-editor-v18.html
           grep -q "Escudo mural sala 2" interior_factory/web/interior-editor-v18.html
           grep -q "Yunque taller" interior_factory/web/interior-editor-v18.html
-          if grep -q '"name":"Staff B"' interior_factory/web/interior-editor-v18.html; then
-            echo "Staff B should not be seeded in curated forge"
-            exit 1
-          fi
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v18.html','utf8');
+          const m=s.match(/const DEFAULT_LAYOUT_V18=(\{.*?\});\s*async function init/s);
+          if(!m){ console.error('DEFAULT_LAYOUT_V18 not parseable'); process.exit(1); }
+          const d=JSON.parse(m[1]);
+          if((d.objects||[]).some(o=>o.name==='Staff B')){
+            console.error('Staff B should not be seeded in curated forge');
+            process.exit(1);
+          }
+          console.log('Curated default layout seed guard: PASS');
+          NODE
           echo "V18 user-layout curation guards: PASS"
