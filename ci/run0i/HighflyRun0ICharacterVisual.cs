@@ -400,8 +400,27 @@ namespace Highfly.Run0H
 
         private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            // One persistent Hunter: equipment changes combat language, never the body/model.
-            return KnightResource;
+            // LAB ONLY: use the KayKit body authored closest to each weapon language
+            // so we can validate clips, hand slots and grips without forcing every
+            // style through the Knight. Final HIGHFLY still remains one persistent Hunter;
+            // approved motion/socket data is retargeted back after this validation pass.
+            switch(profile)
+            {
+                case HighflyLoadoutProfile.DualDaggers:
+                    return RogueHoodedResource;
+                case HighflyLoadoutProfile.DualSword:
+                    return RogueResource;
+                case HighflyLoadoutProfile.Axe1H:
+                case HighflyLoadoutProfile.DualAxe:
+                case HighflyLoadoutProfile.AxeShield:
+                    return BarbarianResource;
+                case HighflyLoadoutProfile.Spear2H:
+                    // No native spear exists in our pinned free KayKit Adventurers pack.
+                    // RogueHooded is only a temporary 2H silhouette until a true polearm donor is validated.
+                    return RogueHoodedResource;
+                default:
+                    return KnightResource;
+            }
         }
 
         private void AttachLoadoutEquipment()
