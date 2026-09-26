@@ -1,0 +1,125 @@
+name: HIGHFLY Pages Publisher
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/highfly-pages-publisher.yml"
+  workflow_run:
+    workflows:
+      - "HIGHFLY Run0I.3 Single Hunter Guard Core"
+      - "Build + Publish HIGHFLY Loot Monster Lab Run0A"
+    types:
+      - completed
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-pages-publisher
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Assemble and deploy canonical HIGHFLY Labs
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Resolve latest successful lab runs
+        id: runs
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+
+          SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/run0i3-single-hunter-guard-core&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
+          LOOT_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1)"
+
+          test -n "$SKILLS_RUN"
+          test -n "$LOOT_RUN"
+
+          echo "skills_run=$SKILLS_RUN" >> "$GITHUB_OUTPUT"
+          echo "loot_run=$LOOT_RUN" >> "$GITHUB_OUTPUT"
+          echo "Skills source run: $SKILLS_RUN"
+          echo "Loot source run: $LOOT_RUN"
+
+      - name: Download canonical Skills artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-run0i3-webgl
+          path: incoming/skills
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.skills_run }}
+
+      - name: Download canonical Loot artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-loot-run0a-webgl
+          path: incoming/loot
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.loot_run }}
+
+      - name: Assemble canonical site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf site
+          mkdir -p site/loot-monster-lab-run0a
+
+          test -f incoming/skills/index.html
+          test -f incoming/skills/RUN0I3_BUILD.txt
+          test -d incoming/skills/Build
+
+          test -f incoming/loot/index.html
+          test -f incoming/loot/RUN0A_BUILD.txt
+          test -d incoming/loot/Build
+
+          cp -a incoming/skills/. site/
+          cp -a incoming/loot/. site/loot-monster-lab-run0a/
+          touch site/.nojekyll
+
+      - name: Validate publisher invariants
+        shell: bash
+        run: |
+          set -euxo pipefail
+
+          test -f site/index.html
+          test -f site/RUN0I3_BUILD.txt
+          grep -q "SINGLE HUNTER GUARD CORE" site/RUN0I3_BUILD.txt
+
+          test -f site/loot-monster-lab-run0a/index.html
+          test -f site/loot-monster-lab-run0a/RUN0A_BUILD.txt
+          grep -q "HIGHFLY_LOOT_MONSTER_LAB_RUN0A=1" site/loot-monster-lab-run0a/RUN0A_BUILD.txt
+
+          test -d site/Build
+          test -d site/loot-monster-lab-run0a/Build
+
+          echo "HIGHFLY_PUBLISHER_OK=1" > site/PUBLISHER.txt
+          echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
+          echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
+          du -sh site
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload canonical Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy canonical HIGHFLY Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
