@@ -291,7 +291,7 @@ function appendBatch(){
 function updateCount(){document.querySelector('#catalogCount').textContent=renderedCount+' / '+visibleList.length}
 document.querySelector('#cards').addEventListener('scroll',e=>{const el=e.currentTarget;if(el.scrollTop+el.clientHeight>el.scrollHeight-360)appendBatch()});
 const thumbRenderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});thumbRenderer.setSize(260,165);thumbRenderer.setPixelRatio(1);
-const thumbScene=new THREE.Scene();thumbScene.add(new THREE.HemisphereLight(0xffffff,0x303030,2));const thumbCam=new THREE.PerspectiveCamera(35,260/165,.01,50);thumbCam.position.set(2.5,1.8,3);thumbCam.lookAt(0,.7,0);const thumbQueue=[];let thumbBusy=false;
+const thumbScene=new THREE.Scene();thumbScene.add(new THREE.HemisphereLight(0xffffff,0x303030,2));const thumbCam=new THREE.PerspectiveCamera(35,260/165,.01,50);thumbCam.position.set(2.5,1.8,3);thumbCam.lookAt(0,.7,0);
 const thumbQueue=[];let thumbWorkers=0;const MAX_THUMB_WORKERS=4;
 function makeThumb(a,host){thumbQueue.push({a,host});pumpThumbs()}
 async function pumpThumbs(){
