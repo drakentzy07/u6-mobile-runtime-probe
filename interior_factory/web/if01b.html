@@ -1,0 +1,49 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>HIGHFLY — IF-01B Real Assets</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#090b10;color:#eef3fb;font-family:system-ui}canvas{display:block}
+#hud{position:fixed;inset:0;z-index:5;pointer-events:none}.box{background:#0c1321dd;border:1px solid #31425f;border-radius:11px;padding:9px 11px;backdrop-filter:blur(8px)}
+#tl{position:absolute;left:12px;top:12px}#tr{position:absolute;right:12px;top:12px;text-align:right}#bl{position:absolute;left:12px;bottom:12px;font:11px ui-monospace;color:#aebbd0}
+#br{position:absolute;right:12px;bottom:12px;pointer-events:auto}.t{font:800 13px ui-monospace;letter-spacing:.08em}.s{font:11px ui-monospace;color:#95a7c4;margin-top:4px}.ok{color:#72efab}.load{color:#ffd27e}
+button{background:#101a2c;color:#eef3fb;border:1px solid #536b91;border-radius:8px;padding:7px 10px;font:700 11px ui-monospace}
+#cross{position:absolute;left:50%;top:50%;width:8px;height:8px;border:1px solid #fff8;border-radius:50%;transform:translate(-50%,-50%)}
+</style></head><body>
+<div id="hud"><div id="tl" class="box"><div class="t">HIGHFLY // INTERIOR FACTORY</div><div class="s">IF-01B · FORJA VISUAL v1 · ASSETS REALES</div></div>
+<div id="tr" class="box"><div id="status" class="t load">CARGANDO ASSETS…</div><div id="count" class="s">0/0</div></div><div id="cross"></div>
+<div id="bl" class="box">WASD mover · mouse mirar · Shift correr · F cambiar SHOP / WORKSHOP</div><div id="br" class="box"><button id="floor">PISO: SHOP</button></div></div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+const ROOT='https://raw.githubusercontent.com/GeorgeQLe/assets-kaykit-3d-props/main/assets/kaykit/';
+const U={t:ROOT+'rpg-tools-bits-1.0/Assets/gltf/',r:ROOT+'resource-bits-1.0/Assets/gltf/',f:ROOT+'furniture-bits-1.0/Assets/gltf/',k:ROOT+'restaurant-bits-1.0/Assets/gltf/',w:ROOT+'fantasy-weapons-bits-1.0/Assets/gltf/'};
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x090c12);scene.fog=new THREE.FogExp2(0x090c12,.032);
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.05,100);camera.position.set(6,1.65,8);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.6));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;document.body.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0x9ab8e8,0x2d2119,1.45));const key=new THREE.DirectionalLight(0xffd8ad,2);key.position.set(-4,8,4);scene.add(key);
+const shop=new THREE.Group(),work=new THREE.Group();scene.add(shop,work);work.visible=false;
+const loader=new GLTFLoader(),cache=new Map();let started=0,done=0,fail=0;const st=document.querySelector('#status'),ct=document.querySelector('#count');
+function tick(ok){done++;if(!ok)fail++;ct.textContent=done+'/'+started;if(done===started){st.textContent=fail?'REAL ASSETS '+(started-fail)+' OK · '+fail+' FALLBACK':'REAL ASSETS: OK';st.className='t '+(fail?'load':'ok')}}
+async function src(url){if(!cache.has(url)){started++;ct.textContent=done+'/'+started;cache.set(url,loader.loadAsync(url).then(g=>{tick(true);return g.scene}).catch(e=>{console.error(url,e);tick(false);return null}))}return cache.get(url)}
+async function put(g,url,x,y,z,size=1,ry=0,name='asset'){const s=await src(url);if(!s)return null;const o=s.clone(true);o.name=name;o.rotation.y=ry;o.traverse(n=>{if(n.isMesh){n.castShadow=true;n.receiveShadow=true}});let b=new THREE.Box3().setFromObject(o),v=b.getSize(new THREE.Vector3()),m=Math.max(v.x,v.y,v.z)||1;o.scale.multiplyScalar(size/m);b=new THREE.Box3().setFromObject(o);const c=b.getCenter(new THREE.Vector3());o.position.set(x-c.x,y-b.min.y,z-c.z);g.add(o);return o}
+function slab(g,x,z,w,d,c=0x4b4034){const m=new THREE.Mesh(new THREE.BoxGeometry(w,.16,d),new THREE.MeshStandardMaterial({color:c,roughness:.95}));m.position.set(x,.08,z);m.receiveShadow=true;g.add(m)}
+async function room(g){slab(g,6,5,12,10,0x3f352b);const jobs=[];for(let x=1;x<12;x+=2){jobs.push(put(g,U.k+'wall_decorated_styleB.gltf',x,0,.15,2.05,Math.PI));jobs.push(put(g,U.k+'wall_decorated_styleB.gltf',x,0,9.85,2.05,0))}for(let z=1;z<10;z+=2){jobs.push(put(g,U.k+'wall_decorated_styleB.gltf',.15,0,z,2.05,Math.PI/2));jobs.push(put(g,U.k+'wall_decorated_styleB.gltf',11.85,0,z,2.05,-Math.PI/2))}await Promise.all(jobs)}
+async function buildShop(){await room(shop);
+ for(const p of [[1.1,2.2,Math.PI/2],[1.1,5.4,Math.PI/2],[10.9,2.2,-Math.PI/2],[10.9,5.4,-Math.PI/2]])await put(shop,U.f+'shelf_B_large_decorated.gltf',p[0],0,p[1],2.0,p[2],'shelf');
+ for(const x of [4.8,6,7.2])await put(shop,U.k+'kitchencounter_straight_A_decorated_styleB.gltf',x,0,7.25,1.25,Math.PI,'counter');
+ const W=[['sword_A.gltf',2.4,2.1,1.2],['sword_D.gltf',2.4,3.3,1.25],['axe_C.gltf',2.4,4.8,1.2],['shield_B.gltf',9.6,2.2,1.05],['shield_D.gltf',9.6,3.8,1.05],['spear_B.gltf',9.6,5.7,1.65]];
+ for(const q of W)await put(shop,U.w+q[0],q[1],.9,q[2],q[3],0,'weapon');
+ await put(shop,U.t+'lantern.gltf',4.6,.88,7.05,.55);await put(shop,U.t+'blueprint_stacked.gltf',7.4,.9,7.05,.65);await put(shop,U.r+'Gold_Bars_Stack_Small.gltf',3.7,.78,7.0,.55);
+ const L=new THREE.PointLight(0xffad55,6,9,2);L.position.set(6,2.4,7);shop.add(L)}
+async function buildWork(){await room(work);
+ await put(work,U.k+'oven.gltf',1.55,0,2.1,2.25,Math.PI/2,'forge');await put(work,U.t+'anvil.gltf',4.0,0,2.45,1.35,0,'anvil');await put(work,U.t+'grindstone.gltf',7.8,0,2.2,1.35,Math.PI/2,'grindstone');await put(work,U.t+'bucket_metal.gltf',2.8,0,2.9,.72,0,'quench');
+ await put(work,U.f+'table_medium_long.gltf',4.3,0,6.9,2.35,0,'workbench');await put(work,U.f+'shelf_B_large.gltf',10.5,0,6.3,2.05,-Math.PI/2,'storage');
+ const T=[['hammer.gltf',3.3,.9,6.85,.55],['tongs.gltf',4.0,.9,6.85,.65],['file.gltf',4.7,.9,6.85,.55],['chisel.gltf',5.3,.9,6.85,.45],['saw.gltf',5.9,.9,6.85,.72]];for(const q of T)await put(work,U.t+q[0],q[1],q[2],q[3],q[4],Math.PI/2,'tool');
+ await put(work,U.r+'Iron_Bars_Stack_Large.gltf',8.9,0,6.1,1.0);await put(work,U.r+'Copper_Bars_Stack_Medium.gltf',8.7,0,7.5,.85);await put(work,U.r+'Wood_Log_Stack.gltf',2.0,0,5.7,1.25);await put(work,U.r+'Containers_Crate_Medium_Wood.gltf',9.4,0,8.2,.9);
+ const L=new THREE.PointLight(0xff5a20,14,8,2);L.position.set(1.6,1.6,2.1);work.add(L)}
+await Promise.all([buildShop(),buildWork()]);
+let active='SHOP';function floor(v){active=v;shop.visible=v==='SHOP';work.visible=v==='WORKSHOP';camera.position.set(v==='SHOP'?6:7,1.65,8);document.querySelector('#floor').textContent='PISO: '+v}document.querySelector('#floor').onclick=()=>floor(active==='SHOP'?'WORKSHOP':'SHOP');
+const controls=new PointerLockControls(camera,renderer.domElement);renderer.domElement.onclick=()=>controls.lock();const keys={};addEventListener('keydown',e=>{keys[e.code]=1;if(e.code==='KeyF')floor(active==='SHOP'?'WORKSHOP':'SHOP')});addEventListener('keyup',e=>keys[e.code]=0);
+let last=performance.now();function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.05);last=now;if(controls.isLocked){let x=(keys.KeyD?1:0)-(keys.KeyA?1:0),z=(keys.KeyW?1:0)-(keys.KeyS?1:0);const l=Math.hypot(x,z)||1,xn=x/l,zn=z/l,sp=(keys.ShiftLeft||keys.ShiftRight)?5.2:3.0;controls.moveRight(xn*sp*dt);controls.moveForward(zn*sp*dt);camera.position.x=Math.max(.55,Math.min(11.45,camera.position.x));camera.position.z=Math.max(.55,Math.min(9.45,camera.position.z));camera.position.y=1.65}renderer.render(scene,camera)}requestAnimationFrame(loop);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>
