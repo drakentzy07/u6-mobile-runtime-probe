@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace Highfly.Mobile
 {
@@ -66,6 +67,18 @@ namespace Highfly.Mobile
                 _pitch - screenDelta.y * pitchDegreesPerPixel,
                 minPitch,
                 maxPitch);
+        }
+
+        private void Update()
+        {
+            if (HighflyMobileBootstrap.TouchInputActive) return;
+
+            Mouse mouse = Mouse.current;
+            if (mouse == null || !mouse.enabled || !mouse.rightButton.isPressed) return;
+
+            Vector2 delta = mouse.delta.ReadValue();
+            if (delta.sqrMagnitude > 0.0001f)
+                AddLookDelta(delta);
         }
 
         // LAB-only convenience API: same Golden camera, just re-seeded after a lab teleport.
