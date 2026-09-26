@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>HIGHFLY Interior Factory — IF-01A</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#080b11;color:#e8eef9;font-family:system-ui}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+.top{position:absolute;top:12px;left:12px;right:12px;display:flex;justify-content:space-between;gap:12px}
+.card{background:#0c1220dc;border:1px solid #2c3b55;border-radius:12px;padding:10px 12px;backdrop-filter:blur(8px)}
+.title{font-weight:800;letter-spacing:.08em;font-size:13px}.sub{font-size:11px;color:#94a7c6;margin-top:4px}
+.pass{color:#79f0b0;font:700 11px ui-monospace}.warn{color:#ffd479;font:700 11px ui-monospace}
+.bottom{position:absolute;bottom:12px;left:12px;right:12px;display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.keys{font:11px ui-monospace;color:#aab8d0}.legend{font:10px ui-monospace;color:#93a0b5;display:grid;grid-template-columns:auto auto;gap:4px 10px}
+.dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+#floorBtn{pointer-events:auto;border:1px solid #536b91;background:#10192b;color:#e8eef9;border-radius:9px;padding:8px 10px;font:700 11px ui-monospace}
+#cross{position:absolute;left:50%;top:50%;width:8px;height:8px;border:1px solid #fff8;border-radius:50%;transform:translate(-50%,-50%)}
+@media(max-width:700px){.sub{display:none}.legend{display:none}.card{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div id="hud">
+  <div class="top">
+    <div class="card"><div class="title">HIGHFLY // INTERIOR FACTORY</div><div class="sub">IF-01A · Forja Definitiva · 3D BLOCKOUT</div></div>
+    <div class="card"><div class="pass">AUTO-QA: PASS</div><div class="sub">Spec + placement gate</div></div>
+  </div>
+  <div id="cross"></div>
+  <div class="bottom">
+    <div class="card keys">WASD mover · mouse mirar · Shift correr · F cambiar piso</div>
+    <div class="card">
+      <div class="legend">
+        <span><i class="dot" style="background:#df9a45"></i>Forge</span><span><i class="dot" style="background:#9aa5b8"></i>Anvil/Tools</span>
+        <span><i class="dot" style="background:#647aa5"></i>Display</span><span><i class="dot" style="background:#786b58"></i>Architecture</span>
+      </div>
+      <button id="floorBtn">PISO: SHOP</button>
+    </div>
+  </div>
+</div>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js';
+
+const scene=new THREE.Scene();
+scene.background=new THREE.Color(0x0b0f16);
+scene.fog=new THREE.Fog(0x0b0f16,18,34);
+
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.05,120);
+camera.position.set(6,1.65,8);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));
+renderer.setSize(innerWidth,innerHeight);
+renderer.shadowMap.enabled=true;
+document.body.prepend(renderer.domElement);
+
+scene.add(new THREE.HemisphereLight(0x9ec5ff,0x4a3525,1.3));
+const sun=new THREE.DirectionalLight(0xffd7a1,2.5); sun.position.set(-5,10,4); sun.castShadow=true; scene.add(sun);
+
+const mats={
+ floor:new THREE.MeshStandardMaterial({color:0x564b3d,roughness:.9}),
+ wall:new THREE.MeshStandardMaterial({color:0x776852,roughness:.95}),
+ wood:new THREE.MeshStandardMaterial({color:0x5d402b,roughness:.9}),
+ metal:new THREE.MeshStandardMaterial({color:0x8893a3,metalness:.75,roughness:.35}),
+ display:new THREE.MeshStandardMaterial({color:0x526b99,roughness:.55}),
+ hot:new THREE.MeshStandardMaterial({color:0xd78436,emissive:0x4d1c05,emissiveIntensity:.7}),
+ stair:new THREE.MeshStandardMaterial({color:0x6f6252,roughness:.85})
+};
+const shop=new THREE.Group(), work=new THREE.Group(); scene.add(shop,work);
+function box(g,x,y,z,w,h,d,mat,name=''){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.set(x,y+h/2,z);m.castShadow=m.receiveShadow=true;m.name=name;g.add(m);return m}
+function room(g){
+ box(g,6,-.15,5,12,.3,10,mats.floor,'floor');
+ box(g,6,1.7,-.12,12,3.4,.24,mats.wall);
+ box(g,-.12,1.7,5,.24,3.4,10,mats.wall);
+ box(g,12.12,1.7,5,.24,3.4,10,mats.wall);
+ box(g,2.0,1.7,10.12,4,3.4,.24,mats.wall);
+ box(g,10.0,1.7,10.12,4,3.4,.24,mats.wall);
+}
+room(shop);room(work);
+
+// SHOP
+for(const z of [2.2,4.1,6.0]){box(shop,.75,.05,z,1.1,1.8,.45,mats.display,'weapon-rack-L');box(shop,11.25,.05,z,1.1,1.8,.45,mats.display,'weapon-rack-R')}
+box(shop,6,.05,7.5,3.6,1.05,1.15,mats.wood,'counter');
+box(shop,6,.05,8.75,1.0,1.8,.65,mats.display,'armor-display');
+box(shop,9.4,.05,8.8,2.0,.18,1.0,mats.stair,'stairs-down-marker');
+for(let i=0;i<5;i++) box(shop,3.1+i*.35,1.0,3.4,.12,.55,.12,mats.metal,'sword');
+
+// WORKSHOP
+box(work,1.5,.05,2.0,2.2,1.45,1.25,mats.hot,'forge');
+box(work,3.45,.05,2.05,1.0,1.0,.8,mats.wood,'bellows');
+box(work,4.6,.05,2.55,1.25,.85,.7,mats.metal,'anvil');
+box(work,8.15,.05,2.0,1.0,1.15,.55,mats.metal,'grindstone');
+box(work,3.1,.05,7.2,4.6,.9,1.0,mats.wood,'workbench');
+for(let i=0;i<5;i++) box(work,1.5+i*.7,.95,7.15,.18,.18,.45,mats.metal,'tool');
+box(work,10.25,.05,7.1,1.6,1.9,.5,mats.display,'storage-rack');
+for(let i=0;i<3;i++) box(work,8.3+i*.7,.05,8.4,.55,.35,.55,mats.wood,'crate');
+box(work,9.4,.05,1.2,2.0,.18,1.0,mats.stair,'stairs-up-marker');
+
+const forgeLight=new THREE.PointLight(0xff6a22,12,8,2);forgeLight.position.set(1.5,1.6,2);work.add(forgeLight);
+
+let active='SHOP'; work.visible=false;
+function setFloor(v){active=v;shop.visible=v==='SHOP';work.visible=v==='WORKSHOP';camera.position.set(v==='SHOP'?6:7,1.65,v==='SHOP'?8:8);document.getElementById('floorBtn').textContent='PISO: '+v}
+document.getElementById('floorBtn').onclick=()=>setFloor(active==='SHOP'?'WORKSHOP':'SHOP');
+
+const controls=new PointerLockControls(camera,renderer.domElement);
+renderer.domElement.addEventListener('click',()=>controls.lock());
+const keys={};
+addEventListener('keydown',e=>{keys[e.code]=true;if(e.code==='KeyF')setFloor(active==='SHOP'?'WORKSHOP':'SHOP')});
+addEventListener('keyup',e=>keys[e.code]=false);
+
+const velocity=new THREE.Vector3(),dir=new THREE.Vector3();
+let last=performance.now();
+function animate(now){
+ requestAnimationFrame(animate);
+ const dt=Math.min((now-last)/1000,.05);last=now;
+ if(controls.isLocked){
+   dir.set(0,0,0);
+   if(keys.KeyW)dir.z-=1;if(keys.KeyS)dir.z+=1;if(keys.KeyA)dir.x-=1;if(keys.KeyD)dir.x+=1;
+   if(dir.lengthSq())dir.normalize();
+   const speed=(keys.ShiftLeft||keys.ShiftRight)?5.2:3.1;
+   controls.moveRight(dir.x*speed*dt);controls.moveForward(-dir.z*speed*dt);
+   camera.position.y=1.65;
+   camera.position.x=Math.max(.55,Math.min(11.45,camera.position.x));
+   camera.position.z=Math.max(.55,Math.min(9.45,camera.position.z));
+ }
+ renderer.render(scene,camera);
+}
+requestAnimationFrame(animate);
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body></html>
