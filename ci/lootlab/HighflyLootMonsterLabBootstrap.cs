@@ -7,6 +7,7 @@ using Highfly.Mobile;
 
 namespace Highfly.LootLab
 {
+    // RUN0B_GOLDEN_DEPLOY_RETRY_1
     [DisallowMultipleComponent]
     public sealed class HighflyLootMonsterLabBootstrap : MonoBehaviour
     {
