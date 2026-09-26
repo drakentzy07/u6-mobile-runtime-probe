@@ -1,0 +1,21 @@
+{
+  "run": "IF-03",
+  "title": "Forja Medieval Visual v3",
+  "status": "READY_FOR_VISUAL_QA",
+  "changes": [
+    "staircase moved to far-right side",
+    "shop counter re-centered",
+    "three interactive storage chests added on left",
+    "weapon display switched to simpler medieval weapon variants",
+    "book shelves mounted on wall at coherent height",
+    "workbench moved against workshop wall",
+    "timber tool-board added with tools mounted above workbench",
+    "second anvil added",
+    "forge-material density increased: iron, copper, silver, wood, crates, barrels"
+  ],
+  "polygon_pride": "not injected in this run because POLYGON_Pride_Weapons_ICON was not found in accessible Library; medieval KayKit variants used instead",
+  "constraints": [
+    "physical stair only; no floor teleport",
+    "no restaurant/kitchen/modern assets"
+  ]
+}
