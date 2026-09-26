@@ -201,9 +201,9 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition Unarmed = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Unarmed,"SIN ARMAS",HighflyWeaponKind.None,null,HighflyGuardStyle.WeaponGuard,false,
-            P("UA_PUNCH",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch",1.08f,.18f,.46f,.16f,250f,9f,.024f),
-            P("UA_KICK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Unarmed_Kick",1.02f,.22f,.54f,.20f,220f,12f,.032f),
-            P("UA_PUNCH_FINISH",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch",.94f,.22f,.56f,.24f,190f,14f,.038f,.86f));
+            P("UA_PUNCH_A",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch_A",1.10f,.18f,.46f,.16f,250f,9f,.024f),
+            P("UA_KICK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Unarmed_Kick",1.00f,.22f,.58f,.20f,220f,12f,.032f),
+            P("UA_PUNCH_B",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch_B",.96f,.22f,.58f,.24f,190f,14f,.038f,.86f));
 
         private static readonly HighflyLoadoutDefinition Sword1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Sword1H,"ESPADA 1H",HighflyWeaponKind.Sword,null,HighflyGuardStyle.WeaponGuard,false,
@@ -243,9 +243,9 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition DualDaggers = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualDaggers,"DOBLE DAGA",HighflyWeaponKind.Dagger,HighflyWeaponKind.Dagger,HighflyGuardStyle.CrossGuard,true,
-            P("DG_RUP",HighflyStrikeDirection.DiagonalUpRight,HighflyHandUsage.Right,"Dagger_A",1.48f,.14f,.37f,.24f,340f,17f,.030f,.76f),
-            P("DG_LDOWN",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Left,"Dagger_B",1.54f,.13f,.37f,.25f,350f,18f,.032f,.76f),
-            P("DG_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Dagger_C",1.36f,.19f,.52f,.30f,315f,24f,.047f,.78f));
+            P("DG_STAB_R",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Dagger_A",1.58f,.13f,.35f,.22f,350f,17f,.029f,.74f),
+            P("DG_SLICE_L",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Left,"Dagger_B",1.52f,.14f,.38f,.24f,345f,18f,.032f,.75f),
+            P("DG_CHOP_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Dagger_C",1.38f,.18f,.52f,.28f,310f,24f,.047f,.78f));
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,
