@@ -1,235 +1,256 @@
-# HIGHFLY — MONSTER ASSET AUDIT v2 — QUALITY GATE
+# HIGHFLY — MONSTER ASSET AUDIT v2 — QUALITY + PROVENANCE GATE
 
-Status: PASS 01 complete (uploaded batch, 26 Sep 2026)
+Status: CORRECTED / PASS 02 (26 Sep 2026)
 Doctrine: QUALITY FIRST + REUSE FIRST + PROVENANCE GATE + MOBILE GATE
+
+> IMPORTANT CORRECTION
+> An earlier pass treated several visually strong Fab free samples as potential shipping candidates from listing metadata alone.
+> Binary inspection of the actual uploaded FBX files later exposed explicit Rappelz source paths and .nx3 identifiers.
+> Those assets are now REJECT_FOR_SHIPPING / REFERENCE_ONLY.
+> Binary provenance overrides storefront appearance/claims.
 
 This audit does not approve reward/drop behavior. Monster assets remain independent from Loot authority.
 
-## Quality policy
+## Shipping gate
 
-A technically usable free model is not enough for HIGHFLY's main bestiary.
+A main HIGHFLY asset must pass ALL of:
+1. Visual quality bar.
+2. Clear commercial-use license.
+3. Provenance inspection of the downloaded binary/package.
+4. Rig / animation path.
+5. Unity integration path.
+6. S23 Ultra mobile budget or credible optimization path.
 
-Shipping/main-family candidates must pass:
-1. Visual bar appropriate for HIGHFLY.
-2. Clear provenance / license suitable for the project.
-3. Rig / animation path.
-4. Unity integration path.
-5. S23 Ultra mobile budget or a credible optimization path.
+Free is not enough.
+A storefront license is not enough if the delivered binary contains third-party provenance red flags.
 
-Assets that fail visual quality remain SECONDARY / ECOLOGY / PLACEHOLDER even if technically excellent.
-Assets with provenance red flags are REJECT_FOR_SHIPPING until provenance is independently proven.
-
-## Strong candidates
+## Current strong candidates still alive
 
 ### HUNTER_ROGUE_KHEMPAVEE
-Source files inspected:
+Files inspected:
 - rogue_all.fbx
 - rogue_free.ma
 - textures_and_weapons.zip
 
 Observed:
-- modular character
-- ~22k-triangle class (source listing)
-- extensive humanoid skeleton in supplied files
+- modular humanoid
+- approximately 22k-triangle class per source listing
+- extensive humanoid skeleton
 - 4K/2K texture source set
-- weapon files available
-- source listing declares fully rigged / retargetable and free commercial/personal use
+- weapon files
+- no Rappelz-style internal source-path red flag found in current inspection
 
 Decision:
 - QUALITY: PASS
 - ROLE: HUNTER SUPREME BAKE-OFF
-- MOBILE: OPTIMIZE textures/materials/bone usage before final approval
-- SHIPPING: CANDIDATE, capture final license snapshot before release
+- SHIPPING: CANDIDATE
+- NEXT: animation/weapon/mobile runtime test + final license snapshot
 
 ### GOBLIN_ASTER_FORGE_FREE
 Source:
 - free_stylized_goblin.zip
 
-Observed:
-- stylized PBR goblin
-- Epic-skeleton style rig / retarget path
-- 1024 PBR texture set
-- significantly stronger visual identity than LOWPO placeholder goblins
-- uploaded demo videos show animated crowd/retarget usage
-
 Decision:
 - QUALITY: PASS
-- ROLE: primary Goblin family candidate
-- MOBILE: likely viable, profile facial/extra rig cost and strip unused complexity
-- SHIPPING: LICENSE_REVIEW_REQUIRED
+- ROLE: primary Goblin candidate
+- SHIPPING: CANDIDATE, pending final binary/license snapshot
+- LOWPO remains placeholder/crowd/LOD support
 
 ### PIXELIUS_MONSTER03
 Source:
 - Monster03Shop.rar
-
-Archive contains:
-- Monster03_AllAnim.fbx
-- Monster03_AllAnim.glb
-- large texture-variant set
-
-Publisher specification:
-- 2,978 vertices
-- 11 combat/locomotion animations
-- 9 texture types x 7 color variants
+- contains Monster03_AllAnim FBX/GLB and texture variants
 
 Decision:
 - QUALITY: PASS
-- ROLE: Abyssal Hive / Jeju soldier or elite candidate
-- FIT: strong armored insectoid silhouette
-- SHIPPING: LICENSE_SNAPSHOT_REQUIRED for exact asset
+- ROLE: Abyssal Hive / Jeju soldier-elite candidate
+- SHIPPING: CANDIDATE, exact-license snapshot still required
 
 ### PIXELIUS_MONSTER05
 Source:
 - Monster05Shop.rar
 
-Archive contains:
-- Monster05_AllAnim.fbx
-- Monster05_AllAnim.glb
-- large texture-variant set
-
-Publisher specification:
-- 3,049 vertices
-- 11 combat/locomotion animations
-- 9 texture types x 7 color variants
-
 Decision:
 - QUALITY: PASS
-- ROLE: Void / Alien / Corrupted unique-scenario lineage
-- NOTE: do not force it into medieval Demon Noble if visual language does not fit
-- SHIPPING: LICENSE_SNAPSHOT_REQUIRED for exact asset
+- ROLE: Void / Alien / Corrupted Unique Scenario lineage
+- SHIPPING: CANDIDATE, exact-license snapshot still required
 
 ### TREANT_FREE_PACK
 Source:
 - Treant Package.7z
 
-Publisher specification:
-- two rigged stylized tree monsters
-- 10 animations
-- approx. 5.4k / 7.3k triangles
-- CC0
-
 Decision:
 - QUALITY: PROMISING
-- ROLE: magical forest / corrupted forest / area monster
-- NEXT: in-engine style and material validation
+- ROLE: magical/corrupted forest family
+- LICENSE: CC0 source path previously verified
+- NEXT: in-engine style/material validation
 
 ### DARK_FANTASY_SKELETON_SAMPLE
-Files inspected:
-- sm_skeleton_variant_1.glb
-- sm_skeleton_variant_1.fbx
-- glTF/USDZ alternatives
-
-Observed in exact supplied GLB/FBX:
-- ~9,402 triangles
-- textures/materials present
-- the exact supplied variants inspected are STATIC (no skin / no animation)
-
-Publisher page advertises a rigged/Mecanim-humanoid package variant.
+Exact supplied GLB/FBX variants inspected:
+- approximately 9.4k triangles
+- static converted files: no skin/animation in these variants
 
 Decision:
 - QUALITY: PASS candidate
-- CURRENT FILE: NOT RUNTIME READY
-- ACTION: obtain original rigged additional FBX/package, not another static conversion
-- KayKit Skeleton remains current production-safe skeleton solution
+- CURRENT FILES: NOT RUNTIME READY
+- KayKit Skeleton remains production-safe until original rigged file is obtained and audited
 
-## Secondary / ecology / prototype pool
+## Secondary / ecology / prototype
 
 ### QUATERNIUS EASY ENEMY
-- excellent lightweight topology/animation coverage
-- Spider/Snake/Wasp useful
-- CC0
-- visual bar below main-family target
+CC0, lightweight and animated.
+Use: Spider/Snake/Wasp ecology, prototype and secondary populations.
+Not main visual benchmark.
 
-Decision: SECONDARY / ECOLOGY / PROTOTYPE. Keep.
-
-### GOBKIT FREE / ANIMALS / DINOS
-- ultra-light meshes
-- rigged/baked animation coverage
-- CC0
-- very low GPU cost
-
-Decision: ECOLOGY / SWARMS / AMBIENT / distant mobs / prototype. Not marquee monsters.
+### GOBKIT
+CC0 and extremely lightweight.
+Use: ecology, ambient, swarms, distant mobs, prototype.
 
 ### LOWPO GOBLIN FREE
-- Basic / Archer / Warrior
-- lightweight humanoid rigs
-- mobile-friendly
-- supplied GLB characters have no embedded animations
-- visual bar below new primary standard
-
-Decision: PLACEHOLDER / crowd / LOD-support candidate. Do not use as the face of Goblin family if Aster candidate passes.
+Use: placeholder, crowd, possible LOD-support.
+Not current face of Goblin family.
 
 ### KENNEY GRAVEYARD
-- CC0
-- useful undead/crypt environment and secondary entities
-
-Decision: ENVIRONMENT / AMBIENT / PLACEHOLDER, not main boss/family art.
+Use: crypt/graveyard environment and secondary entities.
+Not main boss/family art.
 
 ### GIANT MUTANT
-Supplied GLB inspection:
-- one skinned monster
-- six animations
-- ~78k indexed triangles in inspected representation
-- source is CC0
+Use: reference/prototype only.
+Visual bar and cost/benefit fail current main-family gate.
+
+## REJECT_FOR_SHIPPING — proven provenance red flags
+
+The following actual uploaded FBX files contain explicit internal paths beginning with:
+F:\Rappelz\Rappelz All you need\...
+and/or original .nx3 object identifiers.
+
+They must NOT ship in HIGHFLY unless original rights/provenance are independently established.
+
+- Mushroom Demon
+  - alu_mushroom_demon_body.nx3
+- Demon Bull
+  - alu_bakun_body.nx3
+- Harpy Assassin
+  - harpy_body.nx3
+- Crimson Knight
+  - ain_ancientknight_honor.nx3
+- Infernal Ram Sorcerer
+  - baphometlv3_body.nx3
+- Vaelith Celestial Sentinel
+  - beast_asura0zero_lv3.nx3
+- Abyssal Reaper
+  - alu_galiark_body.nx3
+- Corvus Reaper
+  - primalscream_body.nx3
+- Glacial Empress
+  - kainenlv3_body.nx3
+- Rakshasa Vorn
+  - tamahakan_body.nx3
+- Medusara
+  - beast_medusa_body.nx3
+- Bloodfrost Revenant
+  - alu_kratus_body.nx3
+  - FBX also references Rappelz SuperstarClient DDS path
+- Bone Dragon upload
+  - dragon_bonedragon.nx3
+- White Dragon upload
+  - whitedragonlv2_body01.nx3
+- Mephisto-like upload
+  - mephistolv3_body.nx3
+
+Decision for every item above:
+REJECT_FOR_SHIPPING / REFERENCE_ONLY.
+
+Do not retarget, recolor or otherwise launder these into production assets.
+
+## New externally verified acquisition candidates
+
+These are NOT owned until downloaded. Store/license checks are only the first gate; binary audit remains mandatory after acquisition.
+
+### RPG - Ogre Pack - PBR/Mobile — Unity Asset Store
+- FREE
+- Standard Unity Asset Store EULA
+- PBR Ogre: ~11.7k tris
+- mobile Ogre: ~4.8k tris
+- humanoid-ready rig
+- PBR/mobile texture variants
+- no body animations (retarget required)
 
 Decision:
-- MAIN QUALITY: FAIL
-- MOBILE COST: HIGH for what it provides
-- REFERENCE / PROTOTYPE only
+- ACQUIRE
+- intended role: OGRE family base
+- confidence: HIGH at storefront/license gate
 
-## Provenance rejects
+### Creep Horror Creature — Unity Asset Store
+- FREE
+- Standard Unity Asset Store EULA
+- rigged / animated / PBR
+- high and decimated mesh options reported by listing ecosystem
+- strong dark-fantasy visual identity
 
-The following uploaded models contain internal identifiers/paths strongly associated with existing Rappelz content. They must not ship in HIGHFLY unless original rights/provenance can be independently established.
+Decision:
+- ACQUIRE
+- intended role: mutant/void/underground Unique lineage, not forced into an existing family
 
-### BONE_DRAGON_UPLOAD
-Inspected internal identifier:
-- dragon_bonedragon.nx3
+### 01_Monster: Lizard — Unity Asset Store
+- FREE
+- Standard Unity Asset Store EULA
+- rigged / animated / game-ready
+- Unity 2022.3-compatible listing
 
-Rappelz publicly documents a Bone Dragon creature.
+Decision:
+- ACQUIRE FOR AUDIT
+- role: Lizard beast / possible lower-tier reptilian ecology
+- does NOT automatically close premium Lizardman humanoid family
 
-Decision: REJECT_FOR_SHIPPING / REFERENCE_ONLY.
+### FREE - Modular Character - Fantasy RPG Human Male — Unity Asset Store
+- FREE
+- Standard Unity Asset Store EULA
+- PBR / stylized / modular
+- render-pipeline compatible
 
-### WHITE_DRAGON_UPLOAD
-Inspected identifiers/path:
-- whitedragonlv2_body01.nx3
-- source path contains Rappelz project wording
+Decision:
+- ACQUIRE ONLY AS HUNTER COMPARISON / modular donor
+- visual bar must be tested against Khempavee Rogue and current KayKit
 
-Rappelz publicly documents the White Dragon evolutionary creature family.
+### Assassin-Thief-Rogue - Rigged — Fab
+- currently listed FREE
+- FBX / GLB / OBJ / BLEND
+- male realistic fantasy rogue
+- rigged and animation-ready
+- generated-with-AI flag: No
 
-Decision: REJECT_FOR_SHIPPING / REFERENCE_ONLY.
+Decision:
+- ACQUIRE ONLY IF download flow explicitly grants Fab Standard License
+- then run binary provenance audit before any HIGHFLY use
+- role: Hunter Supreme bake-off candidate
 
-### MEPHISTO_UPLOAD
-Inspected internal identifier:
-- mephistolv3_body.nx3
+### Stylized Player Character (Free) — Fab
+- listed FREE
+- Unity Humanoid / Mixamo compatible
+- 2K/4K PBR
+- Idle / Walk / Run
+- Unity pipeline support
+- generated-with-AI flag: No
 
-Strong naming/provenance correlation to Rappelz content.
+Decision:
+- ACQUIRE ONLY IF Fab Standard License is explicitly granted
+- role: Hunter comparison candidate
+- visual bar still needs direct side-by-side test
 
-Decision: REJECT_FOR_SHIPPING / REFERENCE_ONLY until proven otherwise.
+## Remaining premium-quality gaps
 
-### GALIARK / REAPER-LIKE UPLOAD
-Inspected internal identifier:
-- alu_galiark_body.nx3
-
-Decision: PROVENANCE_RED_FLAG. Do not approve for shipping without original-source proof.
-
-## Current priority after this pass
-
-P0:
-- Hunter Rogue bake-off vs current KayKit visual
-- Aster Goblin in-engine test
-- Monster03 Hive/Jeju in-engine test
-- obtain rigged version of the dark fantasy skeleton if license/source checks pass
-
-P1:
-- Monster05 Unique Scenario test
-- Treant in-engine test
-
-Still missing at HIGHFLY quality:
-- true Jeju Queen / King-tier body
-- premium Ogre
+Still OPEN:
+- Jeju King / Queen / Royal caste
 - premium Lycanthrope
 - premium Centipede
-- premium Lizardman
-- premium Giant identity beyond generic scale-up
+- true premium Lizardman humanoid
+- premium Giant identity
+- final Hunter Supreme winner
 
-Do not fill these slots with low-quality assets merely because they are free.
+New likely closure:
+- Ogre has a high-confidence free acquisition path via Unity Asset Store.
+
+Rule:
+VACANT > MEDIOCRE > LEGALLY DOUBTFUL.
+Do not fill a family merely to complete the matrix.
