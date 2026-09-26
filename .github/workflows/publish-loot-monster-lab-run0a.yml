@@ -13,6 +13,8 @@ on:
 permissions:
   contents: read
   actions: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: highfly-loot-monster-lab-run0a
@@ -142,3 +144,71 @@ jobs:
           path: LucidHost/3D_game/build/WebGL
           if-no-files-found: error
           retention-days: 2
+
+
+  deploy:
+    name: Publish Loot Lab Run0B Golden
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Resolve latest successful canonical Pages run
+        id: base
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?status=success&per_page=100"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core" or .name=="Lucid WebGL Pages") | .id' | head -n1)"
+          test -n "$RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Using canonical Pages run: $RUN_ID"
+
+      - name: Download canonical Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: current-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.base.outputs.run_id }}
+
+      - name: Download Loot Lab artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-loot-run0a-webgl
+          path: lootlab
+
+      - name: Assemble combined Pages site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p site
+          test -f current-pages/artifact.tar
+          tar -xf current-pages/artifact.tar -C site
+
+          test -f lootlab/index.html
+          test -d lootlab/Build
+          test -f lootlab/RUN0A_BUILD.txt
+
+          rm -rf site/loot-monster-lab-run0b-golden
+          mkdir -p site/loot-monster-lab-run0b-golden
+          cp -a lootlab/. site/loot-monster-lab-run0b-golden/
+
+          echo "HIGHFLY LOOT / MONSTER LAB • RUN0B GOLDEN • PLAYERCONTROLLER REAL • GOLDEN CAMERA • GOLDEN MOBILE CORE"             > site/loot-monster-lab-run0b-golden/published-version.txt
+
+          touch site/.nojekyll
+          test -f site/loot-monster-lab-run0b-golden/index.html
+          du -sh site/loot-monster-lab-run0b-golden
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
