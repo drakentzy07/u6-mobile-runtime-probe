@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# republish: melee-fusion2 private-run-36267369905
 # republish: melee-fusion private-run-36262118568
 # republish: skills 5a86eef37eb875689f52db217300cf58fd53a8ac
 # republish: skills 4861a9bdb45063f08465623966a888b56af9a625
@@ -81,7 +82,7 @@ jobs:
       - name: Download private MELEE FUSION artifact bridge
         shell: bash
         env:
-          MELEE_FUSION_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-bc38-820e-90c0-141e9cd91ac0/raw?se=2026-09-26T19%3A28%3A52Z&sp=r&sv=2026-02-06&sr=b&scid=4b1d3241-37ed-5e14-8339-26f06bf86f1e&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T13%3A53%3A06Z&ske=2026-09-27T13%3A53%3A06Z&sks=b&skv=2026-02-06&sig=eYhZYUeGWVKDZJIVd6pQe6qKJV947LvC%2BSsIhRzeGTk%3D"
+          MELEE_FUSION_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-ab8c-820e-820f-4c98afd91c78/raw?se=2026-09-26T20%3A57%3A35Z&sp=r&sv=2026-02-06&sr=b&scid=c7bf2701-5f2d-5850-83d9-b964de826741&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T13%3A23%3A40Z&ske=2026-09-27T13%3A23%3A40Z&sks=b&skv=2026-02-06&sig=4GNnfha1JUffQDJXdVT1eNZxTpgL5KnUmu/zrovXtz4%3D"
         run: |
           set -euxo pipefail
           mkdir -p incoming/melee-fusion
@@ -92,12 +93,26 @@ jobs:
           test -d incoming/melee-fusion/Build
           grep -q "MELEE FUSION" incoming/melee-fusion/RUN0I3_BUILD.txt
 
+      - name: Download private MELEE FUSION 2 artifact bridge
+        shell: bash
+        env:
+          MELEE_FUSION2_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-6434-820e-a40f-762fd5c62b30/raw?se=2026-09-26T20%3A57%3A14Z&sp=r&sv=2026-02-06&sr=b&scid=67a4b080-4d1b-5358-9f3a-d5b1ebe99bd2&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T13%3A52%3A04Z&ske=2026-09-27T13%3A52%3A04Z&sks=b&skv=2026-02-06&sig=pFXNvu%2BEik6OPSpr5wmRMKc8tJ7Bbtz2KlChG%2BxzKz4%3D"
+        run: |
+          set -euxo pipefail
+          mkdir -p incoming/melee-fusion2
+          curl --fail --location --retry 5 "$MELEE_FUSION2_URL" -o /tmp/melee-fusion2.zip
+          unzip -q /tmp/melee-fusion2.zip -d incoming/melee-fusion2
+          test -f incoming/melee-fusion2/index.html
+          test -f incoming/melee-fusion2/RUN0I3_BUILD.txt
+          test -d incoming/melee-fusion2/Build
+          grep -q "MELEE FUSION 2" incoming/melee-fusion2/RUN0I3_BUILD.txt
+
       - name: Assemble canonical site
         shell: bash
         run: |
           set -euxo pipefail
           rm -rf site
-          mkdir -p site/loot-monster-lab-run0a site/melee-fusion
+          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2
 
           test -f incoming/skills/index.html
           test -f incoming/skills/RUN0I3_BUILD.txt
@@ -110,6 +125,7 @@ jobs:
           cp -a incoming/skills/. site/
           cp -a incoming/loot/. site/loot-monster-lab-run0a/
           cp -a incoming/melee-fusion/. site/melee-fusion/
+          cp -a incoming/melee-fusion2/. site/melee-fusion2/
           touch site/.nojekyll
 
       - name: Validate publisher invariants
@@ -133,10 +149,16 @@ jobs:
           grep -q "MELEE FUSION" site/melee-fusion/RUN0I3_BUILD.txt
           test -d site/melee-fusion/Build
 
+          test -f site/melee-fusion2/index.html
+          test -f site/melee-fusion2/RUN0I3_BUILD.txt
+          grep -q "MELEE FUSION 2" site/melee-fusion2/RUN0I3_BUILD.txt
+          test -d site/melee-fusion2/Build
+
           echo "HIGHFLY_PUBLISHER_OK=1" > site/PUBLISHER.txt
           echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
           echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
           echo "MELEE_FUSION_RUN=36262118568" >> site/PUBLISHER.txt
+          echo "MELEE_FUSION2_RUN=36267369905" >> site/PUBLISHER.txt
           du -sh site
 
       - name: Configure GitHub Pages
