@@ -43,6 +43,7 @@ namespace Highfly.Run0H
         private TrailRenderer _primaryTrail, _secondaryTrail;
         private PlayableGraph _actionGraph;
         private bool _actionGraphValid;
+        private Coroutine _landingRecovery;
 
         public bool IsBound => _bound;
         public HighflyRun0HCharacter Current => _current;
@@ -227,6 +228,32 @@ namespace Highfly.Run0H
                 _actionGraphValid = false;
             }
             if (_mirror != null) _mirror.enabled = true;
+        }
+
+        public void RecoverFromLanding()
+        {
+            StopActionClip();
+            if (_landingRecovery != null) StopCoroutine(_landingRecovery);
+            _landingRecovery = StartCoroutine(LandingRecoveryPulse());
+        }
+
+        private IEnumerator LandingRecoveryPulse()
+        {
+            Animator source = _sourceAnimator;
+            Animator visual = _visualAnimator;
+            float sourceSpeed = source != null ? source.speed : 1f;
+            float visualSpeed = visual != null ? visual.speed : 1f;
+
+            // The donor landing state is a little too long for the compact lab jump.
+            // Briefly accelerate only the recovery frames, then return to normal.
+            if (source != null) source.speed = Mathf.Max(sourceSpeed, 1.9f);
+            if (visual != null) visual.speed = Mathf.Max(visualSpeed, 1.9f);
+
+            yield return new WaitForSecondsRealtime(0.16f);
+
+            if (source != null) source.speed = sourceSpeed;
+            if (visual != null) visual.speed = visualSpeed;
+            _landingRecovery = null;
         }
 
         public void SetActionFacing(Vector3 forward)
@@ -441,11 +468,12 @@ namespace Highfly.Run0H
 
         private void AttachShield()
         {
-            Transform forearm=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
-            if (forearm==null) forearm=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            // Shield belongs to the hand for this Hunter rig. Parenting it to the lower arm
+            // pushed the mesh toward the shoulder as the forearm rotated.
+            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
             GameObject prefab=Resources.Load<GameObject>(ShieldResource);
-            if (forearm==null || prefab==null) { Debug.LogError("[RUN0I.3] Missing shield"); return; }
-            _shieldObject=AttachWeapon(prefab,forearm,"HIGHFLY_SHIELD_L");
+            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.3] Missing shield"); return; }
+            _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
             TuneWeaponTransform(_shieldObject,_loadout,false);
             BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
@@ -461,9 +489,11 @@ namespace Highfly.Run0H
             {
                 case HighflyLoadoutProfile.Spear2H:
                     targetLength=2.05f;
-                    // Keep the shaft aligned with the hand; grip is re-centered from real mesh bounds below.
+                    // Revert to the stable hand placement: the automatic grip recentering
+                    // was pulling the shaft back into the forearm.
                     weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
-                    alignSpearGrip=true;
+                    weapon.transform.localPosition=new Vector3(0f,-0.02f,0.08f);
+                    alignSpearGrip=false;
                     break;
 
                 case HighflyLoadoutProfile.DualDaggers:
@@ -480,8 +510,11 @@ namespace Highfly.Run0H
 
                 case HighflyLoadoutProfile.DualAxe:
                     targetLength=0.72f;
-                    // Rotate around the shaft so the cutting edge faces down/forward.
-                    weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                    // The left humanoid hand is already mirrored. Applying the same 180°
+                    // correction to both hands inverted the left cutting edge upward.
+                    weapon.transform.localRotation=primary
+                        ? Quaternion.Euler(0f,180f,0f)
+                        : Quaternion.identity;
                     break;
 
                 case HighflyLoadoutProfile.Axe1H:
@@ -498,9 +531,10 @@ namespace Highfly.Run0H
                     else
                     {
                         targetLength=0.68f;
-                        // Shield face must be vertical, not tray-like.
-                        weapon.transform.localRotation=Quaternion.Euler(90f,0f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.02f,0.10f);
+                        // Left-hand mount + outward face. The extra 180° turns the shield
+                        // away from the body instead of showing its back to the player.
+                        weapon.transform.localRotation=Quaternion.Euler(90f,180f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.00f,0.04f);
                     }
                     break;
 
@@ -513,8 +547,8 @@ namespace Highfly.Run0H
                     else
                     {
                         targetLength=0.68f;
-                        weapon.transform.localRotation=Quaternion.Euler(90f,0f,0f);
-                        weapon.transform.localPosition=new Vector3(0f,0.02f,0.10f);
+                        weapon.transform.localRotation=Quaternion.Euler(90f,180f,0f);
+                        weapon.transform.localPosition=new Vector3(0f,0.00f,0.04f);
                     }
                     break;
             }

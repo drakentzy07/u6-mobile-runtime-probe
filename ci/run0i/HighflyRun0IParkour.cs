@@ -13,6 +13,7 @@ namespace Highfly.Run0I
         private Vector3 _wallImpulse;
         private float _wallImpulseUntil;
         private float _clipUntil;
+        private bool _wasGrounded = true;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -34,7 +35,19 @@ namespace Highfly.Run0I
                 return;
             }
 
-            if (_player.HighflyIsGrounded && _player.HighflyVerticalSpeed <= 0f) _jumpCount = 0;
+            bool groundedNow = _player.HighflyIsGrounded && _player.HighflyVerticalSpeed <= 0f;
+            if (groundedNow)
+            {
+                _jumpCount = 0;
+                if (!_wasGrounded)
+                {
+                    // End any parkour playable immediately on contact and fast-forward the
+                    // donor's long crouched landing recovery so control feels responsive.
+                    _clipUntil = 0f;
+                    HighflyRun0HCharacterVisual.Instance?.RecoverFromLanding();
+                }
+            }
+            _wasGrounded = groundedNow;
 
             if (_controller != null && Time.unscaledTime < _wallImpulseUntil)
                 _controller.Move(_wallImpulse * Time.deltaTime);

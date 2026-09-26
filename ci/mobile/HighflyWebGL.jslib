@@ -5,7 +5,9 @@ mergeInto(LibraryManager.library, {
       var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       var touchPoints = navigator.maxTouchPoints || 0;
       var mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-      return (mobileUa || coarse || touchPoints > 0) ? 1 : 0;
+      var fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+      // A Windows PC can report maxTouchPoints > 0 while still using a real mouse.
+      return (mobileUa || (coarse && !fine && touchPoints > 0)) ? 1 : 0;
     } catch (e) {
       return 0;
     }
@@ -20,7 +22,8 @@ mergeInto(LibraryManager.library, {
       var coarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
       var touchPoints = navigator.maxTouchPoints || 0;
       var mobileUa = /Android|iPhone|iPad|iPod|Mobile/i.test(ua);
-      var isTouch = mobileUa || coarse || touchPoints > 0;
+      var fine = window.matchMedia && window.matchMedia('(pointer: fine)').matches;
+      var isTouch = mobileUa || (coarse && !fine && touchPoints > 0);
 
       canvas.style.touchAction = 'none';
       canvas.style.webkitUserSelect = 'none';

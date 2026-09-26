@@ -536,9 +536,17 @@ namespace Highfly.Mobile
         {
             if (!_mobileMode) return;
 
-            // On native mobile there is no hardware mouse cursor to manage.
-            // On WebGL, cursor/pointer-lock is handled in JS so desktop browser
-            // state is never left hidden after closing or changing tabs.
+            // Skills Lab desktop must keep a real cursor for loadout/action UI while RMB
+            // still controls the camera. Mobile keeps the cursor hidden as before.
+            if (HighflySkillLabMode.IsActive && !_touchInputMode)
+            {
+                if (Cursor.lockState != CursorLockMode.None)
+                    Cursor.lockState = CursorLockMode.None;
+                if (!Cursor.visible)
+                    Cursor.visible = true;
+                return;
+            }
+
             if (Application.isMobilePlatform)
             {
                 if (Cursor.lockState != CursorLockMode.None)

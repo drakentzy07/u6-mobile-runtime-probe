@@ -71,8 +71,8 @@ namespace Highfly.Mobile
 
         private void Update()
         {
-            if (HighflyMobileBootstrap.TouchInputActive) return;
-
+            // Hardware RMB is always allowed to drive the golden camera. This also
+            // protects desktop WebGL on touch-capable Windows machines from false touch detection.
             Mouse mouse = Mouse.current;
             if (mouse == null || !mouse.enabled || !mouse.rightButton.isPressed) return;
 
