@@ -391,3 +391,210 @@ Continue using already-owned CC0:
 - Gobkit ecology
 
 No need to download duplicates merely to increase asset count.
+
+
+## PASS 05 — Unity batch binary audit + Black Hole VFX (26 Sep 2026)
+
+Input reconstructed successfully from:
+- MONSTRUOS UNITY 26-09 + EFECTO HOLE.zip.part001
+- MONSTRUOS UNITY 26-09 + EFECTO HOLE.zip.part002
+
+Combined ZIP:
+- 647,287,023 bytes
+- 16 ZIP entries
+- CRC/integrity test: PASS
+- 8 Unity packages
+
+### RPG - Ogre Pack - PBR/Mobile
+Package content:
+- Ogre.FBX (PBR)
+- Ogre_Mobile.fbx
+- Weapon.FBX
+- 17 prefabs
+- PBR + handpainted/mobile material variants
+
+Binary/importer audit:
+- Ogre PBR is configured as Unity Humanoid
+- 50 explicit Humanoid mappings
+- LeftHand + RightHand present
+- finger mappings present
+- no animation clips bundled
+- Mobile mesh is configured Generic in supplied importer metadata
+- source strings point to publisher Unity/3ds Max workspace, no third-party game path red flag found
+
+External verified spec:
+- PBR ~11.7k tris
+- Mobile ~4.8k tris
+- weapon ~984 tris
+- Humanoid-ready
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED CANDIDATE
+- strongest technical Ogre route so far
+- use PBR Humanoid mesh as animation/retarget source
+- use Mobile mesh as LOD after validating avatar/skin parity
+- downscale PBR source textures for S23 runtime
+
+### Creep Horror Creature
+Package:
+- high mesh + LOD1
+- 3 material/skin variants
+- 13 usable animation states confirmed in supplied Animator controller:
+  Idle1, Idle2, Walk1, Walk2, Crouch, Punch, Bite, Roar, Eating, Sniff, JumpIn, JumpOut, Death
+- Generic rig
+- large 4K texture sets, including duplicate DirectX/OpenGL normal variants
+
+External verified:
+- ~15.9k tris high
+- ~3.17k tris decimated
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED SPECIAL / VOID / UNDERGROUND candidate
+- for mobile: LOD1 + one skin + 1K/2K textures; strip unused normal variant
+
+### 01_Monster: Lizard
+Package:
+- model + 8 dedicated FBX clips:
+  idle, battleidle, walk, run, hit, die, attack1, attack2
+- Generic rig
+- supplied Animator controller
+- 2 prefabs
+- 4K PBR texture source
+
+External verified:
+- ~3,698 polys / 3,431 verts
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED reptilian family candidate
+- self-contained animation set means Humanoid retarget is not required
+- downscale textures for mobile
+
+### [Free] Fantasy Monster 10 — PixeliusVita
+Package:
+- Monster10.fbx
+- 22 .anim assets: root/in-place sets
+- 2 Animator controllers
+- 15 visual prefabs/material variants
+- 15 x 2K textures
+- URP cel shaders
+
+External verified:
+- 2,528 verts / 3,158 tris
+- 59 bones
+- 1 skinned mesh
+- 11 core combat/locomotion animations
+- mobile-ready
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED mobile enemy candidate
+- strongest clean Pixelius route at this point
+- generic custom rig but complete own animation bank
+
+### Monster_4 low-poly
+Package:
+- single humanoid monster FBX
+- importer configured Unity Humanoid
+- 52 explicit Humanoid mappings including hands/fingers
+- no bundled animations
+- 9 x 4K PBR textures
+- ~30k tris according to source listing
+
+External:
+- currently FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED SPECIAL/BOSS RETARGET CANDIDATE
+- valuable specifically because Human Melee / KayKit / UAL retarget should be testable
+- mobile requires texture downscale; geometry acceptable for a limited-count special enemy
+
+### Undead Skeleton Enemies
+Package:
+- 6 character variants:
+  Skeleton Warrior x2
+  Skeleton Lich x2
+  Wraith x2
+- 8 weapons:
+  broken axe, broken sword, round/heater shield, lich staffs, priest staff, scythe
+- character importers set to Humanoid auto-avatar
+- single 256 texture
+- no bundled combat animation bank
+
+External:
+- characters approximately 2.7k–3.3k tris
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- APPROVED SECONDARY UNDEAD + RETARGET TEST POOL
+- extremely low cost
+- test Human Melee/KayKit retarget in Skill/Monster lab
+
+### Fantasy Mushroom Mon
+Package:
+- 5 clips: Idle, Run, Attack, Damage, Death
+- 3 x 512 textures
+- 1 FBX
+- importer uses Legacy animation mode
+
+External:
+- FREE / Standard Unity Asset Store EULA
+
+Decision:
+- KEEP as ecology / magical forest secondary
+- not first integration target
+- convert/modernize animation setup if used in current Animator architecture
+
+### Free Asset Black Hole Effect
+Package:
+- 3 Shader Graphs
+- 1 VFX Graph
+- BlackHole prefab
+- URP Bloom volume
+- 6K nebula skybox
+- README
+- Third-Party Notices
+- package manifest references ShaderGraph/VFXGraph 12.1.7
+
+Binary VFX audit:
+- main trail particle system capacity is 54,000
+- dust spawn rate exposed; default observed 32
+- VFX Graph required
+
+License:
+- asset itself: FREE / Standard Unity Asset Store EULA
+- included nebula skybox is CC BY 4.0 and requires attribution to Paul on Sketchfab
+
+Decision:
+- APPROVED AS VFX DONOR, NOT DROP-IN
+- DO NOT import the package's old Packages/manifest.json into Unity 6000.x
+- use Unity 6 matching ShaderGraph/VFXGraph packages
+- remove/replace the included 6K CC-BY skybox unless we want to carry attribution
+- create HIGHFLY_MOBILE_LITE variant with much lower capacity
+- Android: Vulkan/high-end compute path only
+- Web build: maintain ParticleSystem/shader fallback because VFX Graph web/mobile support is platform-dependent
+
+### Provenance scan result
+No Rappelz-style game-source directory signatures were found in this Unity batch.
+Observed absolute paths correspond to publisher workspaces such as:
+- Ogre Unity/3ds Max project
+- HATOGAME/UMOON Lizard workspace
+- Pixelius Monster10 Blender project
+These are not treated as red flags.
+
+### Integration priority
+P0:
+1. Ogre Humanoid + Human Melee/KayKit retarget test
+2. Monster_4 Humanoid + Human Melee retarget test
+3. Undead Skeleton Humanoid auto-avatar retarget test
+4. Monster10 own-animation runtime test
+5. Lizard own-animation runtime test
+
+P1:
+6. Creep LOD1 optimized runtime
+7. Black Hole mobile-lite donor
+8. Mushroom ecology
+
+This batch is materially useful; do not delete it before the first Unity integration pass.
