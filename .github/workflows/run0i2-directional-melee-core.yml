@@ -200,22 +200,59 @@ jobs:
           if-no-files-found: error
           retention-days: 7
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload Run0I Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: LucidHost/3D_game/build/WebGL
-
   deploy:
-    name: Deploy Run0I.3 to GitHub Pages
+    name: Deploy combined Skills + Loot Pages
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages-run0i3
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy Run0I.3
+      - name: Download current Skills WebGL
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-run0i3-webgl
+          path: skills
+
+      - name: Resolve and download latest successful Loot Lab
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          mkdir -p lootlab
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=30" \
+            --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1 || true)"
+          if [ -n "$RUN_ID" ]; then
+            echo "Using latest Loot run: $RUN_ID"
+            gh run download "$RUN_ID" -n highfly-loot-run0a-webgl -D lootlab || true
+          fi
+
+      - name: Assemble canonical combined Pages site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf site
+          mkdir -p site
+          test -f skills/index.html
+          cp -a skills/. site/
+          if [ -f lootlab/index.html ]; then
+            rm -rf site/loot-monster-lab-run0a
+            mkdir -p site/loot-monster-lab-run0a
+            cp -a lootlab/. site/loot-monster-lab-run0a/
+          fi
+          touch site/.nojekyll
+          test -f site/index.html
+          du -sh site
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload combined Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy combined Pages
         id: deployment
         uses: actions/deploy-pages@v4
