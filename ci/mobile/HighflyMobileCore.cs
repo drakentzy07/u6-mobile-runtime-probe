@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
-using Highfly.Combat;
 using Highfly.SkillLab;
 
 namespace Highfly.Mobile
@@ -223,37 +222,26 @@ namespace Highfly.Mobile
         private void ExecuteAction()
         {
             var player = UnityEngine.Object.FindFirstObjectByType<PlayerController>();
-            var combat = UnityEngine.Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
 
             switch (action)
             {
                 case HighflyMobileAction.Attack:
-                    if (combat != null) combat.Request(HighflyCombatAction.Light);
-                    else player?.HighflyMobileAttack();
+                    player?.HighflyMobileAttack();
                     break;
                 case HighflyMobileAction.Skill1:
-                    if (combat != null) combat.Request(HighflyCombatAction.Skill1);
-                    else player?.HighflyMobileSkill1();
+                    player?.HighflyMobileSkill1();
                     break;
                 case HighflyMobileAction.Skill2:
-                    combat?.Request(HighflyCombatAction.Skill2);
-                    break;
                 case HighflyMobileAction.Skill3:
-                    combat?.Request(HighflyCombatAction.Skill3);
-                    break;
                 case HighflyMobileAction.Skill4:
-                    combat?.Request(HighflyCombatAction.Skill4);
-                    break;
                 case HighflyMobileAction.Ultimate:
-                    combat?.Request(HighflyCombatAction.Ultimate);
+                    // Loot Lab intentionally reuses the Golden input shell but does not own skill execution.
                     break;
                 case HighflyMobileAction.Dodge:
-                    if (combat != null) combat.Request(HighflyCombatAction.Dodge);
-                    else player?.HighflyMobileRoll();
+                    player?.HighflyMobileRoll();
                     break;
                 case HighflyMobileAction.Parry:
-                    if (combat != null) combat.Request(HighflyCombatAction.Parry);
-                    else player?.HighflyMobileParry();
+                    player?.HighflyMobileParry();
                     break;
                 case HighflyMobileAction.Interact:
                     player?.HighflyMobileInteract();
@@ -559,9 +547,6 @@ namespace Highfly.Mobile
             bool hasPlayer = player != null;
             bool isInteracting = hasPlayer && player.currentState == PlayerState.Interact;
 
-            if (hasPlayer && player.GetComponent<HighflyLucidCombatBridge>() == null)
-                player.gameObject.AddComponent<HighflyLucidCombatBridge>();
-
             if (_controlsRoot != null)
                 _controlsRoot.SetActive(hasPlayer && !isInteracting);
         }
@@ -739,14 +724,6 @@ namespace Highfly.Mobile
             ring.raycastTarget = false;
 
             go.GetComponent<HighflyActionButton>().Configure(action);
-
-            int skillSlot = SkillSlotFor(action);
-            if (skillSlot >= 0)
-            {
-                var cooldown =
-                    go.AddComponent<HighflySkillCooldownVisual>();
-                cooldown.Configure(skillSlot, _discSprite);
-            }
 
             var text = CreateText(
                 safeName + "_Text",
