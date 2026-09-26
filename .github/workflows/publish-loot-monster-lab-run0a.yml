@@ -124,13 +124,26 @@ jobs:
     timeout-minutes: 90
 
     steps:
-      - name: Download current combined Pages site
+      - name: Resolve latest successful Skills Pages run
+        id: skills
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euxo pipefail
+          RUN_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/run0i3-single-hunter-guard-core&status=success&per_page=30" \
+            --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
+          test -n "$RUN_ID"
+          echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "Using canonical Skills run: $RUN_ID"
+
+      - name: Download canonical Skills Pages site
         uses: actions/download-artifact@v4
         with:
           name: github-pages
           path: current-pages
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 36131705714
+          run-id: ${{ steps.skills.outputs.run_id }}
 
       - name: Download Loot Lab artifact
         uses: actions/download-artifact@v4
