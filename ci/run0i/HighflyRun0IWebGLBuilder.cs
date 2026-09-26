@@ -85,17 +85,33 @@ namespace Highfly.Run0I.Editor
             const string knightSource="Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx";
             AnimationClip[] knightClips=AssetDatabase.LoadAllAssetsAtPath(knightSource)
                 .OfType<AnimationClip>().Where(x=>x!=null && !x.name.StartsWith("__preview__")).ToArray();
-            AnimationClip unarmedPunch=FindByTokens(knightClips,"unarmed","punch");
+            AnimationClip[] unarmedPunches=knightClips
+                .Where(x=>x.name.IndexOf("unarmed",StringComparison.OrdinalIgnoreCase)>=0 &&
+                          x.name.IndexOf("punch",StringComparison.OrdinalIgnoreCase)>=0)
+                .OrderBy(x=>x.name)
+                .ToArray();
             AnimationClip unarmedKick=FindByTokens(knightClips,"unarmed","kick");
-            if (unarmedPunch==null || unarmedKick==null)
-                throw new Exception("[RUN0I.2] Quality gate: KayKit Knight missing real unarmed punch/kick clips.");
-            SaveCopy(unarmedPunch,target+"/Unarmed_Punch.anim","Unarmed_Punch");
+            if (unarmedPunches.Length<2 || unarmedKick==null)
+                throw new Exception("[RUN0I.3] Quality gate: need two distinct KayKit unarmed punches plus one kick.");
+
+            AnimationClip unarmedPunchA=unarmedPunches
+                .FirstOrDefault(x=>x.name.IndexOf("Punch_A",StringComparison.OrdinalIgnoreCase)>=0)
+                ?? unarmedPunches[0];
+            AnimationClip unarmedPunchB=unarmedPunches
+                .FirstOrDefault(x=>x.name.IndexOf("Punch_B",StringComparison.OrdinalIgnoreCase)>=0)
+                ?? unarmedPunches.First(x=>x!=unarmedPunchA);
+
+            if (unarmedPunchA==unarmedPunchB)
+                throw new Exception("[RUN0I.3] Quality gate: unarmed punch A/B resolved to same clip.");
+
+            SaveCopy(unarmedPunchA,target+"/Unarmed_Punch_A.anim","Unarmed_Punch_A");
             SaveCopy(unarmedKick,target+"/Unarmed_Kick.anim","Unarmed_Kick");
+            SaveCopy(unarmedPunchB,target+"/Unarmed_Punch_B.anim","Unarmed_Punch_B");
 
             // RUN0I.3 Lite: do not depend on unverified block/bash names.
             // CrossGuard uses already-audited dual strike poses. Shield/Pole/Weapon guard
             // fall back to the known-good Sword_Block from the existing UAL2 bank.
-            Debug.Log("[RUN0I.3-LITE] UNARMED_BANK="+unarmedPunch.name+" | "+unarmedKick.name);
+            Debug.Log("[RUN0I.3] UNARMED_BANK="+unarmedPunchA.name+" | "+unarmedKick.name+" | "+unarmedPunchB.name);
             Debug.Log("[RUN0I.3-LITE] GUARD_BANK=known-good Sword_Block + dual cross poses");
 
             // RUN0I.1: restore the original Lucid 1->2->3 body language for Warrior.
@@ -122,15 +138,19 @@ namespace Highfly.Run0I.Editor
             SaveCopy(dualStab,target+"/Assassin_C.anim","Assassin_C");
 
             // Dedicated slots per dual family. Same audited donor bank today; independently replaceable later.
+            // Same audited dual-wield donor bank, but each weapon family gets
+            // a deliberately different 1->2->3 choreography order.
             SaveCopy(dualChop,target+"/DualSword_A.anim","DualSword_A");
             SaveCopy(dualSlice,target+"/DualSword_B.anim","DualSword_B");
             SaveCopy(dualStab,target+"/DualSword_C.anim","DualSword_C");
+
             SaveCopy(dualChop,target+"/DualAxe_A.anim","DualAxe_A");
-            SaveCopy(dualSlice,target+"/DualAxe_B.anim","DualAxe_B");
-            SaveCopy(dualStab,target+"/DualAxe_C.anim","DualAxe_C");
-            SaveCopy(dualChop,target+"/Dagger_A.anim","Dagger_A");
+            SaveCopy(dualStab,target+"/DualAxe_B.anim","DualAxe_B");
+            SaveCopy(dualSlice,target+"/DualAxe_C.anim","DualAxe_C");
+
+            SaveCopy(dualStab,target+"/Dagger_A.anim","Dagger_A");
             SaveCopy(dualSlice,target+"/Dagger_B.anim","Dagger_B");
-            SaveCopy(dualStab,target+"/Dagger_C.anim","Dagger_C");
+            SaveCopy(dualChop,target+"/Dagger_C.anim","Dagger_C");
 
             const string barbarianSource="Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx";
             AnimationClip[] barbarianClips=AssetDatabase.LoadAllAssetsAtPath(barbarianSource)
