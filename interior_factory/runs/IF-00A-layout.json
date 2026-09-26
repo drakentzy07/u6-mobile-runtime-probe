@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "HF-GeneratedLayout/0.1",
+  "id": "HF_SMITHY_01",
+  "generatedFrom": "HF-InteriorSpec/0.1",
+  "placements": [
+    {"assetId":"HF_DISPLAY_RACK_001","floor":"SHOP","zone":"DISPLAY_L","position":[1,0,3],"yaw":90,"role":"display"},
+    {"assetId":"HF_DISPLAY_RACK_002","floor":"SHOP","zone":"DISPLAY_R","position":[11,0,3],"yaw":-90,"role":"display"},
+    {"assetId":"HF_DISPLAY_RACK_001","floor":"SHOP","zone":"DISPLAY_L","position":[1,0,6],"yaw":90,"role":"display"},
+    {"assetId":"HF_DISPLAY_RACK_002","floor":"SHOP","zone":"DISPLAY_R","position":[11,0,6],"yaw":-90,"role":"display"},
+    {"assetId":"HF_SMITH_FORGE_001","floor":"WORKSHOP_BASEMENT","zone":"HOT_ZONE","position":[1.6,0,2],"yaw":90,"role":"station"},
+    {"assetId":"HF_SMITH_BELLOWS_001","floor":"WORKSHOP_BASEMENT","zone":"HOT_ZONE","position":[3.6,0,2.1],"yaw":-90,"role":"support"},
+    {"assetId":"HF_SMITH_ANVIL_001","floor":"WORKSHOP_BASEMENT","zone":"ANVIL_ZONE","position":[4,0,2.5],"yaw":0,"role":"station"},
+    {"assetId":"HF_SMITH_GRIND_001","floor":"WORKSHOP_BASEMENT","zone":"GRIND_ZONE","position":[8.2,0,2],"yaw":0,"role":"station"},
+    {"assetId":"HF_DISPLAY_RACK_001","floor":"WORKSHOP_BASEMENT","zone":"STORAGE","position":[10.2,0,6.8],"yaw":-90,"role":"storage"}
+  ],
+  "qa":{"errors":[],"warnings":[],"status":"PASS"}
+}

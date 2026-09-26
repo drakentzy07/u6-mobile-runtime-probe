@@ -1,0 +1,103 @@
+name: Interior Factory IF-00A
+on:
+  pull_request:
+    paths:
+      - 'interior_factory/**'
+      - '.github/workflows/interior-factory-if00a.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate InteriorSpec
+        run: node interior_factory/src/validate-spec.mjs
+      - name: Regenerate approved layout
+        run: node interior_factory/src/generate-smithy.mjs > /tmp/IF-00A-layout.json
+      - name: Compare deterministic output semantically
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const approved=JSON.parse(fs.readFileSync('interior_factory/runs/IF-00A-layout.json','utf8'));
+          const generated=JSON.parse(fs.readFileSync('/tmp/IF-00A-layout.json','utf8'));
+          if (JSON.stringify(approved)!==JSON.stringify(generated)) {
+            console.error('Generated layout differs from approved semantic JSON');
+            process.exit(1);
+          }
+          console.log('Semantic layout match: PASS');
+          NODE
+
+      - name: Syntax-check Interior Editor v17
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v17.html
+
+      - name: Guard v17 early-init references
+        shell: bash
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v17.html','utf8');
+          const decl=s.indexOf('const UP=0,LOW=-4.2;');
+          const pre=s.slice(0,decl);
+          if (/zoneLight\([^\n]*\bLOW\b/.test(pre)) {
+            console.error('LOW referenced before declaration in scene boot');
+            process.exit(1);
+          }
+          console.log('Early-init reference guard: PASS');
+          NODE
+
+      - name: Guard v17 editor features
+        shell: bash
+        run: |
+          grep -q "snapBottomToY" interior_factory/web/interior-editor-v17.html
+          grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v17.html
+          grep -q "Vidrio vertical" interior_factory/web/interior-editor-v17.html
+          grep -q "Horno de barro" interior_factory/web/interior-editor-v17.html
+          grep -q "Gran fragua" interior_factory/web/interior-editor-v17.html
+          grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v17.html
+          echo "V17 feature guards: PASS"
+
+      - name: Guard v17 showroom premium
+        shell: bash
+        run: |
+          grep -q "GLASS IS VERTICAL" interior_factory/web/interior-editor-v17.html
+          grep -q "SECOND ROOM" interior_factory/web/interior-editor-v17.html
+          grep -q "normalizedText" interior_factory/web/interior-editor-v17.html
+          grep -q "nombreES" interior_factory/web/interior-editor-v17.html
+          grep -q "Dintel puerta" interior_factory/web/interior-editor-v17.html
+          if grep -q "\['shelf'" interior_factory/web/interior-editor-v17.html; then
+            echo "WARN: shelf asset still exists in catalog/base source, checking seeded props separately"
+          fi
+          echo "V17 showroom guards: PASS"
+
+      - name: Guard v17 legendary forge
+        shell: bash
+        run: |
+          grep -q "Vidrio vertical" interior_factory/web/interior-editor-v17.html
+          grep -q "Fila baja" interior_factory/web/interior-editor-v17.html
+          grep -q "Fila alta" interior_factory/web/interior-editor-v17.html
+          grep -q "MONUMENTAL CLOSED MEDIEVAL ENTRANCE" interior_factory/web/interior-editor-v17.html
+          grep -q "Fragua suprema lava" interior_factory/web/interior-editor-v17.html
+          grep -q "Horno medieval lava" interior_factory/web/interior-editor-v17.html
+          grep -q "WALL SHIELDS" interior_factory/web/interior-editor-v17.html
+          echo "V17 supreme forge guards: PASS"
+
+      - name: Guard v17 supreme visual pass
+        shell: bash
+        run: |
+          grep -q "Techo showroom" interior_factory/web/interior-editor-v17.html
+          grep -q "Techo pasillo" interior_factory/web/interior-editor-v17.html
+          grep -q "Techo taller" interior_factory/web/interior-editor-v17.html
+          grep -q "Fragua suprema lava" interior_factory/web/interior-editor-v17.html
+          grep -q "Horno medieval lava" interior_factory/web/interior-editor-v17.html
+          grep -q "Placa espadas cruzadas" interior_factory/web/interior-editor-v17.html
+          grep -q "Fila baja" interior_factory/web/interior-editor-v17.html
+          grep -q "Fila alta" interior_factory/web/interior-editor-v17.html
+          if grep -q "restaurant_180" interior_factory/web/interior-editor-v17.html; then
+            echo "Forbidden kitchen oven asset still seeded in v17"
+            exit 1
+          fi
+          echo "V17 supreme visual pass guards: PASS"

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "HF-InteriorAssetCatalog/0.1",
+  "generatedFrom": "verified HIGHFLY library audit 2026-09-26",
+  "policy": {
+    "reuseFirst": true,
+    "unverifiedPathsAllowed": false,
+    "rawAssetRedistribution": false
+  },
+  "assets": [
+    {"id":"HF_SMITH_FORGE_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Blacksmith_Furnace_01a_PRE.prefab","type":"smithing.forge","placement":["floor","wall-near"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_ANVIL_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Blacksmith_Anvil_01a_PRE.prefab","type":"smithing.anvil","placement":["floor"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_ANVIL_002","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Blacksmith_Anvil_01b_PRE.prefab","type":"smithing.anvil","placement":["floor"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_BELLOWS_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Blacksmith_ForgeBellow_01b_PRE.prefab","type":"smithing.bellows","placement":["floor","forge-adjacent"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_GRIND_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Blacksmith_GrindStone_01a_PRE.prefab","type":"smithing.grindstone","placement":["floor"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_TONGS_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Tool_Tongs_01a_PRE.prefab","type":"smithing.tool.tongs","placement":["bench","rack","anvil-near"],"zones":["workshop"],"verified":true},
+    {"id":"HF_SMITH_HAMMER_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_Tool_Hammer_Sledge_01b_PRE.prefab","type":"smithing.tool.hammer","placement":["bench","rack","anvil-near"],"zones":["workshop"],"verified":true},
+    {"id":"HF_DISPLAY_RACK_001","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_weap_WeaponRack_01a_PRE.prefab","type":"shop.weaponRack","placement":["wall","floor"],"zones":["shop","workshop"],"verified":true},
+    {"id":"HF_DISPLAY_RACK_002","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Prop/Blacksmith/EA03_Prop_weap_WeaponRack_01d_PRE.prefab","type":"shop.weaponRack","placement":["wall","floor"],"zones":["shop","workshop"],"verified":true},
+    {"id":"HF_ROOM_STORE_7X7","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Interior_Module/EA_Room_Int_Store_Comp_7x7_01a_PRE.prefab","type":"reference.room.store","placement":["reference-only"],"zones":["shop"],"verified":true},
+    {"id":"HF_DONOR_BLACKSMITH_B","source":"EmacEArt Slavic World","path":"Assets/EmaceArt/Slavic World/Prefabs/Town/Other/EA_BlackSmith_B_PRE.prefab","type":"reference.composition.blacksmith","placement":["reference-only"],"zones":["workshop"],"verified":true,"dependencyCount":37},
+    {"id":"HF_TOOLSET_KAYKIT_RPG","source":"KayKit RPG Tools Bits FREE","path":"LOCAL_PACK:KayKit_RPGToolsBits_1.0_FREE.zip","type":"collection.smithing.tools","placement":["catalog-source"],"zones":["workshop"],"verified":true,"license":"CC0-1.0"},
+    {"id":"HF_RESOURCE_KAYKIT","source":"KayKit Resource Bits FREE","path":"LOCAL_PACK:KayKit_ResourceBits_1.0_FREE.zip","type":"collection.resources","placement":["catalog-source"],"zones":["shop","storage","workshop"],"verified":true,"license":"CC0-1.0"},
+    {"id":"HF_ARMORY_DANIEL","source":"Daniel Mistage Fantasy Armory FREE","path":"LOCAL_PACK:FantasyArmoryFBX.rar","type":"collection.armory","placement":["catalog-source"],"zones":["shop","workshop"],"verified":true,"shippingPolicy":"embed-in-game-no-raw-redistribution"},
+    {"id":"HF_RG_MEDIEVAL","source":"RG Poly Stylized Medieval Village","path":"LOCAL_PACK:Stylized+Medieval+Village+URP_2022.3.6f1(3).unitypackage","type":"collection.architecture.medieval","placement":["catalog-source"],"zones":["shop","transition"],"verified":true,"license":"CC0-assets/MIT-code"}
+  ]
+}

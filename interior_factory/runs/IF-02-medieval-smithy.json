@@ -1,0 +1,36 @@
+{
+  "run": "IF-02",
+  "title": "Forja Medieval Visual v2",
+  "status": "READY_FOR_VISUAL_QA",
+  "principles": [
+    "single coherent KayKit medieval/fantasy family",
+    "blacksmith-only semantic whitelist",
+    "no restaurant/kitchen/modern assets",
+    "physical traversable staircase PB to basement"
+  ],
+  "zones": {
+    "upper": "medieval weapon shop/showroom",
+    "lower": "blacksmith workshop"
+  },
+  "required": [
+    "weapon racks",
+    "medieval counter",
+    "chest/barrel",
+    "masonry forge",
+    "anvil",
+    "grindstone",
+    "quench bucket",
+    "workbench",
+    "smithing tools",
+    "iron/copper/firewood",
+    "physical stair"
+  ],
+  "forbidden": [
+    "restaurant",
+    "kitchen",
+    "pizza",
+    "stove",
+    "modern hood",
+    "food props"
+  ]
+}
