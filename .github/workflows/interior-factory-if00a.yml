@@ -31,5 +31,20 @@ jobs:
           console.log('Semantic layout match: PASS');
           NODE
 
-      - name: Syntax-check Interior Editor v10
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v10.html
+      - name: Syntax-check Interior Editor v11
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v11.html
+
+      - name: Guard v11 early-init references
+        shell: bash
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v11.html','utf8');
+          const decl=s.indexOf('const UP=0,LOW=-4.2;');
+          const pre=s.slice(0,decl);
+          if (/zoneLight\([^\n]*\bLOW\b/.test(pre)) {
+            console.error('LOW referenced before declaration in scene boot');
+            process.exit(1);
+          }
+          console.log('Early-init reference guard: PASS');
+          NODE
