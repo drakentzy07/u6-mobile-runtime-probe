@@ -598,3 +598,80 @@ P1:
 8. Mushroom ecology
 
 This batch is materially useful; do not delete it before the first Unity integration pass.
+
+
+## PASS 06 — Casting sweep across Unity / itch / OpenGameArt / Quaternius (26 Sep 2026)
+
+Current conclusion:
+HIGHFLY has a strong base but does NOT yet have every marquee family solved at final quality.
+
+Covered or strongly covered:
+- Goblin: Quaternius/Aster path
+- Shadow Wolf: Quaternius Animated Animals
+- Spider: Quaternius Easy Enemy
+- Skeleton/Undead: KayKit + Unity Undead Skeleton Enemies
+- Spectre/Ghost: Quaternius + Kenney support
+- Ogre: Unity RPG Ogre Pack PBR/Mobile
+- Reptile beast: 01_Monster Lizard
+- Void/Horror special: Creep Horror
+- Generic mobile monster: Pixelius Monster10
+- Dragon: Quaternius animated dragon path
+- Ancient serpent prototype/base: Quaternius Snake + audited snake boss path
+- Forest: Treant + Mushroom secondary
+- Unique Scenario sci-fi/mechs: Quaternius CC0 packs
+
+Open / not final:
+- Premium Lycanthrope body
+- Jeju King / Queen / Royal caste
+- Centipede
+- Humanoid Lizardman
+- Premium Giant humanoid
+- Premium Orc if LOWPO legal copy cannot be fully validated
+- Premium Vampire humanoid
+- Ice Elf final body
+- Demon Noble final body
+
+New safe acquisition candidates:
+1. LOWPO Horror Character Pack — itch
+   - free FBX: Ghost, Vampire, Zombie
+   - rigged/game-ready
+   - no animations; Mixamo-compatible workflow claimed
+   - CC0 / free personal + commercial
+   - 150 KB free pack
+   - acquire for Vampire/Ghost/Zombie coverage, not marquee boss art
+
+2. Vampire Bat (Animated) — OpenGameArt
+   - CC0
+   - rigged + animated
+   - frost variant included
+   - ~7.7k tris
+   - 16.5 MB
+   - acquire for vampire ecology / cave enemy
+
+3. Low Poly Ice Age — itch
+   - CC0
+   - rigged + animated
+   - mammoth, sabertooth tiger, giant sloth
+   - Unity package available
+   - acquire for frost biome / giant fauna / special portal
+
+4. Zombie Monster Animations FREE — Unity Asset Store
+   - FREE / Standard Unity Asset Store EULA
+   - 1.5 MB
+   - useful animation donor for humanoid undead
+
+5. Quaternius Animated Monster Pack / Ultimate Monsters / Animated Animals
+   - CC0
+   - already represented in HIGHFLY inventory
+   - DO NOT redownload duplicates unless exact package is missing
+
+Rejected/not worth acquiring right now:
+- Unity Wolf Man: $39.99
+- Downrain Lizardmen: $8.99
+- Giant Centipede Unity: $45 and ~77k tris
+- Worm 2: $34.99
+- premium Giant Fab collections: pricing/license not surfaced cleanly
+- paid Lizardmen packs / large monster bundles
+
+Policy:
+Do not buy a paid asset merely to close a family while the casting phase is still finding safe free alternatives.
