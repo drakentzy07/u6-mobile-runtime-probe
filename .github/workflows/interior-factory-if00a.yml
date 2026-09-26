@@ -31,15 +31,15 @@ jobs:
           console.log('Semantic layout match: PASS');
           NODE
 
-      - name: Syntax-check Interior Editor v13
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v13.html
+      - name: Syntax-check Interior Editor v14
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v14.html
 
-      - name: Guard v13 early-init references
+      - name: Guard v14 early-init references
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v13.html','utf8');
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v14.html','utf8');
           const decl=s.indexOf('const UP=0,LOW=-4.2;');
           const pre=s.slice(0,decl);
           if (/zoneLight\([^\n]*\bLOW\b/.test(pre)) {
@@ -48,3 +48,14 @@ jobs:
           }
           console.log('Early-init reference guard: PASS');
           NODE
+
+      - name: Guard v14 editor features
+        shell: bash
+        run: |
+          grep -q "snapBottomToY" interior_factory/web/interior-editor-v14.html
+          grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v14.html
+          grep -q "Vitrina ESPADAS" interior_factory/web/interior-editor-v14.html
+          grep -q "Vitrina LANZAS" interior_factory/web/interior-editor-v14.html
+          grep -q "Gran fragua" interior_factory/web/interior-editor-v14.html
+          grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v14.html
+          echo "V14 feature guards: PASS"
