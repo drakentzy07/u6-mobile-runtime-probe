@@ -254,3 +254,54 @@ New likely closure:
 Rule:
 VACANT > MEDIOCRE > LEGALLY DOUBTFUL.
 Do not fill a family merely to complete the matrix.
+
+
+## PASS 03 — Library cleanup + acquisition shortlist (26 Sep 2026)
+
+Persistent Library cleanup was performed after user approval:
+- 35 rejected/redundant assets removed from Library
+- approximately 1.61 GB reclaimed
+- removals targeted Rappelz-provenance rejects, redundant format conversions, Giant Mutant and static skeleton conversions
+- conversation attachments may still exist in chat history; cleanup refers to persistent Library entries
+
+Kept intentionally:
+- rogue_all.fbx + textures_and_weapons.zip
+- free_stylized_goblin.zip
+- Monster03Shop.rar
+- Monster05Shop.rar
+- Treant Package.7z
+- LOWPO Goblin
+- Quaternius Easy Enemy
+- Gobkit ecology packs
+- Kenney Graveyard
+
+Monster03 / Monster05 status correction:
+- exact packages are kept in QUARANTINE/CANDIDATE state
+- their itch pages confirm free/name-your-price, rig/animation specs and no generative AI flag
+- exact commercial-use license for those two specific 3D packages has NOT yet been captured
+- do not ship until exact-license evidence is stored
+
+Externally verified FREE + Standard Unity Asset Store EULA shortlist:
+1. RPG - Ogre Pack - PBR/Mobile
+   - role: Ogre family candidate
+2. Creep Horror Creature
+   - role: Void / underground / extraordinary creature
+3. 01_Monster: Lizard
+   - role: reptile ecology / lower-tier reptilian creature
+   - does not close humanoid Lizardman family
+4. [Free] Fantasy Monster 10 (Rig + Animation) – PixeliusVita
+   - role: legally-clean Pixelius benchmark / optional fantasy creature candidate
+
+Hunter:
+- Khempavee Rogue remains current strongest free candidate
+- do not download lower-quality modular humans merely to increase candidate count
+
+Open quality gaps remain:
+- premium Lycanthrope
+- Jeju King / Queen / Royal caste
+- premium Centipede
+- true humanoid Lizardman
+- premium Giant identity
+
+Policy remains:
+VACANT > MEDIOCRE > LEGALLY DOUBTFUL.
