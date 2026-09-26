@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# refresh bridges fusion2b
 # republish: melee-fusion2b private-run-36272250830
 # republish: melee-fusion2 private-run-36267369905
 # republish: melee-fusion private-run-36262118568
@@ -83,7 +84,7 @@ jobs:
       - name: Download private MELEE FUSION artifact bridge
         shell: bash
         env:
-          MELEE_FUSION_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-ab8c-820e-820f-4c98afd91c78/raw?se=2026-09-26T20%3A57%3A35Z&sp=r&sv=2026-02-06&sr=b&scid=c7bf2701-5f2d-5850-83d9-b964de826741&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T13%3A23%3A40Z&ske=2026-09-27T13%3A23%3A40Z&sks=b&skv=2026-02-06&sig=4GNnfha1JUffQDJXdVT1eNZxTpgL5KnUmu/zrovXtz4%3D"
+          MELEE_FUSION_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-0fb0-820e-b92c-6189ef71c9d3/raw?se=2026-09-26T22%3A31%3A21Z&sp=r&sv=2026-02-06&sr=b&scid=85762792-c193-5c2d-b0d9-51bde7ab67b8&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T10%3A17%3A08Z&ske=2026-09-27T10%3A17%3A08Z&sks=b&skv=2026-02-06&sig=kjajOHxM1Mo32mDUdv9llV7dMH%2BIxrNnqhycG4fvZs8%3D"
         run: |
           set -euxo pipefail
           mkdir -p incoming/melee-fusion
@@ -97,7 +98,7 @@ jobs:
       - name: Download private MELEE FUSION 2 artifact bridge
         shell: bash
         env:
-          MELEE_FUSION2_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-6434-820e-a40f-762fd5c62b30/raw?se=2026-09-26T20%3A57%3A14Z&sp=r&sv=2026-02-06&sr=b&scid=67a4b080-4d1b-5358-9f3a-d5b1ebe99bd2&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T13%3A52%3A04Z&ske=2026-09-27T13%3A52%3A04Z&sks=b&skv=2026-02-06&sig=pFXNvu%2BEik6OPSpr5wmRMKc8tJ7Bbtz2KlChG%2BxzKz4%3D"
+          MELEE_FUSION2_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-191c-820e-8294-9d221134b8d6/raw?se=2026-09-26T22%3A31%3A31Z&sp=r&sv=2026-02-06&sr=b&scid=ba6229d9-c3c1-555d-8d06-059cf412e10c&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T10%3A59%3A10Z&ske=2026-09-27T10%3A59%3A10Z&sks=b&skv=2026-02-06&sig=LYx1Jt8JK4Xl8Gj4OqfUHPhB5KQxpDLgbKd1VEx6oVU%3D"
         run: |
           set -euxo pipefail
           mkdir -p incoming/melee-fusion2
@@ -111,7 +112,7 @@ jobs:
       - name: Download private MELEE FUSION 2B artifact bridge
         shell: bash
         env:
-          MELEE_FUSION2B_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-3578-820e-9396-ac159fc9670a/raw?se=2026-09-26T22%3A30%3A20Z&sp=r&sv=2026-02-06&sr=b&scid=9efc1e92-5bad-572d-a813-2435c8fe1d72&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T11%3A29%3A08Z&ske=2026-09-27T11%3A29%3A08Z&sks=b&skv=2026-02-06&sig=hadDIJ047I8mSwXtrMl4SjZD9lFjJrf19m2rKoSjNqY%3D"
+          MELEE_FUSION2B_URL: "https://sdmntprbrazilsouth.oaiusercontent.com/files/00000000-1734-820e-a685-3e5fdaebdf05/raw?se=2026-09-26T22%3A31%3A41Z&sp=r&sv=2026-02-06&sr=b&scid=8ac8c1fd-a1cd-5ac8-b73b-e816c6c969ee&skoid=4a431cd2-eafd-49c7-90be-bbb4d45e696d&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-09-26T21%3A46%3A01Z&ske=2026-09-27T21%3A46%3A01Z&sks=b&skv=2026-02-06&sig=U3utQiWxycT4Nk5gNvwd%2BrD26YDE86iS7oGdbFqjEl4%3D"
         run: |
           set -euxo pipefail
           mkdir -p incoming/melee-fusion2b
