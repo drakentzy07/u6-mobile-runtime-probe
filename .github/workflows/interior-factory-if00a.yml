@@ -54,8 +54,8 @@ jobs:
         run: |
           grep -q "snapBottomToY" interior_factory/web/interior-editor-v15.html
           grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v15.html
-          grep -q "Vitrina ESPADAS" interior_factory/web/interior-editor-v15.html
-          grep -q "Vitrina LANZAS" interior_factory/web/interior-editor-v15.html
+          grep -q "Exhibidor PREMIUM ESPADAS" interior_factory/web/interior-editor-v15.html
+          grep -q "Exhibidor LANZAS" interior_factory/web/interior-editor-v15.html
           grep -q "Gran fragua" interior_factory/web/interior-editor-v15.html
           grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v15.html
           echo "V15 feature guards: PASS"
