@@ -448,6 +448,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing primary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
+            if(resource!=SpearResource) FlattenKayKitStandaloneWeapon(weapon);
             TuneWeaponTransform(weapon,_loadout,true);
             _primaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _primaryBase,out _primaryTip);
@@ -460,6 +461,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing secondary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
+            if(resource!=SpearResource) FlattenKayKitStandaloneWeapon(weapon);
             TuneWeaponTransform(weapon,_loadout,false);
             _secondaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _secondaryBase,out _secondaryTip);
@@ -474,6 +476,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(ShieldResource);
             if (hand==null || prefab==null) { Debug.LogError("[RUN0I.3] Missing shield"); return; }
             _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
+            FlattenKayKitStandaloneWeapon(_shieldObject);
             TuneWeaponTransform(_shieldObject,_loadout,false);
             BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
@@ -626,7 +629,8 @@ namespace Highfly.Run0H
                     if(primary) referenceName="1H_Axe";
                     break;
                 case HighflyLoadoutProfile.DualAxe:
-                    referenceName=primary ? "1H_Axe" : "1H_Axe_Offhand";
+                    // KayKit/ClaudeCraft use the same accessory name below both handslots.
+                    referenceName="1H_Axe";
                     break;
                 case HighflyLoadoutProfile.AxeShield:
                     referenceName=primary ? "1H_Axe" : "Round_Shield";
@@ -737,6 +741,24 @@ namespace Highfly.Run0H
             if(longest<0.0001f) return;
             float factor=Mathf.Clamp(targetLength/longest,0.05f,20f);
             weapon.transform.localScale*=factor;
+        }
+
+        private static void FlattenKayKitStandaloneWeapon(GameObject weapon)
+        {
+            if(weapon==null || weapon.transform.childCount!=1) return;
+
+            Transform child=weapon.transform.GetChild(0);
+            if(child==null) return;
+            Renderer[] renderers=child.GetComponentsInChildren<Renderer>(true);
+            if(renderers==null || renderers.Length==0) return;
+
+            // KayKit standalone exports carry an internal payload offset.
+            // Flatten exactly once before applying the authored handslot grip.
+            Vector3 childScale=child.localScale;
+            weapon.transform.localScale=Vector3.Scale(weapon.transform.localScale,childScale);
+            child.localPosition=Vector3.zero;
+            child.localRotation=Quaternion.identity;
+            child.localScale=Vector3.one;
         }
 
         private static GameObject AttachWeapon(GameObject prefab, Transform hand, string name)

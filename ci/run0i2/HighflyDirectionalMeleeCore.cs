@@ -248,10 +248,11 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition DualDaggers = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualDaggers,"DOBLE DAGA",HighflyWeaponKind.Dagger,HighflyWeaponKind.Dagger,HighflyGuardStyle.CrossGuard,true,
-            // Restore the audited dagger bank: slice -> chop -> real dual stab.
-            P("DG_SLICE",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Dagger_A",1.58f,.13f,.36f,.22f,340f,17f,.029f,.74f),
-            P("DG_CHOP",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Dagger_B",1.52f,.14f,.40f,.24f,330f,19f,.033f,.75f),
-            P("DG_STAB",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Dagger_C",1.42f,.16f,.52f,.30f,300f,25f,.048f,.78f));
+            // Final user-approved grammar: same classic 1->2->3 as dual swords,
+            // including the big third-beat body turn. Keep dagger damage/range tuning separate.
+            P("DG_CLASSIC_A",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Warrior_A",1.78f,.13f,.37f,.22f,335f,17f,.029f,.74f),
+            P("DG_CLASSIC_B",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Warrior_B",1.56f,.14f,.43f,.24f,325f,19f,.033f,.76f),
+            P("DG_CLASSIC_C",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Warrior_C",1.48f,.18f,.56f,.30f,295f,25f,.048f,.80f));
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,
