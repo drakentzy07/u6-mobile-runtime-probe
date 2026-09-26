@@ -99,13 +99,21 @@ jobs:
           grep -q "MAT_GOBLIN_SCRAP_IRON" LucidHost/3D_game/Assets/HIGHFLY/LootLab/HighflyLootCore.cs
           grep -q "AUTO RUN 0A GREEN" LucidHost/3D_game/Assets/HIGHFLY/LootLab/HighflyLootMonsterLabBootstrap.cs
 
-      - name: Force fresh Unity Library
+      - name: Restore stable Unity Library cache
+        uses: actions/cache@v4
+        with:
+          path: LucidHost/3D_game/Library
+          key: lootlab-golden-6000.4.0f1-${{ hashFiles('ci/mobile/**', 'ci/lootlab/**', 'ci/HighflyCiWebGLBuilder.cs') }}
+          restore-keys: |
+            lootlab-golden-6000.4.0f1-
+            lucid-6000.4.0f1-webgl-mobile-v06-
+            lucid-6000.4.0f1-webgl-lfs-v1-da73b5be-
+
+      - name: Clean transient Unity Temp only
         shell: bash
         run: |
           set -euxo pipefail
-          rm -rf LucidHost/3D_game/Library
           rm -rf LucidHost/3D_game/Temp
-          mkdir -p LucidHost/3D_game/Library
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
@@ -119,7 +127,7 @@ jobs:
           targetPlatform: WebGL
           buildMethod: Highfly.CI.WebGLBuilder.Build
           allowDirtyBuild: true
-          customParameters: -job-worker-count 2
+          customParameters: -job-worker-count 1
 
       - name: Verify WebGL output
         shell: bash
