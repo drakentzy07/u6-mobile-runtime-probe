@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# republish: skills 3e6e5f585475632d7fbeedff4320537ed2bbe02f
 # republish: skills 0ae9a4d66340cc00a1c8aca2bcef3dc3b50efda0
 
 on:
