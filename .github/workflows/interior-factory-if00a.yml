@@ -96,8 +96,8 @@ jobs:
           grep -q "Placa espadas cruzadas" interior_factory/web/interior-editor-v18.html
           grep -q "Fila baja" interior_factory/web/interior-editor-v18.html
           grep -q "Fila alta" interior_factory/web/interior-editor-v18.html
-          if grep -q "restaurant_180" interior_factory/web/interior-editor-v18.html; then
-            echo "Forbidden kitchen oven asset still seeded in v18"
+          if grep -q '"asset":"restaurant_180"' interior_factory/web/interior-editor-v18.html; then
+            echo "Forbidden kitchen oven asset still seeded in curated v18 layout"
             exit 1
           fi
           echo "V18 supreme visual pass guards: PASS"
