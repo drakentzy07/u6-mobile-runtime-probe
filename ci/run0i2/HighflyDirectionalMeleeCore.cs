@@ -227,31 +227,31 @@ namespace Highfly.Run0I2
             HighflyLoadoutProfile.Axe1H,"HACHA 1H",HighflyWeaponKind.Axe,null,HighflyGuardStyle.WeaponGuard,false,
             P("AXE_DDR",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Right,"Axe_A",.96f,.24f,.52f,.20f,145f,28f,.065f),
             P("AXE_HRL",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Right,"Axe_B",.94f,.24f,.55f,.22f,135f,30f,.070f),
-            P("AXE_VDOWN",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Axe_C",.90f,.28f,.66f,.28f,115f,38f,.090f,.88f));
+            P("AXE_STAB",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Axe_C",.90f,.28f,.66f,.28f,115f,38f,.090f,.88f));
 
         private static readonly HighflyLoadoutDefinition DualAxe = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualAxe,"DOBLE HACHA",HighflyWeaponKind.Axe,HighflyWeaponKind.Axe,HighflyGuardStyle.CrossGuard,true,
-            P("DAXE_R",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Right,"DualAxe_A",1.02f,.20f,.46f,.24f,155f,24f,.055f),
-            P("DAXE_L",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Left,"DualAxe_B",1.02f,.20f,.48f,.26f,155f,25f,.058f),
-            P("DAXE_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualAxe_C",.96f,.26f,.64f,.32f,135f,36f,.085f,.86f));
+            P("DAXE_SLICE",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"DualAxe_A",1.00f,.20f,.48f,.24f,155f,24f,.055f),
+            P("DAXE_CHOP",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Left,"DualAxe_B",.96f,.22f,.52f,.26f,145f,27f,.062f),
+            P("DAXE_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualAxe_C",.92f,.26f,.64f,.32f,130f,36f,.085f,.86f));
 
         private static readonly HighflyLoadoutDefinition AxeShield = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.AxeShield,"HACHA + ESCUDO",HighflyWeaponKind.Axe,HighflyWeaponKind.Shield,HighflyGuardStyle.ShieldGuard,false,
             P("AS_DDR",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Right,"Axe_A",.94f,.24f,.52f,.18f,130f,29f,.068f),
             P("AS_HRL",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Right,"Axe_B",.92f,.24f,.55f,.20f,125f,31f,.072f),
-            P("AS_VDOWN",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Axe_C",.88f,.28f,.66f,.24f,110f,39f,.092f,.88f));
+            P("AS_STAB",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Axe_C",.88f,.28f,.66f,.24f,110f,39f,.092f,.88f));
 
         private static readonly HighflyLoadoutDefinition DualDaggers = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualDaggers,"DOBLE DAGA",HighflyWeaponKind.Dagger,HighflyWeaponKind.Dagger,HighflyGuardStyle.CrossGuard,true,
-            P("DG_STAB_R",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Dagger_A",1.58f,.13f,.35f,.22f,350f,17f,.029f,.74f),
-            P("DG_SLICE_L",HighflyStrikeDirection.HorizontalRightToLeft,HighflyHandUsage.Left,"Dagger_B",1.52f,.14f,.38f,.24f,345f,18f,.032f,.75f),
-            P("DG_CHOP_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Dagger_C",1.38f,.18f,.52f,.28f,310f,24f,.047f,.78f));
+            P("DG_SLICE_R",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Dagger_A",1.58f,.13f,.36f,.22f,350f,17f,.029f,.74f),
+            P("DG_CHOP_L",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Left,"Dagger_B",1.52f,.14f,.40f,.24f,340f,19f,.033f,.75f),
+            P("DG_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Dagger_C",1.38f,.18f,.54f,.28f,305f,24f,.047f,.78f));
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,
             P("SP_THRUST",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_A",1.02f,.22f,.50f,.48f,135f,27f,.055f),
             P("SP_SWEEP",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Both,"Spear_B",.98f,.24f,.58f,.32f,120f,25f,.052f),
-            P("SP_HEAVY",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_C",.92f,.28f,.66f,.62f,100f,38f,.085f,.88f));
+            P("SP_CHOP",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Both,"Spear_C",.92f,.28f,.66f,.62f,100f,38f,.085f,.88f));
 
         public static HighflyLoadoutDefinition Get(HighflyLoadoutProfile profile)
         {
