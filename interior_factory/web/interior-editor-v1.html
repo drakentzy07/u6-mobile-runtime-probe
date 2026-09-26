@@ -186,7 +186,7 @@ function pointerNDC(e){const r=renderer.domElement.getBoundingClientRect();mouse
 function select(root){selected=root;transform.detach();const box=document.querySelector('#selection');if(!root){box.style.display='none';return}const rec=records.get(root.userData.recordId);if(!rec)return;if(!rec.locked){transform.attach(root)}box.style.display='block';box.querySelector('.selname').textContent=rec.name;box.querySelector('.selmeta').textContent=rec.category+' · '+rec.id}
 renderer.domElement.addEventListener('pointerdown',async e=>{
  if(!editMode||transform.dragging)return;pointerNDC(e);ray.setFromCamera(mouse,camera);
- if(placing){const hit=new THREE.Vector3(),plane=new THREE.Plane(new THREE.Vector3(0,1,0),0);ray.ray.intersectPlane(plane,hit);pushHistory();const o=await addAsset(placing.key,[hit.x,0,hit.z]);select(o);placing=null;document.querySelector('#placeBanner').style.display='none';saveNow();renderCards();return}
+ if(placing){const hit=new THREE.Vector3(),py=(camera.position.y<-.8?LOW:UP),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-py);ray.ray.intersectPlane(plane,hit);pushHistory();const o=await addAsset(placing.key,[hit.x,py,hit.z]);select(o);placing=null;document.querySelector('#placeBanner').style.display='none';saveNow();renderCards();return}
  const hits=ray.intersectObjects(roots,true);select(hits.length?rootOf(hits[0].object):null);
 });
 
