@@ -253,7 +253,7 @@ namespace Highfly.Mobile
                     player?.HighflyMobileJump();
                     break;
                 case HighflyMobileAction.Potion:
-                    UnityEngine.Object.FindFirstObjectByType<PlayerPotion>()?.HighflyMobileUsePotion();
+                    // Loot Lab reuses movement/camera controls only; potion runtime is outside this lab.
                     break;
                 case HighflyMobileAction.Sprint:
                 case HighflyMobileAction.None:
