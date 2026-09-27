@@ -19,11 +19,21 @@ namespace Highfly.Run0H
         private const string BarbarianResource = "HIGHFLY/Run0H/KayKitBarbarian";
         private const string RogueResource = "HIGHFLY/Run0H/KayKitRogue";
         private const string RogueHoodedResource = "HIGHFLY/Run0H/KayKitRogueHooded";
-        private const string SwordResource = "HIGHFLY/Run0H/KayKitSword1H";
-        private const string AxeResource = "HIGHFLY/Run0H/KayKitAxe1H";
-        private const string DaggerResource = "HIGHFLY/Run0H/KayKitDagger";
-        private const string ShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
-        private const string SpearResource = "HIGHFLY/Run0H/QuaterniusSpear";
+        private const string KayKitSwordResource = "HIGHFLY/Run0H/KayKitSword1H";
+        private const string KayKitAxeResource = "HIGHFLY/Run0H/KayKitAxe1H";
+        private const string KayKitDaggerResource = "HIGHFLY/Run0H/KayKitDagger";
+        private const string KayKitShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
+        private const string QuaterniusSpearResource = "HIGHFLY/Run0H/QuaterniusSpear";
+
+        // SKILL3 arsenal pass: use the strongest verified visual donor available,
+        // while keeping the proven KayKit resources as hard rollback fallbacks.
+        private const string PrideKayKitSwordResource = "HIGHFLY/Run0I/PrideSword";
+        private const string PrideQuaterniusSpearResource = "HIGHFLY/Run0I/PrideSpear";
+        private const string QuaterniusSwordGoldenResource = "HIGHFLY/Run0I/QSwordGolden";
+        private const string QuaterniusDagger2Resource = "HIGHFLY/Run0I/QDagger2";
+        private const string QuaterniusAxeDoubleResource = "HIGHFLY/Run0I/QAxeDouble";
+        private const string QuaterniusShieldGoldenResource = "HIGHFLY/Run0I/QShieldCelticGolden";
+
         private const string Sidekick126Resource = "HIGHFLY/Run0I/Sidekick126";
         private const float TargetHeight = 1.72f;
 
@@ -37,6 +47,8 @@ namespace Highfly.Run0H
         private HighflyRun0HCharacter _current = HighflyRun0HCharacter.Warrior;
         private readonly HighflyEquipmentState _equipment = new HighflyEquipmentState();
         private HighflyLoadoutProfile _loadout = HighflyLoadoutProfile.Unarmed;
+        private string _currentWeaponDonor = "UNARMED";
+        private string _currentSocketLabel = "-";
         private bool _bound;
 
         private Transform _primaryBase, _primaryTip, _secondaryBase, _secondaryTip;
@@ -58,6 +70,8 @@ namespace Highfly.Run0H
         public Transform SecondaryBase => _secondaryBase;
         public Transform SecondaryTip => _secondaryTip;
         public string CurrentLabel => HighflyMeleeLibrary.Get(_loadout).Label;
+        public string CurrentWeaponDonor => _currentWeaponDonor;
+        public string CurrentSocketLabel => _currentSocketLabel;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Install()
@@ -478,50 +492,87 @@ namespace Highfly.Run0H
 
         private void AttachLoadoutEquipment()
         {
+            string sword = FirstAvailable(PrideKayKitSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
+            string dagger = FirstAvailable(PrideKayKitSwordResource, QuaterniusDagger2Resource, KayKitDaggerResource);
+            string axe = FirstAvailable(QuaterniusAxeDoubleResource, KayKitAxeResource);
+            string shield = FirstAvailable(QuaterniusShieldGoldenResource, KayKitShieldResource);
+            string spear = FirstAvailable(PrideQuaterniusSpearResource, QuaterniusSpearResource);
+
             switch (_loadout)
             {
                 case HighflyLoadoutProfile.Unarmed:
+                    _currentWeaponDonor = "UNARMED";
                     break;
                 case HighflyLoadoutProfile.Sword1H:
-                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
+                    _currentWeaponDonor = DonorLabel(sword);
+                    AttachPrimary(sword,"HIGHFLY_SWORD_R");
                     break;
                 case HighflyLoadoutProfile.DualSword:
-                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
-                    AttachSecondary(SwordResource,"HIGHFLY_SWORD_L");
+                    _currentWeaponDonor = DonorLabel(sword)+" x2";
+                    AttachPrimary(sword,"HIGHFLY_SWORD_R");
+                    AttachSecondary(sword,"HIGHFLY_SWORD_L");
                     break;
                 case HighflyLoadoutProfile.SwordShield:
-                    AttachPrimary(SwordResource,"HIGHFLY_SWORD_R");
-                    AttachShield();
+                    _currentWeaponDonor = DonorLabel(sword)+" + "+DonorLabel(shield);
+                    AttachPrimary(sword,"HIGHFLY_SWORD_R");
+                    AttachShield(shield);
                     break;
                 case HighflyLoadoutProfile.Axe1H:
-                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
+                    _currentWeaponDonor = DonorLabel(axe);
+                    AttachPrimary(axe,"HIGHFLY_AXE_R");
                     break;
                 case HighflyLoadoutProfile.DualAxe:
-                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
-                    AttachSecondary(AxeResource,"HIGHFLY_AXE_L");
+                    _currentWeaponDonor = DonorLabel(axe)+" x2";
+                    AttachPrimary(axe,"HIGHFLY_AXE_R");
+                    AttachSecondary(axe,"HIGHFLY_AXE_L");
                     break;
                 case HighflyLoadoutProfile.AxeShield:
-                    AttachPrimary(AxeResource,"HIGHFLY_AXE_R");
-                    AttachShield();
+                    _currentWeaponDonor = DonorLabel(axe)+" + "+DonorLabel(shield);
+                    AttachPrimary(axe,"HIGHFLY_AXE_R");
+                    AttachShield(shield);
                     break;
                 case HighflyLoadoutProfile.DualDaggers:
-                    AttachPrimary(DaggerResource,"HIGHFLY_DAGGER_R");
-                    AttachSecondary(DaggerResource,"HIGHFLY_DAGGER_L");
+                    _currentWeaponDonor = DonorLabel(dagger)+" • DAGGER SCALE";
+                    AttachPrimary(dagger,"HIGHFLY_DAGGER_R");
+                    AttachSecondary(dagger,"HIGHFLY_DAGGER_L");
                     break;
                 case HighflyLoadoutProfile.Spear2H:
-                    AttachPrimary(SpearResource,"HIGHFLY_SPEAR_2H");
+                    _currentWeaponDonor = DonorLabel(spear);
+                    AttachPrimary(spear,"HIGHFLY_SPEAR_2H");
                     break;
             }
         }
 
+        private static string FirstAvailable(params string[] resources)
+        {
+            for (int i=0;i<resources.Length;i++)
+            {
+                string resource=resources[i];
+                if (!string.IsNullOrWhiteSpace(resource) && Resources.Load<GameObject>(resource)!=null)
+                    return resource;
+            }
+            return resources!=null && resources.Length>0 ? resources[resources.Length-1] : string.Empty;
+        }
+
+        private static string DonorLabel(string resource)
+        {
+            if (string.IsNullOrWhiteSpace(resource)) return "MISSING";
+            if (resource.IndexOf("Pride",StringComparison.OrdinalIgnoreCase)>=0) return "POLYGON PRIDE";
+            if (resource.IndexOf("Q",StringComparison.OrdinalIgnoreCase)>=0 &&
+                resource.IndexOf("Run0I",StringComparison.OrdinalIgnoreCase)>=0) return "QUATERNIUS";
+            if (resource.IndexOf("Quaternius",StringComparison.OrdinalIgnoreCase)>=0) return "QUATERNIUS";
+            if (resource.IndexOf("KayKit",StringComparison.OrdinalIgnoreCase)>=0) return "KAYKIT";
+            return "DONOR";
+        }
+
         private void AttachPrimary(string resource,string name)
         {
-            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.RightHand);
+            Transform hand=ResolveWeaponSocket(true);
             GameObject prefab=Resources.Load<GameObject>(resource);
-            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing primary "+resource); return; }
+            if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing primary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
-            if(resource!=SpearResource) FlattenKayKitStandaloneWeapon(weapon);
-            TuneWeaponTransform(weapon,_loadout,true);
+            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
+            TuneWeaponTransform(weapon,_loadout,true,resource);
             _primaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _primaryBase,out _primaryTip);
             _primaryTrail=BuildTrail(_primaryTip);
@@ -529,56 +580,115 @@ namespace Highfly.Run0H
 
         private void AttachSecondary(string resource,string name)
         {
-            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+            Transform hand=ResolveWeaponSocket(false);
             GameObject prefab=Resources.Load<GameObject>(resource);
-            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.2] Missing secondary "+resource); return; }
+            if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing secondary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
-            if(resource!=SpearResource) FlattenKayKitStandaloneWeapon(weapon);
-            TuneWeaponTransform(weapon,_loadout,false);
+            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
+            TuneWeaponTransform(weapon,_loadout,false,resource);
             _secondaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _secondaryBase,out _secondaryTip);
             _secondaryTrail=BuildTrail(_secondaryTip);
         }
 
-        private void AttachShield()
+        private void AttachShield(string resource)
         {
-            // Shield belongs to the hand for this Hunter rig. Parenting it to the lower arm
-            // pushed the mesh toward the shoulder as the forearm rotated.
-            Transform hand=_visualAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
-            GameObject prefab=Resources.Load<GameObject>(ShieldResource);
-            if (hand==null || prefab==null) { Debug.LogError("[RUN0I.3] Missing shield"); return; }
+            Transform hand=ResolveWeaponSocket(false);
+            GameObject prefab=Resources.Load<GameObject>(resource);
+            if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing shield "+resource); return; }
             _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
-            FlattenKayKitStandaloneWeapon(_shieldObject);
-            TuneWeaponTransform(_shieldObject,_loadout,false);
+            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(_shieldObject);
+            TuneWeaponTransform(_shieldObject,_loadout,false,resource);
             BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
 
-        private void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
+        private Transform ResolveWeaponSocket(bool primary)
+        {
+            // Sidekick ships authored prop sockets. These are the canonical equipment
+            // anchors for the new Hunter; using old KayKit hand offsets caused floating,
+            // mirrored and horizontal equipment after the body swap.
+            if (_visualRoot!=null)
+            {
+                string wanted=primary ? "prop_r" : "prop_l";
+                Transform socket=FindNamedDescendant(_visualRoot.transform,wanted);
+                if(socket!=null)
+                {
+                    _currentSocketLabel="SIDEKICK "+wanted;
+                    return socket;
+                }
+            }
+
+            Transform hand=_visualAnimator!=null
+                ? _visualAnimator.GetBoneTransform(primary?HumanBodyBones.RightHand:HumanBodyBones.LeftHand)
+                : null;
+            _currentSocketLabel="HUMANOID HAND FALLBACK";
+            return hand;
+        }
+
+        private static bool IsKayKitWeapon(string resource)
+            => !string.IsNullOrWhiteSpace(resource) &&
+               resource.IndexOf("KayKit",StringComparison.OrdinalIgnoreCase)>=0;
+
+        private static bool IsPrideWeapon(string resource)
+            => !string.IsNullOrWhiteSpace(resource) &&
+               resource.IndexOf("Pride",StringComparison.OrdinalIgnoreCase)>=0;
+
+        private static bool IsQuaterniusWeapon(string resource)
+            => !string.IsNullOrWhiteSpace(resource) &&
+               (resource.IndexOf("/Q",StringComparison.OrdinalIgnoreCase)>=0 ||
+                resource.IndexOf("Quaternius",StringComparison.OrdinalIgnoreCase)>=0);
+
+        private void TuneWeaponTransform(GameObject weapon,HighflyLoadoutProfile loadout,bool primary,string resource)
         {
             if (weapon==null) return;
 
             float targetLength=0.90f;
             bool alignSpearGrip=false;
+            bool alignGenericGrip=false;
+            float genericGripFraction=0.16f;
+            bool sidekickSocket=weapon.transform.parent!=null &&
+                (NormalizeGripName(weapon.transform.parent.name)=="propr" ||
+                 NormalizeGripName(weapon.transform.parent.name)=="propl");
+            bool pride=IsPrideWeapon(resource);
+            bool quaternius=IsQuaterniusWeapon(resource);
 
-            // ClaudeCraft uses the authored KayKit handslot accessory transform before
-            // falling back to numeric grip tables. We can do even better here because
-            // the original KayKit accessory nodes are still present in this exact rig:
-            // their renderers are hidden, but their transforms remain authoritative.
-            bool authoredGrip=TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
+            // KayKit authored accessory references only make sense on the old KayKit body.
+            bool authoredGrip=!sidekickSocket && TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
+
+            // Sidekick prop sockets are already the correct anatomical anchors.
+            if(sidekickSocket)
+            {
+                weapon.transform.localPosition=Vector3.zero;
+                weapon.transform.localRotation=Quaternion.identity;
+
+                // Quaternius standalone FBX use a different export axis/pivot than Synty.
+                if(quaternius)
+                {
+                    weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
+                    alignGenericGrip=true;
+                }
+            }
 
             switch (loadout)
             {
                 case HighflyLoadoutProfile.Spear2H:
-                    targetLength=2.05f;
-                    // Quaternius spear is not a KayKit handslot accessory. Keep the
-                    // known shaft orientation, then seat a real grip point on the hand.
-                    weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
-                    weapon.transform.localPosition=Vector3.zero;
-                    alignSpearGrip=true;
+                    targetLength=2.02f;
+                    if(pride && sidekickSocket)
+                    {
+                        // Synty -> Synty: use the authored prop socket directly.
+                        weapon.transform.localRotation=Quaternion.identity;
+                        weapon.transform.localPosition=Vector3.zero;
+                    }
+                    else
+                    {
+                        weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
+                        weapon.transform.localPosition=Vector3.zero;
+                        alignSpearGrip=true;
+                    }
                     break;
 
                 case HighflyLoadoutProfile.DualDaggers:
-                    targetLength=0.48f;
+                    targetLength=0.52f;
                     if(!authoredGrip)
                     {
                         weapon.transform.localRotation=primary
@@ -675,6 +785,23 @@ namespace Highfly.Run0H
 
             if (alignSpearGrip)
                 AlignSpearGripToHand(weapon,0.30f);
+            else if (alignGenericGrip &&
+                     loadout!=HighflyLoadoutProfile.SwordShield &&
+                     loadout!=HighflyLoadoutProfile.AxeShield)
+                AlignSpearGripToHand(weapon,genericGripFraction);
+
+            // A shield is a forearm-facing plane, not a blade. Seat it close to the
+            // Sidekick left prop socket after scale normalization.
+            if(sidekickSocket && !primary &&
+               (loadout==HighflyLoadoutProfile.SwordShield || loadout==HighflyLoadoutProfile.AxeShield))
+            {
+                weapon.transform.localRotation=Quaternion.Euler(0f,90f,0f);
+                weapon.transform.localPosition=new Vector3(0.02f,0f,0.08f);
+            }
+
+            Debug.Log("[SKILL3] WEAPON "+loadout+" "+(primary?"R":"L")+
+                " donor="+DonorLabel(resource)+" socket="+_currentSocketLabel+
+                " resource="+resource+" length="+targetLength.ToString("0.00"));
         }
 
         private bool TryApplyAuthoredKayKitGrip(GameObject weapon,HighflyLoadoutProfile loadout,bool primary)
