@@ -351,6 +351,9 @@ namespace Highfly.Run0H
             EnsureRenderableMaterials();
 
             AttachLoadoutEquipment();
+            // Weapons are children of the Sidekick prop sockets, so the same anti-magenta
+            // pass now covers Pride/Quaternius materials too.
+            EnsureRenderableMaterials();
 
             _mirror = _visualRoot.AddComponent<HighflyRun0HAnimatorMirror>();
             _mirror.Bind(_sourceAnimator, _visualAnimator);
