@@ -1,9 +1,9 @@
-name: HIGHFLY Run0I.3 Single Hunter Guard Core
+name: HIGHFLY SKILL4 KayKit Weapon Foundation
 
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/run0i3-single-hunter-guard-core, highfly/skill3-sidekick126-fix, highfly/skill3-arsenal-pass1, highfly/skill3-kaykit-crown]
+    branches: [highfly/run0i3-single-hunter-guard-core, highfly/skill3-sidekick126-fix, highfly/skill3-arsenal-pass1, highfly/skill3-kaykit-crown, highfly/skill4-kaykit-weapon-foundation]
     paths:
       - "ci/**"
 
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build SKILL3 • KayKit Hunter Crown • Unity 6000.6.2
+    name: Build SKILL4 • KayKit Weapon Foundation • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -181,7 +181,7 @@ jobs:
           test "$(stat -c%s "$P/Assets/HIGHFLY/Run0I/KayKit_Rig_Medium_CombatMelee.fbx")" -gt 3000000
           echo "SKILL3_KAYKIT_MELEE11_INSTALLED=1"
 
-      - name: Install audited SKILL3 weapon donors
+      - name: Install audited SKILL4 weapon donors
         shell: bash
         run: |
           set -euxo pipefail
@@ -208,7 +208,7 @@ jobs:
           find "$P/Assets" -type f -ipath '*pride*' -print | sed -n '1,40p'
           test -n "$(find "$P/Assets" -type f \( -iname '*sword*.fbx' -o -iname '*sword*.prefab' \) -ipath '*pride*' -print -quit)"
           test -n "$(find "$P/Assets" -type f \( -iname '*spear*.fbx' -o -iname '*spear*.prefab' \) -ipath '*pride*' -print -quit)"
-          echo "SKILL3_AUDITED_WEAPON_DONORS_INSTALLED=1"
+          echo "SKILL4_AUDITED_WEAPON_DONORS_INSTALLED=1"
 
       - name: Reset Unity transient cache
         shell: bash
@@ -247,11 +247,13 @@ jobs:
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
           test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
-          grep -q "KAYKIT HUNTER CROWN" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "ARSENAL PASS 2" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "AUTHORED KAYKIT GRIPS" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "KAYKIT WEAPON FOUNDATION" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DONOR AXIS FIX" "$OUT/RUN0I3_BUILD.txt"
           grep -q "10 LOADOUTS" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "SHIELD BASH" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "UNARMED R-L-KICK" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DUAL R-L-X" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SHIELD ATK-ATK-BASH" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SPEAR A-B-C" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4
