@@ -6,7 +6,7 @@ using Highfly.Run0I2;
 
 namespace Highfly.Run0I
 {
-    // SKILL3 ARSENAL PASS 1 • audited weapon/socket validation build
+    // SKILL3 KAYKIT CROWN • final hunter / grip / combo validation build
     [DisallowMultipleComponent]
     public sealed class HighflyRun0IOverlay : MonoBehaviour
     {
@@ -71,7 +71,7 @@ namespace Highfly.Run0I
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             HighflyLoadoutDefinition load=visual!=null?HighflyMeleeLibrary.Get(visual.CurrentLoadout):null;
             _metrics.text=
-                "SKILL3 • SIDEKICK / ARSENAL PASS 1\n"+
+                "SKILL3 • KAYKIT HUNTER CROWN\n"+
                 "Loadout: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
                 "Arma: "+(visual!=null?visual.CurrentWeaponDonor:"...")+"\n"+
                 "Socket: "+(visual!=null?visual.CurrentSocketLabel:"...")+"\n"+
@@ -79,7 +79,7 @@ namespace Highfly.Run0I
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
-                "1 Hunter • trace por mano • Cross/Shield/Pole guard • S2 OFF";
+                "1 Hunter KayKit • 10 loadouts • R/L/X dual • Shield Bash • S2 OFF";
         }
 
         private void BuildMetrics()
