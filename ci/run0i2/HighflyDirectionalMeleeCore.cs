@@ -13,6 +13,7 @@ namespace Highfly.Run0I2
         Axe1H,
         DualAxe,
         AxeShield,
+        Dagger1H,
         DualDaggers,
         Spear2H
     }
@@ -60,6 +61,7 @@ namespace Highfly.Run0I2
                 case HighflyLoadoutProfile.Axe1H: MainHand=HighflyWeaponKind.Axe; break;
                 case HighflyLoadoutProfile.DualAxe: MainHand=HighflyWeaponKind.Axe; OffHand=HighflyWeaponKind.Axe; break;
                 case HighflyLoadoutProfile.AxeShield: MainHand=HighflyWeaponKind.Axe; OffHand=HighflyWeaponKind.Shield; break;
+                case HighflyLoadoutProfile.Dagger1H: MainHand=HighflyWeaponKind.Dagger; break;
                 case HighflyLoadoutProfile.DualDaggers: MainHand=HighflyWeaponKind.Dagger; OffHand=HighflyWeaponKind.Dagger; break;
                 case HighflyLoadoutProfile.Spear2H: TwoHand=HighflyWeaponKind.Spear; break;
             }
@@ -77,6 +79,7 @@ namespace Highfly.Run0I2
             if (state.MainHand==HighflyWeaponKind.Axe && state.OffHand==HighflyWeaponKind.Axe) return HighflyLoadoutProfile.DualAxe;
             if (state.MainHand==HighflyWeaponKind.Axe && state.OffHand==HighflyWeaponKind.Shield) return HighflyLoadoutProfile.AxeShield;
             if (state.MainHand==HighflyWeaponKind.Dagger && state.OffHand==HighflyWeaponKind.Dagger) return HighflyLoadoutProfile.DualDaggers;
+            if (state.MainHand==HighflyWeaponKind.Dagger) return HighflyLoadoutProfile.Dagger1H;
             if (state.MainHand==HighflyWeaponKind.Sword) return HighflyLoadoutProfile.Sword1H;
             if (state.MainHand==HighflyWeaponKind.Axe) return HighflyLoadoutProfile.Axe1H;
             return HighflyLoadoutProfile.Unarmed;
@@ -202,9 +205,9 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition Unarmed = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Unarmed,"SIN ARMAS",HighflyWeaponKind.None,null,HighflyGuardStyle.WeaponGuard,false,
-            P("UA_PUNCH_A",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch_A",1.10f,.18f,.46f,.16f,250f,9f,.024f),
-            P("UA_KICK",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Unarmed_Kick",1.00f,.22f,.58f,.20f,220f,12f,.032f),
-            P("UA_PUNCH_B",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch_B",.96f,.22f,.58f,.24f,190f,14f,.038f,.86f));
+            P("UA_PUNCH_R",HighflyStrikeDirection.Thrust,HighflyHandUsage.Right,"Unarmed_Punch_A",1.10f,.18f,.46f,.16f,250f,9f,.024f),
+            P("UA_PUNCH_L",HighflyStrikeDirection.Thrust,HighflyHandUsage.Left,"Unarmed_Punch_B",1.06f,.18f,.48f,.18f,245f,10f,.028f),
+            P("UA_KICK_FINISH",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Unarmed_Kick",1.00f,.22f,.58f,.24f,220f,14f,.038f,.86f));
 
         private static readonly HighflyLoadoutDefinition Sword1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Sword1H,"ESPADA 1H",HighflyWeaponKind.Sword,null,HighflyGuardStyle.WeaponGuard,false,
@@ -214,17 +217,16 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition DualSword = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualSword,"DOBLE ESPADA",HighflyWeaponKind.Sword,HighflyWeaponKind.Sword,HighflyGuardStyle.CrossGuard,true,
-            // Final stability pass: use the proven Lucid 1->2->3 body language.
-            // Dual cross-guard remains independent, so parry still crosses both blades.
-            P("DS_CLASSIC_A",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Warrior_A",1.72f,.18f,.45f,.25f,230f,19f,.038f),
-            P("DS_CLASSIC_B",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Warrior_B",1.48f,.18f,.50f,.28f,220f,21f,.043f),
-            P("DS_CLASSIC_C",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Warrior_C",1.42f,.24f,.66f,.36f,185f,29f,.062f,.84f));
+            // Right -> left -> crossed X finish using the audited dual-wield bank.
+            P("DS_RIGHT",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"DualSword_A",1.10f,.18f,.45f,.25f,230f,19f,.038f),
+            P("DS_LEFT",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"DualSword_B",1.08f,.18f,.50f,.28f,220f,21f,.043f),
+            P("DS_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualSword_C",1.02f,.24f,.66f,.36f,185f,29f,.062f,.84f));
 
         private static readonly HighflyLoadoutDefinition SwordShield = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.SwordShield,"ESPADA + ESCUDO",HighflyWeaponKind.Sword,HighflyWeaponKind.Shield,HighflyGuardStyle.ShieldGuard,false,
-            P("SS_VDOWN",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.85f,.22f,.46f,.20f,175f,23f,.050f),
-            P("SS_HLR",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.42f,.20f,.50f,.22f,160f,25f,.055f),
-            P("SS_DUP",HighflyStrikeDirection.DiagonalUpRight,HighflyHandUsage.Right,"Warrior_C",1.42f,.28f,.66f,.28f,145f,31f,.075f,.86f));
+            P("SS_ATK_R",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.85f,.22f,.46f,.20f,175f,23f,.050f),
+            P("SS_ATK_L",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.42f,.20f,.50f,.22f,160f,25f,.055f),
+            P("SS_SHIELD_BASH",HighflyStrikeDirection.Thrust,HighflyHandUsage.Left,"Shield_Bash",1.10f,.20f,.58f,.34f,145f,34f,.080f,.84f));
 
         private static readonly HighflyLoadoutDefinition Axe1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Axe1H,"HACHA 1H",HighflyWeaponKind.Axe,null,HighflyGuardStyle.WeaponGuard,false,
@@ -236,23 +238,27 @@ namespace Highfly.Run0I2
         private static readonly HighflyLoadoutDefinition DualAxe = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualAxe,"DOBLE HACHA",HighflyWeaponKind.Axe,HighflyWeaponKind.Axe,HighflyGuardStyle.CrossGuard,true,
             // Same official dual grammar as swords/daggers: only equipment changes.
-            P("DAXE_DIAG_R",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"DualSword_A",1.08f,.18f,.45f,.26f,205f,24f,.052f),
-            P("DAXE_DIAG_L",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"DualSword_B",1.06f,.18f,.47f,.28f,205f,27f,.060f),
-            P("DAXE_CROSS_OUT",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualSword_C",1.00f,.24f,.64f,.34f,180f,36f,.085f,.86f));
+            P("DAXE_RIGHT",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"DualAxe_A",1.08f,.18f,.45f,.26f,205f,24f,.052f),
+            P("DAXE_LEFT",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"DualAxe_B",1.06f,.18f,.47f,.28f,205f,27f,.060f),
+            P("DAXE_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"DualAxe_C",1.00f,.24f,.64f,.34f,180f,36f,.085f,.86f));
 
         private static readonly HighflyLoadoutDefinition AxeShield = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.AxeShield,"HACHA + ESCUDO",HighflyWeaponKind.Axe,HighflyWeaponKind.Shield,HighflyGuardStyle.ShieldGuard,false,
-            P("AS_1H_A",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.72f,.22f,.46f,.18f,155f,29f,.065f),
-            P("AS_1H_B",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.38f,.20f,.50f,.20f,145f,31f,.070f),
-            P("AS_1H_C",HighflyStrikeDirection.DiagonalUpRight,HighflyHandUsage.Right,"Warrior_C",1.35f,.28f,.66f,.25f,125f,39f,.090f,.88f));
+            P("AS_ATK_R",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.72f,.22f,.46f,.18f,155f,29f,.065f),
+            P("AS_ATK_L",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.38f,.20f,.50f,.20f,145f,31f,.070f),
+            P("AS_SHIELD_BASH",HighflyStrikeDirection.Thrust,HighflyHandUsage.Left,"Shield_Bash",1.08f,.20f,.58f,.32f,125f,42f,.095f,.86f));
+
+        private static readonly HighflyLoadoutDefinition Dagger1H = new HighflyLoadoutDefinition(
+            HighflyLoadoutProfile.Dagger1H,"DAGA 1H",HighflyWeaponKind.Dagger,null,HighflyGuardStyle.WeaponGuard,false,
+            P("DG1_A",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.92f,.18f,.43f,.20f,280f,16f,.030f),
+            P("DG1_B",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.62f,.17f,.47f,.22f,270f,18f,.034f),
+            P("DG1_C",HighflyStrikeDirection.Spin,HighflyHandUsage.Right,"Warrior_C",1.52f,.23f,.62f,.28f,230f,24f,.045f,.80f));
 
         private static readonly HighflyLoadoutDefinition DualDaggers = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualDaggers,"DOBLE DAGA",HighflyWeaponKind.Dagger,HighflyWeaponKind.Dagger,HighflyGuardStyle.CrossGuard,true,
-            // Final user-approved grammar: same classic 1->2->3 as dual swords,
-            // including the big third-beat body turn. Keep dagger damage/range tuning separate.
-            P("DG_CLASSIC_A",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Both,"Warrior_A",1.78f,.13f,.37f,.22f,335f,17f,.029f,.74f),
-            P("DG_CLASSIC_B",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Both,"Warrior_B",1.56f,.14f,.43f,.24f,325f,19f,.033f,.76f),
-            P("DG_CLASSIC_C",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Warrior_C",1.48f,.18f,.56f,.30f,295f,25f,.048f,.80f));
+            P("DG_RIGHT",HighflyStrikeDirection.DiagonalDownLeft,HighflyHandUsage.Right,"Dagger_A",1.18f,.13f,.37f,.22f,335f,17f,.029f,.74f),
+            P("DG_LEFT",HighflyStrikeDirection.DiagonalDownRight,HighflyHandUsage.Left,"Dagger_B",1.16f,.14f,.43f,.24f,325f,19f,.033f,.76f),
+            P("DG_X",HighflyStrikeDirection.Cross,HighflyHandUsage.Both,"Dagger_C",1.08f,.18f,.56f,.30f,295f,25f,.048f,.80f));
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,
@@ -272,6 +278,7 @@ namespace Highfly.Run0I2
                 case HighflyLoadoutProfile.Axe1H: return Axe1H;
                 case HighflyLoadoutProfile.DualAxe: return DualAxe;
                 case HighflyLoadoutProfile.AxeShield: return AxeShield;
+                case HighflyLoadoutProfile.Dagger1H: return Dagger1H;
                 case HighflyLoadoutProfile.DualDaggers: return DualDaggers;
                 case HighflyLoadoutProfile.Spear2H: return Spear2H;
                 default: return Unarmed;
