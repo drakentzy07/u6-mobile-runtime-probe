@@ -643,7 +643,7 @@ namespace Highfly.Run0H
             bool quaternius=IsQuaterniusWeapon(resource);
 
             // KayKit authored accessory references only make sense on the old KayKit body.
-            bool authoredGrip=!sidekickSocket && TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
+            bool authoredGrip=IsKayKitWeapon(resource) && !sidekickSocket && TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
 
             // Sidekick prop sockets are already the correct anatomical anchors.
             if(sidekickSocket)
@@ -775,13 +775,28 @@ namespace Highfly.Run0H
                     break;
             }
 
+            // SKILL4: authored KayKit accessory transforms only apply to KayKit meshes.
+            // External donors keep their audited export-axis correction and then seat their
+            // actual grip point at the Hunter's hand. This prevents backwards blades.
+            bool shieldPiece = !primary &&
+                (loadout==HighflyLoadoutProfile.SwordShield || loadout==HighflyLoadoutProfile.AxeShield);
+            if (!authoredGrip && !shieldPiece && !alignSpearGrip)
+            {
+                alignGenericGrip=true;
+                if (loadout==HighflyLoadoutProfile.Dagger1H || loadout==HighflyLoadoutProfile.DualDaggers)
+                    genericGripFraction=0.10f;
+                else if (loadout==HighflyLoadoutProfile.Axe1H || loadout==HighflyLoadoutProfile.DualAxe ||
+                         loadout==HighflyLoadoutProfile.AxeShield)
+                    genericGripFraction=0.18f;
+                else
+                    genericGripFraction=0.13f;
+            }
+
             NormalizeWeaponWorldLength(weapon,targetLength);
 
             if (alignSpearGrip)
                 AlignSpearGripToHand(weapon,0.30f);
-            else if (alignGenericGrip &&
-                     loadout!=HighflyLoadoutProfile.SwordShield &&
-                     loadout!=HighflyLoadoutProfile.AxeShield)
+            else if (alignGenericGrip && !shieldPiece)
                 AlignSpearGripToHand(weapon,genericGripFraction);
 
             // A shield is a forearm-facing plane, not a blade. Seat it close to the
@@ -793,7 +808,7 @@ namespace Highfly.Run0H
                 weapon.transform.localPosition=new Vector3(0.02f,0f,0.08f);
             }
 
-            Debug.Log("[SKILL3] WEAPON "+loadout+" "+(primary?"R":"L")+
+            Debug.Log("[SKILL4] WEAPON "+loadout+" "+(primary?"R":"L")+
                 " donor="+DonorLabel(resource)+" socket="+_currentSocketLabel+
                 " resource="+resource+" length="+targetLength.ToString("0.00"));
         }
