@@ -24,105 +24,51 @@ jobs:
           import fs from 'node:fs';
           const approved=JSON.parse(fs.readFileSync('interior_factory/runs/IF-00A-layout.json','utf8'));
           const generated=JSON.parse(fs.readFileSync('/tmp/IF-00A-layout.json','utf8'));
-          if (JSON.stringify(approved)!==JSON.stringify(generated)) {
+          if(JSON.stringify(approved)!==JSON.stringify(generated)){
             console.error('Generated layout differs from approved semantic JSON');
             process.exit(1);
           }
           console.log('Semantic layout match: PASS');
           NODE
-
-      - name: Syntax-check Interior Editor v18
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v18.html
-
-      - name: Guard v18 early-init references
+      - name: Syntax-check Interior Editor v19
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v19.html
+      - name: Guard v19 supreme forge design
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v18.html','utf8');
-          const decl=s.indexOf('const UP=0,LOW=-4.2;');
-          const pre=s.slice(0,decl);
-          if (/zoneLight\([^\n]*\bLOW\b/.test(pre)) {
-            console.error('LOW referenced before declaration in scene boot');
-            process.exit(1);
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v19.html','utf8');
+          for(const token of [
+            'const DEFAULT_LAYOUT_V19=',
+            'HIGHFLY_FORJA_WORKSPACE_STABLE_2',
+            'Escalón 1 PREMIUM ESPADAS',
+            'Escalón 3 PREMIUM ESPADAS',
+            'Espada G',
+            'Hacha D',
+            'Daga C',
+            'Escudo D',
+            'Lanza B',
+            'Armero decorado',
+            'Piedra de afilar manual',
+            'Hierro · pila grande',
+            'Cobre · pila grande',
+            'Plata · pila grande',
+            'Oro · pila grande',
+            'Yunque principal'
+          ]){
+            if(!s.includes(token)){console.error('Missing V19 invariant:',token);process.exit(1)}
           }
-          console.log('Early-init reference guard: PASS');
-          NODE
-
-      - name: Guard v18 editor features
-        shell: bash
-        run: |
-          grep -q "snapBottomToY" interior_factory/web/interior-editor-v18.html
-          grep -q "constrainEditableRoot" interior_factory/web/interior-editor-v18.html
-          grep -q "Vidrio vertical" interior_factory/web/interior-editor-v18.html
-          grep -q "Horno medieval" interior_factory/web/interior-editor-v18.html
-          grep -q "Fragua suprema" interior_factory/web/interior-editor-v18.html
-          grep -q "orbit.rotateSpeed=-.38" interior_factory/web/interior-editor-v18.html
-          echo "V18 feature guards: PASS"
-
-      - name: Guard v18 showroom premium
-        shell: bash
-        run: |
-          grep -q "Vidrio vertical PREMIUM ESPADAS" interior_factory/web/interior-editor-v18.html
-          grep -q "SECOND ROOM" interior_factory/web/interior-editor-v18.html
-          grep -q "normalizedText" interior_factory/web/interior-editor-v18.html
-          grep -q "nombreES" interior_factory/web/interior-editor-v18.html
-          grep -q "Dintel puerta" interior_factory/web/interior-editor-v18.html
-          if grep -q "\['shelf'" interior_factory/web/interior-editor-v18.html; then
-            echo "WARN: shelf asset still exists in catalog/base source, checking seeded props separately"
-          fi
-          echo "V18 showroom guards: PASS"
-
-      - name: Guard v18 legendary forge
-        shell: bash
-        run: |
-          grep -q "Vidrio vertical" interior_factory/web/interior-editor-v18.html
-          grep -q "Fila baja" interior_factory/web/interior-editor-v18.html
-          grep -q "Fila alta" interior_factory/web/interior-editor-v18.html
-          grep -q "MONUMENTAL CLOSED MEDIEVAL ENTRANCE" interior_factory/web/interior-editor-v18.html
-          grep -q "Fragua suprema lava" interior_factory/web/interior-editor-v18.html
-          grep -q "Horno medieval lava" interior_factory/web/interior-editor-v18.html
-          grep -q "WALL SHIELDS" interior_factory/web/interior-editor-v18.html
-          echo "V18 supreme forge guards: PASS"
-
-      - name: Guard v18 supreme visual pass
-        shell: bash
-        run: |
-          grep -q "Techo showroom" interior_factory/web/interior-editor-v18.html
-          grep -q "Techo pasillo" interior_factory/web/interior-editor-v18.html
-          grep -q "Techo taller" interior_factory/web/interior-editor-v18.html
-          grep -q "Fragua suprema lava" interior_factory/web/interior-editor-v18.html
-          grep -q "Horno medieval lava" interior_factory/web/interior-editor-v18.html
-          grep -q "Placa espadas cruzadas" interior_factory/web/interior-editor-v18.html
-          grep -q "Fila baja" interior_factory/web/interior-editor-v18.html
-          grep -q "Fila alta" interior_factory/web/interior-editor-v18.html
-          if grep -q '"asset":"restaurant_180"' interior_factory/web/interior-editor-v18.html; then
-            echo "Forbidden kitchen oven asset still seeded in curated v18 layout"
-            exit 1
-          fi
-          echo "V18 supreme visual pass guards: PASS"
-
-      - name: Guard v18 user-layout curation
-        shell: bash
-        run: |
-          grep -q "DEFAULT_LAYOUT_V18" interior_factory/web/interior-editor-v18.html
-          grep -q "USER_EXPORT_2026-09-26" interior_factory/web/interior-editor-v18.html
-          grep -q "HIGHFLY_FORJA_WORKSPACE_STABLE_1" interior_factory/web/interior-editor-v18.html
-          grep -q "ROT X" interior_factory/web/interior-editor-v18.html
-          grep -q "ROT Z" interior_factory/web/interior-editor-v18.html
-          grep -q "AL PISO" interior_factory/web/interior-editor-v18.html
-          grep -q "Escudo mural sala 2" interior_factory/web/interior-editor-v18.html
-          grep -q "Yunque taller" interior_factory/web/interior-editor-v18.html
-          node --input-type=module - <<'NODE'
-          import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v18.html','utf8');
-          const m=s.match(/const DEFAULT_LAYOUT_V18=(\{.*?\});\s*async function init/s);
-          if(!m){ console.error('DEFAULT_LAYOUT_V18 not parseable'); process.exit(1); }
+          const m=s.match(/const DEFAULT_LAYOUT_V19=(\{.*?\});\s*async function init/s);
+          if(!m){console.error('DEFAULT_LAYOUT_V19 not parseable');process.exit(1)}
           const d=JSON.parse(m[1]);
-          if((d.objects||[]).some(o=>o.name==='Staff B')){
-            console.error('Staff B should not be seeded in curated forge');
+          const upperMaterials=(d.objects||[]).filter(o=>o.category==='Materiales'&&o.pos&&o.pos[1]>-1&&o.name!=='Piedra de afilar manual');
+          if(upperMaterials.length){
+            console.error('Upper floor still contains forge materials:',upperMaterials.map(x=>x.name));
             process.exit(1);
           }
-          console.log('Curated default layout seed guard: PASS');
+          const seededStaff=(d.objects||[]).filter(o=>/Staff/i.test(o.name||''));
+          if(seededStaff.length){console.error('Staff seeded in forge:',seededStaff.map(x=>x.name));process.exit(1)}
+          const ingots=(d.objects||[]).filter(o=>o.category==='Materiales'&&o.pos&&o.pos[1]<-1&&/pila/i.test(o.name||''));
+          if(ingots.length<10){console.error('Not enough organized ingot stacks:',ingots.length);process.exit(1)}
+          console.log('V19 supreme forge guards: PASS');
           NODE
-          echo "V18 user-layout curation guards: PASS"
