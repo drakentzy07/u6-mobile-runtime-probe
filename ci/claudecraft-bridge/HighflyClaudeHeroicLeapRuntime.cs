@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using Highfly.Combat;
 using Highfly.Run0H;
 
@@ -11,7 +12,10 @@ namespace Highfly.ClaudeBridge.Run0B
     public sealed class HighflyClaudeHeroicLeapRuntime : MonoBehaviour
     {
         // ClaudeCraft v0.43.3 canonical gameplay values.
+        private const float WindupDuration = 0.22f;
         private const float FlightDuration = 0.60f;
+        private const float ImpactSyncDelay = 0.06f;
+        private const float RecoveryDuration = 0.27f;
         private const float FlightApex = 3.20f;
         private const float MaxRange = 30f;
         private const float LandingRadius = 6f;
@@ -63,8 +67,12 @@ namespace Highfly.ClaudeBridge.Run0B
                 if (_player != null) _controller = _player.GetComponent<CharacterController>();
             }
 
-            if (Input.GetKeyDown(KeyCode.H)) TryCast();
-            if (Input.GetKeyDown(KeyCode.BackQuote)) _readyAt = 0f; // LAB-only cooldown reset.
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null)
+            {
+                if (keyboard.hKey.wasPressedThisFrame) TryCast();
+                if (keyboard.backquoteKey.wasPressedThisFrame) _readyAt = 0f; // LAB-only cooldown reset.
+            }
         }
 
         private void OnGUI()
@@ -205,18 +213,35 @@ namespace Highfly.ClaudeBridge.Run0B
         private IEnumerator Leap(Vector3 from, Vector3 to, Vector3 facing)
         {
             _busy = true;
-            _status = "VUELO 0.60s • apex 3.20";
             _player.currentState = PlayerState.Skill;
+
+            Vector3 travelForward = to - from;
+            travelForward.y = 0f;
+            if (travelForward.sqrMagnitude < 0.0001f) travelForward = facing;
+            if (travelForward.sqrMagnitude < 0.0001f) travelForward = _player.transform.forward;
+            travelForward.y = 0f;
+            travelForward.Normalize();
 
             HighflyRun0HCharacterVisual visual = HighflyRun0HCharacterVisual.Instance;
             if (visual != null)
             {
-                visual.SetActionFacing(facing);
+                LockFacing(visual, travelForward);
                 visual.PlayActionClip("Claude_Warrior_Heroic_Leap", 1f);
+            }
+
+            // ClaudeCraft clip: 0.00 -> 0.22 is the visible coil/windup.
+            _status = "CARGA 0.22s • preparando salto";
+            float windup = 0f;
+            while (windup < WindupDuration)
+            {
+                windup += Time.unscaledDeltaTime;
+                LockFacing(visual, travelForward);
+                yield return null;
             }
 
             if (_audio != null && _releaseSfx != null) _audio.PlayOneShot(_releaseSfx);
 
+            _status = "VUELO 0.60s • apex 3.20";
             float elapsed = 0f;
             Vector3 previous = from;
             while (elapsed < FlightDuration)
@@ -230,8 +255,9 @@ namespace Highfly.ClaudeBridge.Run0B
                 else _player.transform.position = desired;
                 previous = desired;
 
+                LockFacing(visual, travelForward);
                 if (visual != null)
-                    visual.SetWeaponTrail(t >= 0.62f);
+                    visual.SetWeaponTrail(t >= 0.74f);
                 yield return null;
             }
 
@@ -240,13 +266,31 @@ namespace Highfly.ClaudeBridge.Run0B
             else
                 _player.transform.position = to;
 
+            LockFacing(visual, travelForward);
             if (visual != null) visual.SetWeaponTrail(false);
-            SpawnLandingVfx(to);
+
+            // The baked body reaches the slam pose at ~0.88s:
+            // 0.22 windup + 0.60 flight + 0.06 sync = 0.88.
+            float sync = 0f;
+            while (sync < ImpactSyncDelay)
+            {
+                sync += Time.unscaledDeltaTime;
+                LockFacing(visual, travelForward);
+                yield return null;
+            }
+
+            SpawnLandingVfx(to, travelForward);
             ApplyLandingDamage(to);
             if (_audio != null && _impactSfx != null) _audio.PlayOneShot(_impactSfx);
 
             _status = "IMPACTO • AoE 6 • daño 24–32";
-            yield return new WaitForSecondsRealtime(0.55f); // donor clip recovery tail to 1.15 s.
+            float recovery = 0f;
+            while (recovery < RecoveryDuration)
+            {
+                recovery += Time.unscaledDeltaTime;
+                LockFacing(visual, travelForward);
+                yield return null;
+            }
 
             if (visual != null)
             {
@@ -255,6 +299,19 @@ namespace Highfly.ClaudeBridge.Run0B
             }
             if (_player.currentState == PlayerState.Skill) _player.currentState = PlayerState.Locomotion;
             _busy = false;
+        }
+
+        private void LockFacing(HighflyRun0HCharacterVisual visual, Vector3 forward)
+        {
+            forward.y = 0f;
+            if (forward.sqrMagnitude < 0.0001f) return;
+            forward.Normalize();
+
+            // Keep the gameplay root and the KayKit visual aligned for the entire action.
+            // PlayerController does not own rotation while in Skill state, so this does not
+            // fight locomotion or the free-look camera.
+            _player.transform.rotation = Quaternion.LookRotation(forward, Vector3.up);
+            if (visual != null) visual.SetActionFacing(forward);
         }
 
         private void ApplyLandingDamage(Vector3 center)
@@ -272,18 +329,23 @@ namespace Highfly.ClaudeBridge.Run0B
             }
         }
 
-        private void SpawnLandingVfx(Vector3 p)
+        private void SpawnLandingVfx(Vector3 p, Vector3 forward)
         {
-            Spawn(_earthShatter, p, 3.0f);
-            Spawn(_sparks, p + Vector3.up * 0.15f, 2.0f);
-            Spawn(_smoke, p + Vector3.up * 0.08f, 2.5f);
+            forward.y = 0f;
+            if (forward.sqrMagnitude < 0.0001f) forward = Vector3.forward;
+            Quaternion rotation = Quaternion.LookRotation(forward.normalized, Vector3.up);
+
+            // Directional effects must follow the actual leap vector, never world north.
+            Spawn(_earthShatter, p, rotation, 3.0f);
+            Spawn(_sparks, p + Vector3.up * 0.15f, rotation, 2.0f);
+            Spawn(_smoke, p + Vector3.up * 0.08f, rotation, 2.5f);
             StartCoroutine(RingPulse(p, 2.2f));
         }
 
-        private static void Spawn(GameObject prefab, Vector3 p, float life)
+        private static void Spawn(GameObject prefab, Vector3 p, Quaternion rotation, float life)
         {
             if (prefab == null) return;
-            GameObject fx = Instantiate(prefab, p, Quaternion.identity);
+            GameObject fx = Instantiate(prefab, p, rotation);
             Destroy(fx, life);
         }
 
