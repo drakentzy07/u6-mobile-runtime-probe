@@ -27,8 +27,8 @@ namespace Highfly.Run0H
 
         // SKILL3 arsenal pass: use the strongest verified visual donor available,
         // while keeping the proven KayKit resources as hard rollback fallbacks.
-        private const string PrideKayKitSwordResource = "HIGHFLY/Run0I/PrideSword";
-        private const string PrideQuaterniusSpearResource = "HIGHFLY/Run0I/PrideSpear";
+        private const string PrideSwordResource = "HIGHFLY/Run0I/PrideSword";
+        private const string PrideSpearResource = "HIGHFLY/Run0I/PrideSpear";
         private const string QuaterniusSwordGoldenResource = "HIGHFLY/Run0I/QSwordGolden";
         private const string QuaterniusDagger2Resource = "HIGHFLY/Run0I/QDagger2";
         private const string QuaterniusAxeDoubleResource = "HIGHFLY/Run0I/QAxeDouble";
@@ -492,11 +492,11 @@ namespace Highfly.Run0H
 
         private void AttachLoadoutEquipment()
         {
-            string sword = FirstAvailable(PrideKayKitSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
-            string dagger = FirstAvailable(PrideKayKitSwordResource, QuaterniusDagger2Resource, KayKitDaggerResource);
+            string sword = FirstAvailable(PrideSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
+            string dagger = FirstAvailable(PrideSwordResource, QuaterniusDagger2Resource, KayKitDaggerResource);
             string axe = FirstAvailable(QuaterniusAxeDoubleResource, KayKitAxeResource);
             string shield = FirstAvailable(QuaterniusShieldGoldenResource, KayKitShieldResource);
-            string spear = FirstAvailable(PrideQuaterniusSpearResource, QuaterniusSpearResource);
+            string spear = FirstAvailable(PrideSpearResource, QuaterniusSpearResource);
 
             switch (_loadout)
             {
