@@ -233,7 +233,7 @@ namespace Highfly.Combat
 
             bool shieldBash=IsShieldBash(profile,pattern,_comboStep);
             float travelN=Mathf.Clamp01(n/Mathf.Max(0.01f,pattern.ActiveEndN));
-            float travelMeters=shieldBash ? Mathf.Max(pattern.MovementMeters,0.58f) : pattern.MovementMeters;
+            float travelMeters=shieldBash ? Mathf.Max(pattern.MovementMeters,0.85f) : pattern.MovementMeters;
             float desiredDistance=travelMeters*Mathf.SmoothStep(0f,1f,travelN);
             MoveForwardDistance(desiredDistance);
 
@@ -278,8 +278,7 @@ namespace Highfly.Combat
         private static bool IsDualCrossFinisher(HighflyLoadoutProfile profile,HighflyStrikePattern pattern,int step)
         {
             if (step!=3 || pattern==null || pattern.Direction!=HighflyStrikeDirection.Cross) return false;
-            return profile==HighflyLoadoutProfile.DualSword ||
-                   profile==HighflyLoadoutProfile.DualDaggers;
+            return profile==HighflyLoadoutProfile.DualSword;
         }
 
         private static bool IsShieldBash(HighflyLoadoutProfile profile,HighflyStrikePattern pattern,int step)
@@ -481,8 +480,8 @@ namespace Highfly.Combat
         {
             // Deliberately trace in front of the chest instead of along the shield mesh bounds:
             // the bash is a forward body check and must still connect while the shield rotates.
-            Vector3 center=transform.position+Vector3.up*0.98f+_facing*0.72f;
-            int count=Physics.OverlapSphereNonAlloc(center,0.38f,_hits,~0,QueryTriggerInteraction.Collide);
+            Vector3 center=transform.position+Vector3.up*0.98f+_facing*0.84f;
+            int count=Physics.OverlapSphereNonAlloc(center,0.44f,_hits,~0,QueryTriggerInteraction.Collide);
             for (int i=0;i<count;i++) ResolveHit(_hits[i],damage,hitstop);
         }
 
@@ -535,7 +534,7 @@ namespace Highfly.Combat
             if (dummy!=null)
             {
                 if (_action==ActionKind.Repel) dummy.ReceiveRepel(_facing,3f);
-                else if (IsCurrentShieldBash()) dummy.ReceiveRepel(_facing,2.4f);
+                else if (IsCurrentShieldBash()) dummy.ReceiveRepel(_facing,4.2f);
             }
         }
 

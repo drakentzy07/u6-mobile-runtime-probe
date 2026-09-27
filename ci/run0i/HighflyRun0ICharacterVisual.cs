@@ -23,6 +23,9 @@ namespace Highfly.Run0H
         private const string KayKitAxeResource = "HIGHFLY/Run0H/KayKitAxe1H";
         private const string KayKitDaggerResource = "HIGHFLY/Run0H/KayKitDagger";
         private const string KayKitShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
+        private const string KayKitFantasyDaggerResource = "HIGHFLY/Run0I/KayKitFantasyDaggerA";
+        private const string KayKitFantasyAxeResource = "HIGHFLY/Run0I/KayKitFantasyAxeA";
+        private const string KayKitFantasySpearResource = "HIGHFLY/Run0I/KayKitFantasySpearA";
         private const string QuaterniusSpearResource = "HIGHFLY/Run0H/QuaterniusSpear";
 
         // SKILL3 arsenal pass: use the strongest verified visual donor available,
@@ -419,9 +422,9 @@ namespace Highfly.Run0H
 
         private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            // SKILL3 CROWN: one persistent KayKit Hunter for every weapon family.
-            // Weapon choice changes combat grammar and equipment, never the body.
-            return KnightResource;
+            // SKILL4: one persistent Hunter Base for every weapon family.
+            // RogueHooded is appearance Skin 01; equipment/skills never swap the rig.
+            return RogueHoodedResource;
         }
 
         private void EnsureRenderableMaterials()
@@ -492,10 +495,10 @@ namespace Highfly.Run0H
             // Keep the visually strongest audited donors, but use KayKit's own shield
             // because its authored hand reference guarantees a frontal defensive plane.
             string sword = FirstAvailable(PrideSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
-            string dagger = FirstAvailable(QuaterniusDagger2Resource, KayKitDaggerResource, PrideSwordResource);
-            string axe = FirstAvailable(SidekickAxeResource, QuaterniusAxeDoubleResource, KayKitAxeResource);
+            string dagger = FirstAvailable(KayKitFantasyDaggerResource, KayKitDaggerResource, QuaterniusDagger2Resource);
+            string axe = FirstAvailable(KayKitFantasyAxeResource, KayKitAxeResource, SidekickAxeResource, QuaterniusAxeDoubleResource);
             string shield = FirstAvailable(KayKitShieldResource, QuaterniusShieldGoldenResource);
-            string spear = FirstAvailable(PrideSpearResource, QuaterniusSpearResource);
+            string spear = FirstAvailable(KayKitFantasySpearResource, QuaterniusSpearResource, PrideSpearResource);
 
             switch (_loadout)
             {
@@ -560,6 +563,7 @@ namespace Highfly.Run0H
         private static string DonorLabel(string resource)
         {
             if (string.IsNullOrWhiteSpace(resource)) return "MISSING";
+            if (resource.IndexOf("KayKitFantasy",StringComparison.OrdinalIgnoreCase)>=0) return "KAYKIT FANTASY BITS";
             if (resource.IndexOf("Pride",StringComparison.OrdinalIgnoreCase)>=0) return "POLYGON PRIDE";
             if (resource.IndexOf("SidekickAxe",StringComparison.OrdinalIgnoreCase)>=0) return "SIDEKICK 1.2.6";
             if (resource.IndexOf("Q",StringComparison.OrdinalIgnoreCase)>=0 &&
@@ -575,7 +579,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing primary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
-            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
+            if(IsLegacyKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
             TuneWeaponTransform(weapon,_loadout,true,resource);
             _primaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _primaryBase,out _primaryTip);
@@ -588,7 +592,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing secondary "+resource); return; }
             GameObject weapon=AttachWeapon(prefab,hand,name);
-            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
+            if(IsLegacyKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(weapon);
             TuneWeaponTransform(weapon,_loadout,false,resource);
             _secondaryWeaponObject=weapon;
             BuildWeaponSockets(weapon,out _secondaryBase,out _secondaryTip);
@@ -601,7 +605,7 @@ namespace Highfly.Run0H
             GameObject prefab=Resources.Load<GameObject>(resource);
             if (hand==null || prefab==null) { Debug.LogError("[SKILL3] Missing shield "+resource); return; }
             _shieldObject=AttachWeapon(prefab,hand,"HIGHFLY_SHIELD_L");
-            if(IsKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(_shieldObject);
+            if(IsLegacyKayKitWeapon(resource)) FlattenKayKitStandaloneWeapon(_shieldObject);
             TuneWeaponTransform(_shieldObject,_loadout,false,resource);
             BuildWeaponSockets(_shieldObject,out _secondaryBase,out _secondaryTip);
         }
@@ -618,6 +622,13 @@ namespace Highfly.Run0H
         private static bool IsKayKitWeapon(string resource)
             => !string.IsNullOrWhiteSpace(resource) &&
                resource.IndexOf("KayKit",StringComparison.OrdinalIgnoreCase)>=0;
+
+        private static bool IsKayKitFantasyWeapon(string resource)
+            => !string.IsNullOrWhiteSpace(resource) &&
+               resource.IndexOf("KayKitFantasy",StringComparison.OrdinalIgnoreCase)>=0;
+
+        private static bool IsLegacyKayKitWeapon(string resource)
+            => IsKayKitWeapon(resource) && !IsKayKitFantasyWeapon(resource);
 
         private static bool IsPrideWeapon(string resource)
             => !string.IsNullOrWhiteSpace(resource) &&
@@ -641,9 +652,38 @@ namespace Highfly.Run0H
                  NormalizeGripName(weapon.transform.parent.name)=="propl");
             bool pride=IsPrideWeapon(resource);
             bool quaternius=IsQuaterniusWeapon(resource);
+            bool kaykitFantasy=IsKayKitFantasyWeapon(resource);
 
-            // KayKit authored accessory references only make sense on the old KayKit body.
-            bool authoredGrip=IsKayKitWeapon(resource) && !sidekickSocket && TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
+            // KayKit Fantasy Weapons Bits are authored with the MODEL ORIGIN AT THE GRIP.
+            // Re-centering them by bounds is exactly what pushed dagger/axe/spear into the forearm.
+            // Mirror ClaudeCraft's proven family contract: right hand = 180° Y, offhand = identity,
+            // with only a small along-bone lift. Normalize size, NEVER recenter the origin.
+            if(kaykitFantasy)
+            {
+                switch(loadout)
+                {
+                    case HighflyLoadoutProfile.Dagger1H:
+                    case HighflyLoadoutProfile.DualDaggers: targetLength=0.52f; break;
+                    case HighflyLoadoutProfile.Axe1H:
+                    case HighflyLoadoutProfile.DualAxe:
+                    case HighflyLoadoutProfile.AxeShield: targetLength=0.72f; break;
+                    case HighflyLoadoutProfile.Spear2H: targetLength=2.15f; break;
+                }
+
+                NormalizeWeaponWorldLength(weapon,targetLength);
+                weapon.transform.localRotation=primary
+                    ? Quaternion.Euler(0f,180f,0f)
+                    : Quaternion.identity;
+                float lift=loadout==HighflyLoadoutProfile.Spear2H ? 0.18f : 0.04f;
+                weapon.transform.localPosition=new Vector3(0f,lift,0f);
+
+                Debug.Log("[SKILL4] KAYKIT_FANTASY_GRIP "+loadout+" "+(primary?"R":"L")+
+                    " origin=GRIP lift="+lift.ToString("0.00")+" length="+targetLength.ToString("0.00"));
+                return;
+            }
+
+            // Authored accessory references only apply to the legacy Adventurers weapon meshes.
+            bool authoredGrip=IsLegacyKayKitWeapon(resource) && !sidekickSocket && TryApplyAuthoredKayKitGrip(weapon,loadout,primary);
 
             // Sidekick prop sockets are already the correct anatomical anchors.
             if(sidekickSocket)

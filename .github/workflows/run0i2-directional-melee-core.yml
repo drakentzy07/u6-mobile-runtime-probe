@@ -186,6 +186,20 @@ jobs:
         run: |
           set -euxo pipefail
           P="LucidHost/3D_game"
+
+          # KayKit Fantasy Weapons Bits 1.0 • CC0 • exact byte matches to the user-audited ZIP.
+          # Pinned public mirror only transports the verified bytes; hashes below are the gate.
+          KFB_BASE="https://raw.githubusercontent.com/LeLicorne/hamchat/614ea6ec5adb92293ad61b33700f6a8087ec0609/models/KayKit_FantasyWeaponsBits_1.0_FREE/Assets/fbx(unity)"
+          curl -L --fail --retry 5 "$KFB_BASE/dagger_A.fbx" -o "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyDaggerA.fbx"
+          curl -L --fail --retry 5 "$KFB_BASE/axe_A.fbx" -o "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyAxeA.fbx"
+          curl -L --fail --retry 5 "$KFB_BASE/spear_A.fbx" -o "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasySpearA.fbx"
+          curl -L --fail --retry 5 "$KFB_BASE/weapons_bits_texture.png" -o "$P/Assets/Resources/HIGHFLY/Run0I/weapons_bits_texture.png"
+
+          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyDaggerA.fbx")" = "a6dc58bebfbd01255f8b90a9d752ac6e2903d3b7"
+          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyAxeA.fbx")" = "207d3df65dca1a971771d69972ce03e26b1f04ad"
+          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasySpearA.fbx")" = "94a3dd51879443163f9936d866bdeb5f26aa1666"
+          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/weapons_bits_texture.png")" = "f94f11e0384d09132f8dbfc64d811812875dcc64"
+
           QBASE="https://raw.githubusercontent.com/DevHuang1/embervale-godot/3f511a60fa9822a7de280a8da95a863525998237/assets/models/weapons/quaternius"
 
           curl -L --fail --retry 5 "$QBASE/Sword_Golden.fbx" -o "$P/Assets/Resources/HIGHFLY/Run0I/QSwordGolden.fbx"
@@ -209,6 +223,7 @@ jobs:
           test -n "$(find "$P/Assets" -type f \( -iname '*sword*.fbx' -o -iname '*sword*.prefab' \) -ipath '*pride*' -print -quit)"
           test -n "$(find "$P/Assets" -type f \( -iname '*spear*.fbx' -o -iname '*spear*.prefab' \) -ipath '*pride*' -print -quit)"
           echo "SKILL4_AUDITED_WEAPON_DONORS_INSTALLED=1"
+          echo "SKILL4_KAYKIT_FANTASY_GRIP_ORIGIN_INSTALLED=1"
 
       - name: Reset Unity transient cache
         shell: bash
@@ -251,11 +266,13 @@ jobs:
           grep -q "DONOR AXIS FIX" "$OUT/RUN0I3_BUILD.txt"
           grep -q "10 LOADOUTS" "$OUT/RUN0I3_BUILD.txt"
           grep -q "UNARMED R-L-KICK" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "DUAL SWORD/DAGGER R-L-X" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "HUNTER BASE ROGUE HOODED" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "KAYKIT FANTASY GRIP ORIGIN" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DUAL SWORD R-L-X" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DUAL DAGGER CHOP-SLICE-STAB" "$OUT/RUN0I3_BUILD.txt"
           grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "SHIELD BASH LUNGE" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "PRIDE SPEAR RAW FBX" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "SPEAR A-B-C" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SHIELD HEAVY SHOVE" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SPEAR THRUST-SWEEP-THRUST" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4

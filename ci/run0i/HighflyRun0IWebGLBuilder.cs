@@ -33,13 +33,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[SKILL4] Building KayKit Weapon Foundation • spear FBX • dual-axe spin • shield lunge");
+            Debug.Log("[SKILL4] Building Hunter Base • RogueHooded • KayKit Fantasy grip-origin arsenal");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | DONOR AXIS FIX | POLYGON PRIDE + SIDEKICK + QUATERNIUS | PRIDE SPEAR RAW FBX | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL SWORD/DAGGER R-L-X | DUAL AXE CLASSIC 1-2-3 SPIN | SHIELD BASH LUNGE | SPEAR A-B-C | UNITY 6000.6.2");
+                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | HUNTER BASE ROGUE HOODED | KAYKIT FANTASY GRIP ORIGIN | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL SWORD R-L-X | DUAL DAGGER CHOP-SLICE-STAB | DUAL AXE CLASSIC 1-2-3 SPIN | SHIELD HEAVY SHOVE | SPEAR THRUST-SWEEP-THRUST | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -113,6 +113,9 @@ namespace Highfly.Run0I.Editor
         {
             string[] resources={
                 "HIGHFLY/Run0I/PrideSword",
+                "HIGHFLY/Run0I/KayKitFantasyDaggerA",
+                "HIGHFLY/Run0I/KayKitFantasyAxeA",
+                "HIGHFLY/Run0I/KayKitFantasySpearA",
                 "HIGHFLY/Run0I/PrideSpear",
                 "HIGHFLY/Run0I/SidekickAxe",
                 "HIGHFLY/Run0I/QSwordGolden",
@@ -144,7 +147,7 @@ namespace Highfly.Run0I.Editor
                 }
             }
 
-            Debug.Log("[SKILL3-CROWN] ARSENAL_GATE_OK • KayKit Hunter hands • Pride sword/spear • Sidekick axe • KayKit shield • Quaternius dagger/backups");
+            Debug.Log("[SKILL4] ARSENAL_GATE_OK • RogueHooded Hunter Base • KayKit Fantasy dagger/axe/spear grip-origin • KayKit shield • Pride sword");
         }
 
         private static Transform FindDescendant(Transform root,string exact)
@@ -159,7 +162,7 @@ namespace Highfly.Run0I.Editor
 
         private static void ValidateKayKitHunter()
         {
-            const string hunterPath="Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx";
+            const string hunterPath="Assets/Resources/HIGHFLY/Run0H/KayKitRogueHooded.fbx";
             GameObject hunterAsset=AssetDatabase.LoadAssetAtPath<GameObject>(hunterPath);
             if(hunterAsset==null) throw new Exception("[SKILL3-CROWN] Missing KayKit Hunter: "+hunterPath);
 
@@ -179,7 +182,7 @@ namespace Highfly.Run0I.Editor
                 if(right==null || left==null)
                     throw new Exception("[SKILL3-CROWN] KayKit Hunter missing humanoid hand bones.");
 
-                Debug.Log("[SKILL3-CROWN] KAYKIT_HUNTER_GATE_OK renderers="+renderers.Length+
+                Debug.Log("[SKILL4] HUNTER_BASE_ROGUE_HOODED_GATE_OK renderers="+renderers.Length+
                           " right="+right.name+" left="+left.name);
             }
             finally
@@ -402,16 +405,15 @@ namespace Highfly.Run0I.Editor
                 .OfType<AnimationClip>().Where(x=>x!=null && !x.name.StartsWith("__preview__")).ToArray();
             AnimationClip poleStab=FindByTokens(poleClips,"2h","stab");
             AnimationClip poleSlice=FindByTokens(poleClips,"2h","slice");
-            AnimationClip poleChop=FindByTokens(poleClips,"2h","chop");
-            if (poleStab==null || poleSlice==null || poleChop==null)
-                throw new Exception("[RUN0I.2] Quality gate: missing KayKit 2H Stab/Slice/Chop bank for spear family.");
+            if (poleStab==null || poleSlice==null)
+                throw new Exception("[SKILL4] Quality gate: missing KayKit 2H Stab/Slice bank for spear family.");
             SaveCopy(poleStab,target+"/Spear_A.anim","Spear_A");
             SaveCopy(poleSlice,target+"/Spear_B.anim","Spear_B");
-            SaveCopy(poleChop,target+"/Spear_C.anim","Spear_C");
+            SaveCopy(poleStab,target+"/Spear_C.anim","Spear_C");
 
             Debug.Log("[RUN0I.2] DUAL_BANK="+dualChop.name+" | "+dualSlice.name+" | "+dualStab.name);
             Debug.Log("[RUN0I.2] AXE_BANK="+axeChop.name+" | "+axeSlice.name+" | "+axeStab.name);
-            Debug.Log("[RUN0I.2] SPEAR_BANK="+poleStab.name+" | "+poleSlice.name+" | "+poleChop.name);
+            Debug.Log("[SKILL4] SPEAR_BANK="+poleStab.name+" | "+poleSlice.name+" | "+poleStab.name+" (thrust finisher)");
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
