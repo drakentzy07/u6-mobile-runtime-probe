@@ -1,0 +1,86 @@
+name: Publish SKILL3 Sidekick 1.2.6
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/publish-skill3-sidekick126.yml"
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-pages-skill3-sidekick126
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    name: Overlay SKILL3 Sidekick onto known-good Pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download last known-good Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: previous-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 36276305559
+
+      - name: Restore known-good site
+        shell: bash
+        run: |
+          set -euxo pipefail
+          rm -rf site
+          mkdir -p site
+          TAR="$(find previous-pages -type f -name '*.tar' -print -quit)"
+          test -n "$TAR"
+          tar -xf "$TAR" -C site
+          test -f site/index.html
+          test -d site/melee-fusion2b
+          echo "KNOWN_GOOD_SITE_RESTORED=1"
+
+      - name: Download SKILL3 Sidekick 1.2.6 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-run0i3-webgl
+          path: incoming/skill3-sidekick126
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 36282356675
+
+      - name: Overlay and validate SKILL3
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -f incoming/skill3-sidekick126/index.html
+          test -f incoming/skill3-sidekick126/RUN0I3_BUILD.txt
+          test -d incoming/skill3-sidekick126/Build
+          grep -q "SIDEKICK 1.2.6 MATERIAL FIX" incoming/skill3-sidekick126/RUN0I3_BUILD.txt
+
+          rm -rf site/skill3-sidekick126
+          mkdir -p site/skill3-sidekick126
+          cp -a incoming/skill3-sidekick126/. site/skill3-sidekick126/
+
+          test -f site/skill3-sidekick126/index.html
+          test -d site/skill3-sidekick126/Build
+          grep -q "SIDEKICK 1.2.6 MATERIAL FIX" site/skill3-sidekick126/RUN0I3_BUILD.txt
+          touch site/.nojekyll
+          echo "SKILL3_SIDEKICK126_RUN=36282356675" > site/SKILL3_SIDEKICK126.txt
+          du -sh site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
