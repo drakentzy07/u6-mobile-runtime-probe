@@ -58,17 +58,21 @@ jobs:
           SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/skill4-kaykit-weapon-foundation&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY SKILL4 KayKit Weapon Foundation") | .id' | head -n1)"
           LOOT_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1)"
           SIDEKICK3_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/skill3-sidekick126-fix&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
+          PREVIOUS_PAGES_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Pages Publisher") | .id' | head -n1)"
 
           test -n "$SKILLS_RUN"
           test -n "$LOOT_RUN"
           test -n "$SIDEKICK3_RUN"
+          test -n "$PREVIOUS_PAGES_RUN"
 
           echo "skills_run=$SKILLS_RUN" >> "$GITHUB_OUTPUT"
           echo "loot_run=$LOOT_RUN" >> "$GITHUB_OUTPUT"
           echo "sidekick3_run=$SIDEKICK3_RUN" >> "$GITHUB_OUTPUT"
+          echo "previous_pages_run=$PREVIOUS_PAGES_RUN" >> "$GITHUB_OUTPUT"
           echo "Skills source run: $SKILLS_RUN"
           echo "Loot source run: $LOOT_RUN"
           echo "Skill3 Sidekick source run: $SIDEKICK3_RUN"
+          echo "Previous Pages source run: $PREVIOUS_PAGES_RUN"
 
       - name: Download canonical Skills artifact
         uses: actions/download-artifact@v4
@@ -94,48 +98,34 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.runs.outputs.loot_run }}
 
-      - name: Preserve existing MELEE FUSION lab
-        shell: bash
-        run: |
-          set -euxo pipefail
-          rm -rf incoming/melee-fusion
-          mkdir -p incoming
-          wget --quiet --recursive --no-parent --no-host-directories --cut-dirs=1             --directory-prefix=incoming --execute robots=off             "https://drakentzy07.github.io/u6-mobile-runtime-probe/melee-fusion/"
-          test -f incoming/melee-fusion/index.html
-          test -f incoming/melee-fusion/RUN0I3_BUILD.txt
-          test -d incoming/melee-fusion/Build
-          grep -q "MELEE FUSION" incoming/melee-fusion/RUN0I3_BUILD.txt
+      - name: Download previous published HIGHFLY site
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: incoming/previous-pages
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.previous_pages_run }}
 
-      - name: Preserve existing MELEE FUSION 2 lab
+      - name: Unpack previous published HIGHFLY site
         shell: bash
         run: |
           set -euxo pipefail
-          rm -rf incoming/melee-fusion2
-          mkdir -p incoming
-          wget --quiet --recursive --no-parent --no-host-directories --cut-dirs=1             --directory-prefix=incoming --execute robots=off             "https://drakentzy07.github.io/u6-mobile-runtime-probe/melee-fusion2/"
-          test -f incoming/melee-fusion2/index.html
-          test -f incoming/melee-fusion2/RUN0I3_BUILD.txt
-          test -d incoming/melee-fusion2/Build
-          grep -q "MELEE FUSION 2" incoming/melee-fusion2/RUN0I3_BUILD.txt
-
-      - name: Preserve existing MELEE FUSION 2B lab
-        shell: bash
-        run: |
-          set -euxo pipefail
-          rm -rf incoming/melee-fusion2b
-          mkdir -p incoming
-          wget --quiet --recursive --no-parent --no-host-directories --cut-dirs=1             --directory-prefix=incoming --execute robots=off             "https://drakentzy07.github.io/u6-mobile-runtime-probe/melee-fusion2b/"
-          test -f incoming/melee-fusion2b/index.html
-          test -f incoming/melee-fusion2b/RUN0I3_BUILD.txt
-          test -d incoming/melee-fusion2b/Build
-          grep -q "MELEE FUSION 2B" incoming/melee-fusion2b/RUN0I3_BUILD.txt
+          test -f incoming/previous-pages/artifact.tar
+          rm -rf previous-site
+          mkdir -p previous-site
+          tar -xf incoming/previous-pages/artifact.tar -C previous-site
+          test -f previous-site/index.html
+          test -d previous-site/melee-fusion
+          test -d previous-site/melee-fusion2
+          test -d previous-site/melee-fusion2b
 
       - name: Assemble canonical site
         shell: bash
         run: |
           set -euxo pipefail
           rm -rf site
-          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2 site/melee-fusion2b site/skill3-sidekick126
+          cp -a previous-site site
+          mkdir -p site/loot-monster-lab-run0a site/skill3-sidekick126
 
           test -f incoming/skills/index.html
           test -f incoming/skills/RUN0I3_BUILD.txt
@@ -152,9 +142,6 @@ jobs:
 
           cp -a incoming/skills/. site/
           cp -a incoming/loot/. site/loot-monster-lab-run0a/
-          cp -a incoming/melee-fusion/. site/melee-fusion/
-          cp -a incoming/melee-fusion2/. site/melee-fusion2/
-          cp -a incoming/melee-fusion2b/. site/melee-fusion2b/
           cp -a incoming/skill3-sidekick126/. site/skill3-sidekick126/
           touch site/.nojekyll
 
@@ -201,9 +188,8 @@ jobs:
           echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
           echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
           echo "SKILL3_SIDEKICK126_RUN=${{ steps.runs.outputs.sidekick3_run }}" >> site/PUBLISHER.txt
-          echo "MELEE_FUSION_RUN=36262118568" >> site/PUBLISHER.txt
-          echo "MELEE_FUSION2_RUN=36267369905" >> site/PUBLISHER.txt
-          echo "MELEE_FUSION2B_RUN=36272250830" >> site/PUBLISHER.txt
+          echo "PREVIOUS_PAGES_RUN=${{ steps.runs.outputs.previous_pages_run }}" >> site/PUBLISHER.txt
+          echo "LEGACY_LABS_PRESERVED_FROM_PREVIOUS_SITE=1" >> site/PUBLISHER.txt
           du -sh site
 
       - name: Configure GitHub Pages
