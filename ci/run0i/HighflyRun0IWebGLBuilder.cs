@@ -13,7 +13,7 @@ namespace Highfly.Run0I.Editor
         public static void Build()
         {
             PrepareWeaponDonors();
-            ValidateSidekick126();
+            ValidateKayKitHunter();
             ValidateArsenal();
             PrepareAnimations();
 
@@ -39,7 +39,7 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL3 | SIDEKICK 1.2.6 | ARSENAL PASS 1 | POLYGON PRIDE + QUATERNIUS | SIDEKICK PROP SOCKETS | 9 LOADOUTS | UNITY 6000.6.2");
+                "HIGHFLY SKILL3 | KAYKIT HUNTER CROWN | ARSENAL PASS 2 | POLYGON PRIDE + SIDEKICK + QUATERNIUS | AUTHORED KAYKIT GRIPS | 10 LOADOUTS | SHIELD BASH | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -107,13 +107,14 @@ namespace Highfly.Run0I.Editor
 
         private static void ValidateArsenal()
         {
-            const string sidekickPath="Assets/Resources/HIGHFLY/Run0I/Sidekick126.prefab";
-            GameObject sidekick=AssetDatabase.LoadAssetAtPath<GameObject>(sidekickPath);
-            if(sidekick==null) throw new Exception("[SKILL3-ARSENAL] Sidekick prefab missing.");
-
-            if(FindDescendant(sidekick.transform,"prop_r")==null ||
-               FindDescendant(sidekick.transform,"prop_l")==null)
-                throw new Exception("[SKILL3-ARSENAL] Sidekick prop_r/prop_l sockets missing.");
+            GameObject hunter=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx");
+            if(hunter==null) throw new Exception("[SKILL3-CROWN] KayKit Hunter FBX missing.");
+            Animator hunterAnimator=hunter.GetComponent<Animator>();
+            if(hunterAnimator==null || hunterAnimator.avatar==null || !hunterAnimator.avatar.isValid || !hunterAnimator.avatar.isHuman)
+                throw new Exception("[SKILL3-CROWN] KayKit Hunter does not have a valid Humanoid avatar.");
+            if(hunterAnimator.GetBoneTransform(HumanBodyBones.RightHand)==null ||
+               hunterAnimator.GetBoneTransform(HumanBodyBones.LeftHand)==null)
+                throw new Exception("[SKILL3-CROWN] KayKit Hunter hand bones missing.");
 
             string[] resources={
                 "HIGHFLY/Run0I/PrideSword",
@@ -146,7 +147,7 @@ namespace Highfly.Run0I.Editor
                 }
             }
 
-            Debug.Log("[SKILL3-ARSENAL] ARSENAL_GATE_OK • Pride sword/spear • Sidekick axe • Quaternius backups • Sidekick prop sockets");
+            Debug.Log("[SKILL3-CROWN] ARSENAL_GATE_OK • KayKit Hunter hands • Pride sword/spear • Sidekick axe • KayKit shield • Quaternius dagger/backups");
         }
 
         private static Transform FindDescendant(Transform root,string exact)
@@ -157,6 +158,26 @@ namespace Highfly.Run0I.Editor
                 if(all[i]!=null && string.Equals(all[i].name,exact,StringComparison.OrdinalIgnoreCase))
                     return all[i];
             return null;
+        }
+
+        private static void ValidateKayKitHunter()
+        {
+            const string hunterPath="Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx";
+            GameObject hunter=AssetDatabase.LoadAssetAtPath<GameObject>(hunterPath);
+            if(hunter==null) throw new Exception("[SKILL3-CROWN] Missing KayKit Hunter: "+hunterPath);
+
+            Animator animator=hunter.GetComponent<Animator>();
+            if(animator==null || animator.avatar==null || !animator.avatar.isValid || !animator.avatar.isHuman)
+                throw new Exception("[SKILL3-CROWN] KayKit Hunter humanoid avatar invalid.");
+
+            Renderer[] renderers=hunter.GetComponentsInChildren<Renderer>(true);
+            if(renderers.Length==0) throw new Exception("[SKILL3-CROWN] KayKit Hunter has no renderers.");
+
+            if(animator.GetBoneTransform(HumanBodyBones.RightHand)==null ||
+               animator.GetBoneTransform(HumanBodyBones.LeftHand)==null)
+                throw new Exception("[SKILL3-CROWN] KayKit Hunter missing hand bones.");
+
+            Debug.Log("[SKILL3-CROWN] KAYKIT_HUNTER_GATE_OK renderers="+renderers.Length);
         }
 
         private static void ValidateSidekick126()
@@ -229,6 +250,35 @@ namespace Highfly.Run0I.Editor
 
             string target="Assets/Resources/HIGHFLY/Run0I/Animations";
             Directory.CreateDirectory(target);
+
+            // KayKit Character Animations 1.1 • real shield attack donor.
+            const string kaykitCombatSource="Assets/HIGHFLY/Run0I/KayKit_Rig_Medium_CombatMelee.fbx";
+            if(!File.Exists(kaykitCombatSource))
+                throw new Exception("[SKILL3-CROWN] Missing KayKit Character Animations 1.1 melee donor.");
+
+            ModelImporter kaykitCombatImporter=AssetImporter.GetAtPath(kaykitCombatSource) as ModelImporter;
+            if(kaykitCombatImporter==null)
+                throw new Exception("[SKILL3-CROWN] KayKit melee donor importer missing.");
+            bool kaykitChanged=kaykitCombatImporter.animationType!=ModelImporterAnimationType.Human || !kaykitCombatImporter.importAnimation;
+            kaykitCombatImporter.importAnimation=true;
+            kaykitCombatImporter.animationType=ModelImporterAnimationType.Human;
+            kaykitCombatImporter.avatarSetup=ModelImporterAvatarSetup.CreateFromThisModel;
+            kaykitCombatImporter.animationCompression=ModelImporterAnimationCompression.Optimal;
+            kaykitCombatImporter.resampleCurves=true;
+            if(kaykitChanged) kaykitCombatImporter.SaveAndReimport();
+
+            AnimationClip[] kaykitCombatClips=AssetDatabase.LoadAllAssetsAtPath(kaykitCombatSource)
+                .OfType<AnimationClip>()
+                .Where(x=>x!=null && !x.name.StartsWith("__preview__"))
+                .ToArray();
+            AnimationClip shieldBash=kaykitCombatClips.FirstOrDefault(x=>
+                x.name.IndexOf("Melee_Block_Attack",StringComparison.OrdinalIgnoreCase)>=0 ||
+                (x.name.IndexOf("Block",StringComparison.OrdinalIgnoreCase)>=0 &&
+                 x.name.IndexOf("Attack",StringComparison.OrdinalIgnoreCase)>=0));
+            if(shieldBash==null)
+                throw new Exception("[SKILL3-CROWN] KayKit Melee_Block_Attack not found.");
+            SaveCopy(shieldBash,target+"/Shield_Bash.anim","Shield_Bash");
+            Debug.Log("[SKILL3-CROWN] SHIELD_BASH_READY="+shieldBash.name);
 
             Copy(clips,target,"Sword_Regular_A","Sword_Regular_A");
             Copy(clips,target,"Sword_Regular_B","Sword_Regular_B");
