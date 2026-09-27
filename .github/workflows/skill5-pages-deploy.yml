@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  SKILL5_SOURCE_RUN_ID: "36343483931"
+  SKILL5_SOURCE_RUN_ID: "36350492108"
   SKILL5_ARTIFACT_NAME: "highfly-skill5-premium-five-webgl"
 
 jobs:
@@ -26,7 +26,7 @@ jobs:
     name: Prepare SKILL5 Pages artifact
     runs-on: ubuntu-latest
     steps:
-      - name: Download green SKILL5 WebGL from Run 14
+      - name: Download green SKILL5 SWORD FIVE WebGL from Run 21
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.SKILL5_ARTIFACT_NAME }}
@@ -35,20 +35,20 @@ jobs:
           run-id: ${{ env.SKILL5_SOURCE_RUN_ID }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Verify downloaded PREMIUM FIVE build
+      - name: Verify downloaded SWORD FIVE build
         shell: bash
         run: |
           set -euxo pipefail
           test -f skill5-webgl/index.html
           test -f skill5-webgl/SKILL5_BUILD.txt
           test -d skill5-webgl/Build
-          grep -q "PREMIUM FIVE" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "SWORD FIVE COMPLETION" skill5-webgl/SKILL5_BUILD.txt
           grep -q "FOUNDATION 7ebd380c READ ONLY" skill5-webgl/SKILL5_BUILD.txt
           grep -q "HORIZONTAL SQUARE" skill5-webgl/SKILL5_BUILD.txt
           grep -q "SONIC LEAP REFORGED" skill5-webgl/SKILL5_BUILD.txt
-          grep -q "DOUBLE CIRCULAR" skill5-webgl/SKILL5_BUILD.txt
-          grep -q "SPINNING SHIELD" skill5-webgl/SKILL5_BUILD.txt
-          grep -q "APOCALYPSE" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "VERTICAL SQUARE" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "SAVAGE FULCRUM" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "VORPAL STRIKE" skill5-webgl/SKILL5_BUILD.txt
 
       - name: Brand SKILL5 and bust stale WebGL cache
         shell: bash
@@ -60,18 +60,21 @@ jobs:
           root = Path("skill5-webgl")
           index = root / "index.html"
           html = index.read_text(encoding="utf-8")
-          html = html.replace("Unity Web Player | Lucid Knight", "HIGHFLY SKILL5 | PREMIUM FIVE")
-          html = html.replace('<div id="unity-build-title">Lucid Knight</div>', '<div id="unity-build-title">HIGHFLY SKILL5 • PREMIUM FIVE</div>')
-          html = html.replace('loaderUrl = buildUrl + "/WebGL.loader.js";', 'loaderUrl = buildUrl + "/WebGL.loader.js?v=skill5-premium-five-3";')
-          html = html.replace('dataUrl: buildUrl + "/WebGL.data",', 'dataUrl: buildUrl + "/WebGL.data?v=skill5-premium-five-3",')
-          html = html.replace('frameworkUrl: buildUrl + "/WebGL.framework.js",', 'frameworkUrl: buildUrl + "/WebGL.framework.js?v=skill5-premium-five-3",')
-          html = html.replace('codeUrl: buildUrl + "/WebGL.wasm",', 'codeUrl: buildUrl + "/WebGL.wasm?v=skill5-premium-five-3",')
+          html = html.replace("Unity Web Player | Lucid Knight", "HIGHFLY SKILL5 | SWORD FIVE")
+          html = html.replace('<div id="unity-build-title">Lucid Knight</div>', '<div id="unity-build-title">HIGHFLY SKILL5 • SWORD FIVE</div>')
+          html = html.replace('loaderUrl = buildUrl + "/WebGL.loader.js";', 'loaderUrl = buildUrl + "/WebGL.loader.js?v=skill5-sword-five-4";')
+          html = html.replace('dataUrl: buildUrl + "/WebGL.data",', 'dataUrl: buildUrl + "/WebGL.data?v=skill5-sword-five-4",')
+          html = html.replace('frameworkUrl: buildUrl + "/WebGL.framework.js",', 'frameworkUrl: buildUrl + "/WebGL.framework.js?v=skill5-sword-five-4",')
+          html = html.replace('codeUrl: buildUrl + "/WebGL.wasm",', 'codeUrl: buildUrl + "/WebGL.wasm?v=skill5-sword-five-4",')
           index.write_text(html, encoding="utf-8")
 
           data_path = root / "Build" / "WebGL.data"
           data = data_path.read_bytes()
           old = "SKILL3 • KAYKIT HUNTER CROWN".encode("utf-8")
-          new = "SKILL5 • PREMIUM FIVE".encode("utf-8") + b" " * 7
+          new_label = "SKILL5 • SWORD FIVE".encode("utf-8")
+          if len(new_label) > len(old):
+              raise SystemExit("Replacement title is longer than inherited title")
+          new = new_label + b" " * (len(old) - len(new_label))
           count = data.count(old)
           if count < 1:
               raise SystemExit("Expected inherited SKILL3 title not found in WebGL.data")
@@ -80,8 +83,8 @@ jobs:
           print(f"Patched inherited title occurrences: {count}")
           PY
 
-          grep -q "HIGHFLY SKILL5 | PREMIUM FIVE" skill5-webgl/index.html
-          grep -q "skill5-premium-five-3" skill5-webgl/index.html
+          grep -q "HIGHFLY SKILL5 | SWORD FIVE" skill5-webgl/index.html
+          grep -q "skill5-sword-five-4" skill5-webgl/index.html
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -102,6 +105,6 @@ jobs:
       pages: write
       id-token: write
     steps:
-      - name: Deploy PREMIUM FIVE
+      - name: Deploy SWORD FIVE
         id: deployment
         uses: actions/deploy-pages@v4
