@@ -251,8 +251,10 @@ jobs:
           grep -q "DONOR AXIS FIX" "$OUT/RUN0I3_BUILD.txt"
           grep -q "10 LOADOUTS" "$OUT/RUN0I3_BUILD.txt"
           grep -q "UNARMED R-L-KICK" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "DUAL R-L-X" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "SHIELD ATK-ATK-BASH" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DUAL SWORD/DAGGER R-L-X" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SHIELD BASH LUNGE" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "PRIDE SPEAR RAW FBX" "$OUT/RUN0I3_BUILD.txt"
           grep -q "SPEAR A-B-C" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
