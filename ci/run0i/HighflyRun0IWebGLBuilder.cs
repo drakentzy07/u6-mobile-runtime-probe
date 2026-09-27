@@ -39,7 +39,7 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | DONOR AXIS FIX | POLYGON PRIDE + SIDEKICK + QUATERNIUS | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL R-L-X | SHIELD ATK-ATK-BASH | SPEAR A-B-C | UNITY 6000.6.2");
+                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | DONOR AXIS FIX | POLYGON PRIDE + SIDEKICK + QUATERNIUS | PRIDE SPEAR RAW FBX | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL SWORD/DAGGER R-L-X | DUAL AXE CLASSIC 1-2-3 SPIN | SHIELD BASH LUNGE | SPEAR A-B-C | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -48,7 +48,9 @@ namespace Highfly.Run0I.Editor
             AssetDatabase.Refresh();
 
             string swordPath=FindPrideGameObjectPath("sword");
-            string spearPath=FindPrideGameObjectPath("spear");
+            // Pride Weapons 1.1 prefabs shipped with transform issues later fixed upstream.
+            // Use the raw FBX for the spear so our KayKit hand-space correction owns the transform.
+            string spearPath=FindPrideGameObjectPath("spear",true);
             if(string.IsNullOrWhiteSpace(swordPath))
                 throw new Exception("[SKILL3-ARSENAL] POLYGON Pride sword not found after package import.");
             if(string.IsNullOrWhiteSpace(spearPath))
@@ -69,14 +71,16 @@ namespace Highfly.Run0I.Editor
             Debug.Log("[SKILL3-ARSENAL] DONORS_READY prideSword="+swordPath+" prideSpear="+spearPath+" sidekickAxe="+sidekickAxePath);
         }
 
-        private static string FindPrideGameObjectPath(string token)
+        private static string FindPrideGameObjectPath(string token,bool preferFbx=false)
         {
             string[] paths=AssetDatabase.GetAllAssetPaths()
                 .Where(p=>p.IndexOf("pride",StringComparison.OrdinalIgnoreCase)>=0 &&
                           p.IndexOf(token,StringComparison.OrdinalIgnoreCase)>=0 &&
                           (p.EndsWith(".fbx",StringComparison.OrdinalIgnoreCase) ||
                            p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)))
-                .OrderBy(p=>p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)?0:1)
+                .OrderBy(p=>preferFbx
+                    ? (p.EndsWith(".fbx",StringComparison.OrdinalIgnoreCase)?0:1)
+                    : (p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)?0:1))
                 .ThenBy(p=>p.Length)
                 .ToArray();
 
