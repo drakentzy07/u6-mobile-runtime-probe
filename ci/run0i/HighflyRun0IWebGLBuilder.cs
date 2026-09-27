@@ -133,6 +133,17 @@ namespace Highfly.Run0I.Editor
                 MeshFilter[] mfs=go.GetComponentsInChildren<MeshFilter>(true);
                 if(rs.Length==0 && mfs.Length==0)
                     throw new Exception("[SKILL3-ARSENAL] Weapon has no renderable mesh: "+resource);
+
+                foreach(Renderer renderer in rs)
+                {
+                    if(renderer==null) continue;
+                    foreach(Material material in renderer.sharedMaterials)
+                    {
+                        if(material==null) continue; // FBX may legitimately use Unity's default material.
+                        if(material.shader==null || material.shader.name=="Hidden/InternalErrorShader")
+                            throw new Exception("[SKILL3-ARSENAL] Broken weapon material: "+resource+" / "+material.name);
+                    }
+                }
             }
 
             Debug.Log("[SKILL3-ARSENAL] ARSENAL_GATE_OK • Pride sword/spear • Sidekick axe • Quaternius backups • Sidekick prop sockets");
