@@ -170,11 +170,13 @@ namespace Highfly.Skill5
             Keyboard k = Keyboard.current;
             if (k == null) return;
 
-            if (k.digit1Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill1);
-            else if (k.digit2Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill2);
-            else if (k.digit3Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill3);
-            else if (k.digit4Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill4);
-            else if (k.digit5Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Ultimate);
+            // Desktop must enter through the same routing path as mobile so
+            // buffer/link/cancel behavior is identical on PC and Android.
+            if (k.digit1Key.wasPressedThisFrame) RouteAction(HighflyCombatAction.Skill1);
+            else if (k.digit2Key.wasPressedThisFrame) RouteAction(HighflyCombatAction.Skill2);
+            else if (k.digit3Key.wasPressedThisFrame) RouteAction(HighflyCombatAction.Skill3);
+            else if (k.digit4Key.wasPressedThisFrame) RouteAction(HighflyCombatAction.Skill4);
+            else if (k.digit5Key.wasPressedThisFrame) RouteAction(HighflyCombatAction.Ultimate);
         }
 
         public float GetCooldownRemaining(HighflyCombatAction action)
