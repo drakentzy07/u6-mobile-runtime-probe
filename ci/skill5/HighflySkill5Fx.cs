@@ -49,7 +49,7 @@ namespace Highfly.Skill5
                 roll,
                 length,
                 0.13f,
-                0.27f,
+                0.24f,
                 blue);
         }
 
