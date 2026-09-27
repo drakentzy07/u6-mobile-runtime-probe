@@ -6,6 +6,7 @@ using Highfly.Run0I2;
 
 namespace Highfly.Run0I
 {
+    // SKILL3 ARSENAL PASS 1 • audited weapon/socket validation build
     [DisallowMultipleComponent]
     public sealed class HighflyRun0IOverlay : MonoBehaviour
     {
