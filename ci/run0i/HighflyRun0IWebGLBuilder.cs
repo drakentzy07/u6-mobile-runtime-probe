@@ -275,10 +275,16 @@ namespace Highfly.Run0I.Editor
                 x.name.IndexOf("Melee_Block_Attack",StringComparison.OrdinalIgnoreCase)>=0 ||
                 (x.name.IndexOf("Block",StringComparison.OrdinalIgnoreCase)>=0 &&
                  x.name.IndexOf("Attack",StringComparison.OrdinalIgnoreCase)>=0));
+            AnimationClip shieldBlock=kaykitCombatClips.FirstOrDefault(x=>
+                x.name.Equals("Melee_Blocking",StringComparison.OrdinalIgnoreCase) ||
+                x.name.IndexOf("Melee_Blocking",StringComparison.OrdinalIgnoreCase)>=0);
             if(shieldBash==null)
                 throw new Exception("[SKILL3-CROWN] KayKit Melee_Block_Attack not found.");
+            if(shieldBlock==null)
+                throw new Exception("[SKILL3-CROWN] KayKit Melee_Blocking not found.");
             SaveCopy(shieldBash,target+"/Shield_Bash.anim","Shield_Bash");
-            Debug.Log("[SKILL3-CROWN] SHIELD_BASH_READY="+shieldBash.name);
+            SaveCopy(shieldBlock,target+"/Shield_Block.anim","Shield_Block");
+            Debug.Log("[SKILL3-CROWN] SHIELD_BANK_READY bash="+shieldBash.name+" block="+shieldBlock.name);
 
             Copy(clips,target,"Sword_Regular_A","Sword_Regular_A");
             Copy(clips,target,"Sword_Regular_B","Sword_Regular_B");
