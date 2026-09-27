@@ -33,13 +33,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[RUN0I.3-LITE] Building Single Hunter + Guard Core");
+            Debug.Log("[SKILL4] Building KayKit Weapon Foundation");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL3 | KAYKIT HUNTER CROWN | ARSENAL PASS 2 | POLYGON PRIDE + SIDEKICK + QUATERNIUS | AUTHORED KAYKIT GRIPS | 10 LOADOUTS | SHIELD BASH | UNITY 6000.6.2");
+                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | DONOR AXIS FIX | POLYGON PRIDE + SIDEKICK + QUATERNIUS | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL R-L-X | SHIELD ATK-ATK-BASH | SPEAR A-B-C | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 
@@ -365,20 +365,20 @@ namespace Highfly.Run0I.Editor
             SaveCopy(dualSlice,target+"/Assassin_B.anim","Assassin_B");
             SaveCopy(dualStab,target+"/Assassin_C.anim","Assassin_C");
 
-            // Dedicated slots per dual family. Same audited donor bank today; independently replaceable later.
-            // Same audited dual-wield donor bank, but each weapon family gets
-            // a deliberately different 1->2->3 choreography order.
+            // SKILL4: one universal dual grammar for every dual loadout.
+            // A is the right-hand opening slash, B the left-hand return slash.
+            // Runtime composes A+B inside basic #3 to make a literal X instead of
+            // pretending the stab clip is a crossed finisher.
             SaveCopy(dualChop,target+"/DualSword_A.anim","DualSword_A");
             SaveCopy(dualSlice,target+"/DualSword_B.anim","DualSword_B");
             SaveCopy(dualStab,target+"/DualSword_C.anim","DualSword_C");
 
-            // Keep slot C on the observed cross-like dual pose so Parry can freeze it.
-            SaveCopy(dualSlice,target+"/DualAxe_A.anim","DualAxe_A");
-            SaveCopy(dualChop,target+"/DualAxe_B.anim","DualAxe_B");
+            SaveCopy(dualChop,target+"/DualAxe_A.anim","DualAxe_A");
+            SaveCopy(dualSlice,target+"/DualAxe_B.anim","DualAxe_B");
             SaveCopy(dualStab,target+"/DualAxe_C.anim","DualAxe_C");
 
-            SaveCopy(dualSlice,target+"/Dagger_A.anim","Dagger_A");
-            SaveCopy(dualChop,target+"/Dagger_B.anim","Dagger_B");
+            SaveCopy(dualChop,target+"/Dagger_A.anim","Dagger_A");
+            SaveCopy(dualSlice,target+"/Dagger_B.anim","Dagger_B");
             SaveCopy(dualStab,target+"/Dagger_C.anim","Dagger_C");
 
             const string barbarianSource="Assets/Resources/HIGHFLY/Run0H/KayKitBarbarian.fbx";
