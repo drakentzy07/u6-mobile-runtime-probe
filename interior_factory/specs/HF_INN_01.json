@@ -1,0 +1,177 @@
+{
+  "id": "HF_INN_01",
+  "version": 1,
+  "status": "PRE_DESIGN",
+  "style": [
+    "medieval",
+    "viking",
+    "fantasy"
+  ],
+  "modernTech": false,
+  "footprint": {
+    "width": 30,
+    "depth": 22,
+    "floorHeight": 3.4,
+    "floors": 3
+  },
+  "circulation": {
+    "mainEntrance": "south-center",
+    "stairsGroundToFloor1": "rear-left",
+    "stairsFloor1ToFloor2": "far-end-of-corridor",
+    "corridorWidth": 2.2
+  },
+  "groundFloor": {
+    "purpose": "social+tavern+service",
+    "spaces": [
+      {
+        "id": "INN_HALL",
+        "label": "Salón principal",
+        "size": [
+          19,
+          15
+        ],
+        "features": [
+          "mesas de madera",
+          "sillas funcionales",
+          "chimenea/hogar",
+          "vigas",
+          "estandartes"
+        ]
+      },
+      {
+        "id": "INN_BAR",
+        "label": "Barra/mostrador",
+        "size": [
+          9,
+          3
+        ],
+        "features": [
+          "mostrador medieval largo",
+          "banquetas",
+          "estantes de jarras",
+          "barriles",
+          "NPC posadero"
+        ]
+      },
+      {
+        "id": "INN_KITCHEN",
+        "label": "Cocina",
+        "size": [
+          8,
+          7
+        ],
+        "features": [
+          "hogar/horno medieval",
+          "mesa de preparación",
+          "estantes",
+          "despensa"
+        ]
+      },
+      {
+        "id": "INN_STORAGE",
+        "label": "Almacén",
+        "size": [
+          5,
+          5
+        ],
+        "features": [
+          "barriles",
+          "cajas",
+          "sacos",
+          "estantes"
+        ]
+      },
+      {
+        "id": "INN_STAIRS_A",
+        "label": "Escalera a habitaciones",
+        "size": [
+          4,
+          7
+        ],
+        "features": [
+          "baranda madera",
+          "descanso intermedio"
+        ]
+      }
+    ],
+    "seating": {
+      "tables": 12,
+      "seatsPerTable": [
+        4,
+        6
+      ],
+      "allFunctional": true
+    }
+  },
+  "roomTemplate": {
+    "size": [
+      4.2,
+      3.8
+    ],
+    "required": [
+      "cama",
+      "mesa de luz",
+      "cofre",
+      "mesa pequeña",
+      "silla",
+      "luz medieval"
+    ],
+    "optional": [
+      "alfombra",
+      "estante",
+      "lavamanos rústico",
+      "ventana con postigos"
+    ],
+    "interactions": [
+      "dormir",
+      "sentarse",
+      "abrir cofre"
+    ]
+  },
+  "floor1": {
+    "rooms": 10,
+    "layout": "5 por lado de pasillo central",
+    "features": [
+      "pasillo largo",
+      "ventanas",
+      "antorchas/velas",
+      "escalera al final hacia piso 2"
+    ]
+  },
+  "floor2": {
+    "rooms": 10,
+    "layout": "5 por lado de pasillo central",
+    "features": [
+      "pasillo largo",
+      "habitaciones algo más tranquilas",
+      "2 habitaciones pueden ser premium sin reducir el total"
+    ]
+  },
+  "interactions": [
+    "hablar posadero",
+    "comer",
+    "beber",
+    "sentarse",
+    "alquilar habitación",
+    "dormir",
+    "usar cofre"
+  ],
+  "assetRules": {
+    "allowed": [
+      "madera",
+      "piedra",
+      "hierro forjado",
+      "telas",
+      "velas",
+      "antorchas",
+      "barriles"
+    ],
+    "forbidden": [
+      "pantallas",
+      "luces eléctricas",
+      "plástico moderno",
+      "muebles de oficina",
+      "tecnología contemporánea"
+    ]
+  }
+}
