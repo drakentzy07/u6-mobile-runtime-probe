@@ -231,8 +231,10 @@ namespace Highfly.Combat
             float n = _duration > 0.0001f ? Mathf.Clamp01(now/_duration) : 1f;
             UpdateDirectionalFacing(pattern,n);
 
+            bool shieldBash=IsShieldBash(profile,pattern,_comboStep);
             float travelN=Mathf.Clamp01(n/Mathf.Max(0.01f,pattern.ActiveEndN));
-            float desiredDistance=pattern.MovementMeters*Mathf.SmoothStep(0f,1f,travelN);
+            float travelMeters=shieldBash ? Mathf.Max(pattern.MovementMeters,0.58f) : pattern.MovementMeters;
+            float desiredDistance=travelMeters*Mathf.SmoothStep(0f,1f,travelN);
             MoveForwardDistance(desiredDistance);
 
             if (IsDualCrossFinisher(profile,pattern,_comboStep))
@@ -277,8 +279,14 @@ namespace Highfly.Combat
         {
             if (step!=3 || pattern==null || pattern.Direction!=HighflyStrikeDirection.Cross) return false;
             return profile==HighflyLoadoutProfile.DualSword ||
-                   profile==HighflyLoadoutProfile.DualAxe ||
                    profile==HighflyLoadoutProfile.DualDaggers;
+        }
+
+        private static bool IsShieldBash(HighflyLoadoutProfile profile,HighflyStrikePattern pattern,int step)
+        {
+            if(step!=3 || pattern==null || pattern.MotionSlot!="Shield_Bash") return false;
+            return profile==HighflyLoadoutProfile.SwordShield ||
+                   profile==HighflyLoadoutProfile.AxeShield;
         }
 
         private static void ResolveDualCrossClips(HighflyLoadoutProfile profile,out string first,out string second)
@@ -422,12 +430,14 @@ namespace Highfly.Combat
 
             bool tracePrimary=true;
             bool traceSecondary=visual.UsesSecondaryTrace;
+            bool shieldBash=false;
 
             if (_action==ActionKind.Basic1 || _action==ActionKind.Basic2 || _action==ActionKind.Basic3)
             {
                 HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(visual.CurrentLoadout).GetBasic(_comboStep);
                 if (pattern!=null)
                 {
+                    shieldBash=IsShieldBash(visual.CurrentLoadout,pattern,_comboStep);
                     if (IsDualCrossFinisher(visual.CurrentLoadout,pattern,_comboStep))
                     {
                         // Third dual beat is a literal crossing pair: right trace, then left trace.
@@ -453,11 +463,27 @@ namespace Highfly.Combat
                 }
             }
 
+            if (shieldBash)
+            {
+                TraceShieldBash(damage,hitstop);
+                _hasPrevTips=false;
+                return;
+            }
+
             if (tracePrimary)
                 TraceOne(visual.PrimaryBase,visual.PrimaryTip,ref _prevPrimaryTip,damage,hitstop);
             if (traceSecondary)
                 TraceOne(visual.SecondaryBase,visual.SecondaryTip,ref _prevSecondaryTip,damage,hitstop);
             _hasPrevTips=true;
+        }
+
+        private void TraceShieldBash(float damage,float hitstop)
+        {
+            // Deliberately trace in front of the chest instead of along the shield mesh bounds:
+            // the bash is a forward body check and must still connect while the shield rotates.
+            Vector3 center=transform.position+Vector3.up*0.98f+_facing*0.72f;
+            int count=Physics.OverlapSphereNonAlloc(center,0.38f,_hits,~0,QueryTriggerInteraction.Collide);
+            for (int i=0;i<count;i++) ResolveHit(_hits[i],damage,hitstop);
         }
 
         private void TraceUnarmed(float damage,float hitstop)
@@ -506,7 +532,20 @@ namespace Highfly.Combat
             _hitstopRemaining=Mathf.Max(_hitstopRemaining,hitstop);
 
             HighflyRun0IAttackDummy dummy=stats.GetComponent<HighflyRun0IAttackDummy>();
-            if (dummy!=null && _action==ActionKind.Repel) dummy.ReceiveRepel(_facing,3f);
+            if (dummy!=null)
+            {
+                if (_action==ActionKind.Repel) dummy.ReceiveRepel(_facing,3f);
+                else if (IsCurrentShieldBash()) dummy.ReceiveRepel(_facing,2.4f);
+            }
+        }
+
+        private bool IsCurrentShieldBash()
+        {
+            if (_action!=ActionKind.Basic3) return false;
+            HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
+            if(visual==null) return false;
+            HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(visual.CurrentLoadout).GetBasic(_comboStep);
+            return IsShieldBash(visual.CurrentLoadout,pattern,_comboStep);
         }
 
         private void SpawnImpact(Vector3 position)
