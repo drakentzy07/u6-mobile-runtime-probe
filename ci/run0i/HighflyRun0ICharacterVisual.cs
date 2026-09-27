@@ -24,6 +24,7 @@ namespace Highfly.Run0H
         private const string DaggerResource = "HIGHFLY/Run0H/KayKitDagger";
         private const string ShieldResource = "HIGHFLY/Run0H/KayKitShieldRound";
         private const string SpearResource = "HIGHFLY/Run0H/QuaterniusSpear";
+        private const string Sidekick126Resource = "HIGHFLY/Run0I/Sidekick126";
         private const float TargetHeight = 1.72f;
 
         private PlayerController _player;
@@ -333,6 +334,7 @@ namespace Highfly.Run0H
 
             RemoveExistingHandEquipment();
             NormalizeVisual();
+            EnsureRenderableMaterials();
 
             AttachLoadoutEquipment();
 
@@ -400,12 +402,78 @@ namespace Highfly.Run0H
 
         private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            // Stable visual baseline: Knight remains the canonical Hunter body.
-            // The only proven exception from the weapon-native experiment is
-            // DualDaggers, which reads correctly on the hooded Rogue rig.
+            // SKILL 3: Sidekick 1.2.6 is the preferred single Hunter body.
+            // Keep the proven KayKit bodies only as a rollback path if the CI
+            // package extraction is ever unavailable.
+            if (Resources.Load<GameObject>(Sidekick126Resource) != null)
+                return Sidekick126Resource;
+
             return profile==HighflyLoadoutProfile.DualDaggers
                 ? RogueHoodedResource
                 : KnightResource;
+        }
+
+        private void EnsureRenderableMaterials()
+        {
+            if (_visualRoot == null) return;
+
+            Shader fallback = Shader.Find("Universal Render Pipeline/Lit");
+            if (fallback == null) fallback = Shader.Find("Standard");
+
+            Renderer[] renderers = _visualRoot.GetComponentsInChildren<Renderer>(true);
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer == null) continue;
+                Material[] materials = renderer.materials;
+                bool changed = false;
+
+                for (int i = 0; i < materials.Length; i++)
+                {
+                    Material source = materials[i];
+                    if (source == null) continue;
+
+                    Shader shader = source.shader;
+                    bool broken = shader == null ||
+                                  !shader.isSupported ||
+                                  shader.name == "Hidden/InternalErrorShader";
+                    if (!broken) continue;
+
+                    if (fallback == null)
+                    {
+                        Debug.LogError("[SKILL3] No fallback shader available for " + source.name);
+                        continue;
+                    }
+
+                    Texture colorMap = null;
+                    Color tint = Color.white;
+                    try
+                    {
+                        if (source.HasProperty("_ColorMap")) colorMap = source.GetTexture("_ColorMap");
+                        if (colorMap == null && source.HasProperty("_BaseMap")) colorMap = source.GetTexture("_BaseMap");
+                        if (colorMap == null && source.HasProperty("_MainTex")) colorMap = source.GetTexture("_MainTex");
+                        if (source.HasProperty("_BaseColor")) tint = source.GetColor("_BaseColor");
+                        else if (source.HasProperty("_Color")) tint = source.GetColor("_Color");
+                    }
+                    catch { }
+
+                    Material replacement = new Material(fallback);
+                    replacement.name = source.name + "_HIGHFLY_FALLBACK";
+                    if (colorMap != null)
+                    {
+                        if (replacement.HasProperty("_BaseMap")) replacement.SetTexture("_BaseMap", colorMap);
+                        if (replacement.HasProperty("_MainTex")) replacement.SetTexture("_MainTex", colorMap);
+                    }
+                    if (replacement.HasProperty("_BaseColor")) replacement.SetColor("_BaseColor", tint);
+                    if (replacement.HasProperty("_Color")) replacement.SetColor("_Color", tint);
+
+                    materials[i] = replacement;
+                    changed = true;
+                    Debug.LogWarning("[SKILL3] Replaced unsupported material shader: " +
+                                     source.name + " -> " + fallback.name);
+                }
+
+                if (changed) renderer.materials = materials;
+            }
         }
 
         private void AttachLoadoutEquipment()
