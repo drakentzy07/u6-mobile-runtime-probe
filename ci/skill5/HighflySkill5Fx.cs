@@ -55,9 +55,55 @@ namespace Highfly.Skill5
 
         public static void SpawnFinalCross(Vector3 position, Vector3 forward)
         {
-            Color blue = new Color(0.28f, 0.82f, 1f, 1f);
-            SpawnTexturedScar("HF_SKILL5_FINAL_X_A", position, forward, 45f, 1.82f, 0.17f, 0.17f, blue);
-            SpawnTexturedScar("HF_SKILL5_FINAL_X_B", position + forward.normalized * 0.02f, forward, -45f, 1.76f, 0.14f, 0.15f, Color.white);
+            SpawnImpactCross(position, forward, new Color(0.28f, 0.82f, 1f, 1f), 1.82f);
+        }
+
+        public static void SpawnSonicSlash(Vector3 position, Vector3 forward)
+        {
+            Color blue = new Color(0.18f, 0.70f, 1f, 0.96f);
+            SpawnTexturedScar("HF_SKILL5_SONIC_DOWN", position, forward, 90f, 2.45f, 0.20f, 0.24f, blue);
+            SpawnTexturedScar("HF_SKILL5_SONIC_CORE", position + forward.normalized * 0.018f, forward, 90f, 2.12f, 0.075f, 0.20f, Color.white);
+        }
+
+        public static void SpawnDualSlash(int handIndex, Vector3 position, Vector3 forward, Vector3 right)
+        {
+            bool first = handIndex == 0;
+            Color color = first
+                ? new Color(0.14f, 0.78f, 1f, 0.94f)
+                : new Color(0.66f, 0.28f, 1f, 0.94f);
+            float side = first ? 0.18f : -0.18f;
+            float roll = first ? -12f : 12f;
+            SpawnTexturedScar(
+                first ? "HF_SKILL5_DUAL_RIGHT" : "HF_SKILL5_DUAL_LEFT",
+                position + right * side,
+                forward,
+                roll,
+                2.55f,
+                0.18f,
+                0.25f,
+                color);
+        }
+
+        public static void SpawnApocalypseSlash(Vector3 position, Vector3 forward)
+        {
+            Color crimson = new Color(1f, 0.12f, 0.06f, 0.98f);
+            Color fire = new Color(1f, 0.48f, 0.08f, 0.92f);
+            SpawnTexturedScar("HF_SKILL5_APOCALYPSE_FIRE", position, forward, -38f, 3.85f, 0.38f, 0.28f, crimson);
+            SpawnTexturedScar("HF_SKILL5_APOCALYPSE_CORE", position + forward.normalized * 0.02f, forward, -38f, 3.35f, 0.14f, 0.24f, fire);
+        }
+
+        public static void SpawnShieldSpiral(Vector3 center, Vector3 forward, Vector3 right, int pulse)
+        {
+            Color cyan = new Color(0.22f, 0.86f, 1f, 0.88f);
+            float sign = pulse == 0 ? 1f : -1f;
+            SpawnTexturedScar("HF_SKILL5_SHIELD_ARC_A", center + right * 0.42f * sign, forward, 72f * sign, 1.65f, 0.14f, 0.23f, cyan);
+            SpawnTexturedScar("HF_SKILL5_SHIELD_ARC_B", center - right * 0.38f * sign + Vector3.up * 0.18f, forward, -58f * sign, 1.52f, 0.12f, 0.21f, Color.white);
+        }
+
+        public static void SpawnImpactCross(Vector3 position, Vector3 forward, Color color, float size)
+        {
+            SpawnTexturedScar("HF_SKILL5_IMPACT_X_A", position, forward, 45f, size, 0.17f, 0.17f, color);
+            SpawnTexturedScar("HF_SKILL5_IMPACT_X_B", position + forward.normalized * 0.02f, forward, -45f, size * 0.96f, 0.14f, 0.15f, Color.white);
         }
 
         private static GameObject SpawnTexturedScar(
