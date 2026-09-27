@@ -352,8 +352,7 @@ namespace Highfly.Run0H
             EnsureRenderableMaterials();
 
             AttachLoadoutEquipment();
-            // Weapons are children of the Sidekick prop sockets, so the same anti-magenta
-            // pass now covers Pride/Quaternius materials too.
+            // Run the same material safety pass over the attached donor weapons.
             EnsureRenderableMaterials();
 
             _mirror = _visualRoot.AddComponent<HighflyRun0HAnimatorMirror>();
@@ -420,15 +419,9 @@ namespace Highfly.Run0H
 
         private static string ResolveCharacterResource(HighflyLoadoutProfile profile)
         {
-            // SKILL 3: Sidekick 1.2.6 is the preferred single Hunter body.
-            // Keep the proven KayKit bodies only as a rollback path if the CI
-            // package extraction is ever unavailable.
-            if (Resources.Load<GameObject>(Sidekick126Resource) != null)
-                return Sidekick126Resource;
-
-            return profile==HighflyLoadoutProfile.DualDaggers
-                ? RogueHoodedResource
-                : KnightResource;
+            // SKILL3 CROWN: one persistent KayKit Hunter for every weapon family.
+            // Weapon choice changes combat grammar and equipment, never the body.
+            return KnightResource;
         }
 
         private void EnsureRenderableMaterials()
@@ -496,10 +489,12 @@ namespace Highfly.Run0H
 
         private void AttachLoadoutEquipment()
         {
+            // Keep the visually strongest audited donors, but use KayKit's own shield
+            // because its authored hand reference guarantees a frontal defensive plane.
             string sword = FirstAvailable(PrideSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
-            string dagger = FirstAvailable(PrideSwordResource, QuaterniusDagger2Resource, KayKitDaggerResource);
+            string dagger = FirstAvailable(QuaterniusDagger2Resource, KayKitDaggerResource, PrideSwordResource);
             string axe = FirstAvailable(SidekickAxeResource, QuaterniusAxeDoubleResource, KayKitAxeResource);
-            string shield = FirstAvailable(QuaterniusShieldGoldenResource, KayKitShieldResource);
+            string shield = FirstAvailable(KayKitShieldResource, QuaterniusShieldGoldenResource);
             string spear = FirstAvailable(PrideSpearResource, QuaterniusSpearResource);
 
             switch (_loadout)
@@ -535,8 +530,12 @@ namespace Highfly.Run0H
                     AttachPrimary(axe,"HIGHFLY_AXE_R");
                     AttachShield(shield);
                     break;
+                case HighflyLoadoutProfile.Dagger1H:
+                    _currentWeaponDonor = DonorLabel(dagger);
+                    AttachPrimary(dagger,"HIGHFLY_DAGGER_R");
+                    break;
                 case HighflyLoadoutProfile.DualDaggers:
-                    _currentWeaponDonor = DonorLabel(dagger)+" • DAGGER SCALE";
+                    _currentWeaponDonor = DonorLabel(dagger)+" x2";
                     AttachPrimary(dagger,"HIGHFLY_DAGGER_R");
                     AttachSecondary(dagger,"HIGHFLY_DAGGER_L");
                     break;
@@ -609,24 +608,10 @@ namespace Highfly.Run0H
 
         private Transform ResolveWeaponSocket(bool primary)
         {
-            // Sidekick ships authored prop sockets. These are the canonical equipment
-            // anchors for the new Hunter; using old KayKit hand offsets caused floating,
-            // mirrored and horizontal equipment after the body swap.
-            if (_visualRoot!=null)
-            {
-                string wanted=primary ? "prop_r" : "prop_l";
-                Transform socket=FindNamedDescendant(_visualRoot.transform,wanted);
-                if(socket!=null)
-                {
-                    _currentSocketLabel="SIDEKICK "+wanted;
-                    return socket;
-                }
-            }
-
             Transform hand=_visualAnimator!=null
                 ? _visualAnimator.GetBoneTransform(primary?HumanBodyBones.RightHand:HumanBodyBones.LeftHand)
                 : null;
-            _currentSocketLabel="HUMANOID HAND FALLBACK";
+            _currentSocketLabel=primary ? "KAYKIT RIGHT HAND" : "KAYKIT LEFT HAND";
             return hand;
         }
 
@@ -678,17 +663,21 @@ namespace Highfly.Run0H
             {
                 case HighflyLoadoutProfile.Spear2H:
                     targetLength=2.02f;
-                    if(pride && sidekickSocket)
+                    // The previous Sidekick pass showed the Pride spear thrusting
+                    // with the butt. Reverse its yaw so the spearhead leads.
+                    weapon.transform.localRotation=pride
+                        ? Quaternion.Euler(0f,-90f,90f)
+                        : Quaternion.Euler(0f,90f,90f);
+                    weapon.transform.localPosition=Vector3.zero;
+                    alignSpearGrip=true;
+                    break;
+
+                case HighflyLoadoutProfile.Dagger1H:
+                    targetLength=0.52f;
+                    if(!authoredGrip)
                     {
-                        // Synty -> Synty: use the authored prop socket directly.
-                        weapon.transform.localRotation=Quaternion.identity;
-                        weapon.transform.localPosition=Vector3.zero;
-                    }
-                    else
-                    {
-                        weapon.transform.localRotation=Quaternion.Euler(0f,90f,90f);
-                        weapon.transform.localPosition=Vector3.zero;
-                        alignSpearGrip=true;
+                        weapon.transform.localRotation=Quaternion.Euler(0f,180f,0f);
+                        weapon.transform.localPosition=new Vector3(-0.0095f,0.378f,0f);
                     }
                     break;
 
@@ -838,6 +827,9 @@ namespace Highfly.Run0H
                     break;
                 case HighflyLoadoutProfile.AxeShield:
                     referenceName=primary ? "1H_Axe" : "Round_Shield";
+                    break;
+                case HighflyLoadoutProfile.Dagger1H:
+                    if(primary) referenceName="Knife";
                     break;
                 case HighflyLoadoutProfile.DualDaggers:
                     referenceName=primary ? "Knife" : "Knife_Offhand";
