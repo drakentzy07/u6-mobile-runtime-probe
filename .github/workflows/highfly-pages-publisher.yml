@@ -19,6 +19,7 @@ on:
   workflow_run:
     workflows:
       - "HIGHFLY Run0I.3 Single Hunter Guard Core"
+      - "HIGHFLY SKILL4 KayKit Weapon Foundation"
       - "Build + Publish HIGHFLY Loot Monster Lab Run0A"
     types:
       - completed
@@ -54,7 +55,7 @@ jobs:
         run: |
           set -euxo pipefail
 
-          SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/run0i3-single-hunter-guard-core&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
+          SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/skill4-kaykit-weapon-foundation&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY SKILL4 KayKit Weapon Foundation") | .id' | head -n1)"
           LOOT_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1)"
           SIDEKICK3_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/skill3-sidekick126-fix&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
 
@@ -170,7 +171,10 @@ jobs:
 
           test -f site/index.html
           test -f site/RUN0I3_BUILD.txt
-          grep -q "SINGLE HUNTER GUARD CORE" site/RUN0I3_BUILD.txt
+          grep -q "KAYKIT WEAPON FOUNDATION" site/RUN0I3_BUILD.txt
+          grep -q "PRIDE SPEAR RAW FBX" site/RUN0I3_BUILD.txt
+          grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" site/RUN0I3_BUILD.txt
+          grep -q "SHIELD BASH LUNGE" site/RUN0I3_BUILD.txt
 
           test -f site/loot-monster-lab-run0a/index.html
           test -f site/loot-monster-lab-run0a/RUN0A_BUILD.txt
