@@ -117,5 +117,21 @@
     "entradas legibles",
     "edificios con silueta distinta",
     "cero objetos modernos"
+  ],
+  "assetIntakeRef": "HIGHFLY_MASTER_ASSET_INTAKE_V1",
+  "assetThemeContract": {
+    "theme": [
+      "medieval",
+      "viking",
+      "fantasy-rpg"
+    ],
+    "modernTech": false,
+    "curatedOnly": true
+  },
+  "assetPools": [
+    "CITY",
+    "BLACKSMITH",
+    "INN_TAVERN",
+    "GUILD"
   ]
 }
