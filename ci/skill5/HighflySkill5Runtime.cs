@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -113,6 +114,9 @@ namespace Highfly.Skill5
 
             if (GetComponent<HighflySkill5InputAdapter>() == null)
                 gameObject.AddComponent<HighflySkill5InputAdapter>();
+
+            if (GetComponent<HighflySkill5QuickPanel>() == null)
+                gameObject.AddComponent<HighflySkill5QuickPanel>();
 
             Debug.Log("[SKILL5] PREMIUM FIVE runtime online • SKILL4 foundation untouched");
         }
@@ -1050,15 +1054,245 @@ namespace Highfly.Skill5
         private static bool TryMap(string name, out HighflyCombatAction action)
         {
             action = HighflyCombatAction.None;
-            if (name == "ATQ_BUTTON") action = HighflyCombatAction.Light;
-            else if (name == "S1_BUTTON") action = HighflyCombatAction.Skill1;
-            else if (name == "S2_OFF_BUTTON" || name == "S2_BUTTON") action = HighflyCombatAction.Skill2;
-            else if (name == "S3_BUTTON") action = HighflyCombatAction.Skill3;
-            else if (name == "S4_BUTTON") action = HighflyCombatAction.Skill4;
-            else if (name == "ULT_BUTTON") action = HighflyCombatAction.Ultimate;
-            else if (name == "ESQUIVAR_BUTTON") action = HighflyCombatAction.Dodge;
-            else if (name == "PARRY_BUTTON") action = HighflyCombatAction.Parry;
+
+            // Actual objects produced by frozen HighflyMobileCore are
+            // ATQ, S1, S2_OFF, S3, S4, ULT, ESQUIVAR and PARRY.
+            // *_BUTTON aliases are kept for compatibility with older shells.
+            if (name == "ATQ" || name == "ATQ_BUTTON") action = HighflyCombatAction.Light;
+            else if (name == "S1" || name == "S1_BUTTON") action = HighflyCombatAction.Skill1;
+            else if (name == "S2_OFF" || name == "S2" ||
+                     name == "S2_OFF_BUTTON" || name == "S2_BUTTON") action = HighflyCombatAction.Skill2;
+            else if (name == "S3" || name == "S3_BUTTON") action = HighflyCombatAction.Skill3;
+            else if (name == "S4" || name == "S4_BUTTON") action = HighflyCombatAction.Skill4;
+            else if (name == "ULT" || name == "ULT_BUTTON") action = HighflyCombatAction.Ultimate;
+            else if (name == "ESQUIVAR" || name == "ESQUIVAR_BUTTON") action = HighflyCombatAction.Dodge;
+            else if (name == "PARRY" || name == "PARRY_BUTTON") action = HighflyCombatAction.Parry;
             return action != HighflyCombatAction.None;
+        }
+    }
+
+    // SKILL5-only expandable preview panel. It does not modify frozen SKILL4 UI.
+    // Selecting a skill auto-equips its canonical test loadout, then executes it.
+    [DisallowMultipleComponent]
+    public sealed class HighflySkill5QuickPanel : MonoBehaviour
+    {
+        private HighflySkill5Runtime _runtime;
+        private GameObject _panel;
+        private Text _status;
+        private readonly Text[] _labels = new Text[5];
+        private float _nextRefresh;
+
+        private static readonly HighflyCombatAction[] Actions =
+        {
+            HighflyCombatAction.Skill1,
+            HighflyCombatAction.Skill2,
+            HighflyCombatAction.Skill3,
+            HighflyCombatAction.Skill4,
+            HighflyCombatAction.Ultimate
+        };
+
+        private static readonly string[] Names =
+        {
+            "S1 • SONIC LEAP",
+            "S2 • HORIZONTAL SQUARE",
+            "S3 • DOUBLE CIRCULAR",
+            "S4 • SPINNING SHIELD",
+            "ULT • APOCALYPSE"
+        };
+
+        private void Awake()
+        {
+            _runtime = GetComponent<HighflySkill5Runtime>();
+            Build();
+        }
+
+        private void Update()
+        {
+            if (_panel == null || !_panel.activeSelf || _runtime == null) return;
+            if (Time.unscaledTime < _nextRefresh) return;
+            _nextRefresh = Time.unscaledTime + 0.10f;
+
+            for (int i = 0; i < Actions.Length; i++)
+            {
+                if (_labels[i] == null) continue;
+                float cd = _runtime.GetCooldownRemaining(Actions[i]);
+                _labels[i].text = cd > 0.05f
+                    ? Names[i] + "   " + cd.ToString("0.0") + "s"
+                    : Names[i];
+            }
+        }
+
+        private void Build()
+        {
+            GameObject canvasGo = new GameObject(
+                "SKILL5_PREMIUM_PANEL_CANVAS",
+                typeof(Canvas),
+                typeof(CanvasScaler),
+                typeof(GraphicRaycaster));
+            canvasGo.transform.SetParent(transform, false);
+
+            Canvas canvas = canvasGo.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            canvas.sortingOrder = 8750;
+
+            CanvasScaler scaler = canvasGo.GetComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = new Vector2(1920f, 1080f);
+            scaler.matchWidthOrHeight = 0.5f;
+
+            Button toggle = CreateButton(
+                canvasGo.transform,
+                "SKILLS ▼",
+                new Vector2(462f, -28f),
+                new Vector2(180f, 56f),
+                18);
+            toggle.onClick.AddListener(() =>
+            {
+                if (_panel != null) _panel.SetActive(!_panel.activeSelf);
+            });
+
+            _panel = new GameObject(
+                "SKILL5_PREMIUM_PANEL",
+                typeof(RectTransform),
+                typeof(Image));
+            _panel.transform.SetParent(canvasGo.transform, false);
+
+            RectTransform pr = _panel.GetComponent<RectTransform>();
+            pr.anchorMin = pr.anchorMax = new Vector2(0f, 1f);
+            pr.pivot = new Vector2(0f, 1f);
+            pr.anchoredPosition = new Vector2(462f, -94f);
+            pr.sizeDelta = new Vector2(390f, 430f);
+            _panel.GetComponent<Image>().color = new Color(0.018f, 0.026f, 0.045f, 0.96f);
+
+            Text title = CreateText(
+                _panel.transform,
+                "SKILL5 • PREMIUM FIVE\nTOCAR = EQUIPAR + PREVIEW",
+                new Vector2(18f, -16f),
+                new Vector2(354f, 62f),
+                20,
+                TextAnchor.UpperLeft);
+
+            for (int i = 0; i < Actions.Length; i++)
+            {
+                int slot = i;
+                Button b = CreateButton(
+                    _panel.transform,
+                    Names[i],
+                    new Vector2(18f, -92f - i * 56f),
+                    new Vector2(354f, 48f),
+                    16);
+                _labels[i] = b.GetComponentInChildren<Text>();
+                b.onClick.AddListener(() => StartCoroutine(Preview(Actions[slot])));
+            }
+
+            _status = CreateText(
+                _panel.transform,
+                "Listo • el HUD derecho también queda conectado.",
+                new Vector2(18f, -382f),
+                new Vector2(354f, 32f),
+                13,
+                TextAnchor.MiddleLeft);
+
+            _panel.SetActive(false);
+        }
+
+        private IEnumerator Preview(HighflyCombatAction action)
+        {
+            HighflyRun0HCharacterVisual visual = HighflyRun0HCharacterVisual.Instance;
+            if (visual != null)
+            {
+                switch (action)
+                {
+                    case HighflyCombatAction.Skill1:
+                    case HighflyCombatAction.Skill2:
+                    case HighflyCombatAction.Ultimate:
+                        visual.UseLoadout(HighflyLoadoutProfile.Sword1H);
+                        break;
+                    case HighflyCombatAction.Skill3:
+                        visual.UseLoadout(HighflyLoadoutProfile.DualSword);
+                        break;
+                    case HighflyCombatAction.Skill4:
+                        visual.UseLoadout(HighflyLoadoutProfile.SwordShield);
+                        break;
+                }
+            }
+
+            yield return null;
+            yield return null;
+
+            bool ok = _runtime != null && _runtime.RouteAction(action);
+            if (_status != null)
+                _status.text = ok
+                    ? "Ejecutando: " + DisplayName(action)
+                    : "No ejecutó: cooldown/estado todavía bloqueado.";
+        }
+
+        private static string DisplayName(HighflyCombatAction action)
+        {
+            for (int i = 0; i < Actions.Length; i++)
+                if (Actions[i] == action) return Names[i];
+            return action.ToString();
+        }
+
+        private static Button CreateButton(
+            Transform parent,
+            string label,
+            Vector2 anchoredPosition,
+            Vector2 size,
+            int fontSize)
+        {
+            GameObject go = new GameObject(
+                "SKILL5_" + label.Replace(" ", "_").Replace("•", ""),
+                typeof(RectTransform),
+                typeof(Image),
+                typeof(Button));
+            go.transform.SetParent(parent, false);
+
+            RectTransform r = go.GetComponent<RectTransform>();
+            r.anchorMin = r.anchorMax = new Vector2(0f, 1f);
+            r.pivot = new Vector2(0f, 1f);
+            r.anchoredPosition = anchoredPosition;
+            r.sizeDelta = size;
+
+            Image image = go.GetComponent<Image>();
+            image.color = new Color(0.035f, 0.075f, 0.115f, 0.96f);
+
+            Text t = CreateText(
+                go.transform,
+                label,
+                new Vector2(10f, -4f),
+                new Vector2(size.x - 20f, size.y - 8f),
+                fontSize,
+                TextAnchor.MiddleLeft);
+            t.raycastTarget = false;
+
+            return go.GetComponent<Button>();
+        }
+
+        private static Text CreateText(
+            Transform parent,
+            string value,
+            Vector2 anchoredPosition,
+            Vector2 size,
+            int fontSize,
+            TextAnchor alignment)
+        {
+            GameObject go = new GameObject("Text", typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(parent, false);
+
+            RectTransform r = go.GetComponent<RectTransform>();
+            r.anchorMin = r.anchorMax = new Vector2(0f, 1f);
+            r.pivot = new Vector2(0f, 1f);
+            r.anchoredPosition = anchoredPosition;
+            r.sizeDelta = size;
+
+            Text text = go.GetComponent<Text>();
+            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            text.fontSize = fontSize;
+            text.alignment = alignment;
+            text.color = Color.white;
+            text.text = value;
+            return text;
         }
     }
 
