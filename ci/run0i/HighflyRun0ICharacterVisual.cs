@@ -170,7 +170,7 @@ namespace Highfly.Run0H
                 case HighflyLoadoutProfile.DualDaggers: return "Dagger_C";
                 case HighflyLoadoutProfile.DualAxe: return "DualAxe_C";
                 case HighflyLoadoutProfile.SwordShield:
-                case HighflyLoadoutProfile.AxeShield:
+                case HighflyLoadoutProfile.AxeShield: return "Shield_Block";
                 case HighflyLoadoutProfile.Spear2H:
                 case HighflyLoadoutProfile.Unarmed: return "Sword_Block";
                 default: return "Sword_Block";
