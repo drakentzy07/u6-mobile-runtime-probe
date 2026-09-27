@@ -972,7 +972,13 @@ function makeAssetRec(id,asset,name,pos,rot=[0,0,0],scale=[1,1,1],supportY=null,
 function premiumV27(input){
  const d=JSON.parse(JSON.stringify(input||DEFAULT_LAYOUT_V23));d.scene='FORJA';d.source='INTERIOR2_V27_PREMIUM';d.savedAt=new Date().toISOString();
  const kill=/Pared continua detrás de puerta|escritorio grande decorado|Mostrador showroom/i;
- const killIds=new Set(['a-758','a-759','a-760','a-761','a-762','a-639','a-654','a-682','a-684','a-727','a-729','a-740','a-744']);
+ const killIds=new Set([
+ 'a-758','a-759','a-760','a-761','a-762',
+ 'a-633','a-635','a-637','a-639','a-648','a-650','a-652','a-654','a-663','a-665','a-667','a-669',
+ 'a-678','a-680','a-682','a-684','a-693','a-695','a-697','a-699','a-708','a-710','a-712','a-714',
+ 'a-723','a-725','a-727','a-729','a-738','a-740','a-742','a-744',
+ 'a-850','a-851','a-852','a-853','a-854','a-855','a-856','a-857','a-858','a-859','a-860','a-861','a-862','a-863','a-864','a-865'
+]);
  d.objects=(d.objects||[]).filter(o=>!kill.test(o.name||'')&&!killIds.has(o.id));
  const by=new Map(d.objects.map(o=>[o.id,o])),ids=new Set(by.keys());
  const set=(id,patch)=>{const o=by.get(id);if(o)Object.assign(o,patch)};
@@ -989,19 +995,52 @@ function premiumV27(input){
  set('a-262',{pos:[.8,-2.85,16.2]});set('a-258',{pos:[13.2,-2.85,16.2]});
  set('a-259',{pos:[.8,-2.85,22.6]});set('a-260',{pos:[13.2,-2.85,22.6]});
 
- // Showroom = curated four-piece displays. Hero pieces stand vertically as if magically presented.
- [['a-633',[1.05,.78,.76]],['a-635',[1.05,.78,1.74]],['a-650',[1.05,.78,4.04]],['a-652',[1.05,1.53,3.06]],
-  ['a-665',[1.05,.78,6.34]],['a-669',[1.05,1.53,6.34]],['a-678',[1.05,.78,7.66]],['a-680',[1.05,.78,8.64]],
-  ['a-723',[12.95,.75,5.36]],['a-725',[12.95,.75,6.34]],['a-738',[12.95,.78,7.66]],['a-742',[12.95,.78,8.64]]].forEach(([id,pos])=>set(id,{pos}));
- [
-  makeAssetRec('a-950','swordF','Espada hero vertical A',[1.05,.75,1.25],[0,Math.PI/2,0],[.60,.60,.60],.75),
-  makeAssetRec('a-951','full_103','Espada hero vertical B',[1.05,1.53,1.25],[0,Math.PI/2,0],[.58,.58,.58],1.53),
-  makeAssetRec('a-952','full_73','Daga hero vertical',[1.05,.75,3.55],[0,Math.PI/2,0],[.66,.66,.66],.75),
-  makeAssetRec('a-953','spearA','Lanza hero vertical',[12.95,.75,3.55],[0,-Math.PI/2,0],[.46,.46,.46],.75),
-  makeAssetRec('a-954','full_81','Alabarda hero vertical',[12.95,1.53,3.55],[0,-Math.PI/2,0],[.42,.42,.42],1.53)
- ].forEach(add);
- // elegant dark foot-points under vertical hero weapons
- [[1.05,.30,1.25],[1.05,.30,3.55],[12.95,.30,3.55],[12.95,.30,5.85],[12.95,.30,8.15]].forEach((p,i)=>add(makePrim('p-'+(950+i),'Soporte hero hierro '+(i+1),'iron',[.28,.16,.34],p,'Exhibición')));
+ // SHOWROOM: exactly 4 curated pieces per vitrine. Two resting + two vertical/hero where useful.
+ const heroCases=[
+  // ESPADAS
+  ['a-1000','full_100','Espada D · exhibición',[1.05,.75,.76],[Math.PI/2,0,0],[.66,.66,.66],.75],
+  ['a-1001','full_101','Espada E · exhibición',[1.05,.75,1.74],[Math.PI/2,Math.PI,0],[.69,.69,.69],.75],
+  ['a-1002','swordF','Espada grande · hero',[1.05,1.53,1.02],[0,Math.PI/2,0],[.58,.58,.58],1.53],
+  ['a-1003','full_103','Espada G · hero',[1.05,1.53,1.48],[0,Math.PI/2,0],[.58,.58,.58],1.53],
+  // DAGAS
+  ['a-1004','full_71','Daga A · exhibición',[1.05,.75,3.06],[Math.PI/2,0,0],[.72,.72,.72],.75],
+  ['a-1005','full_72','Daga B · exhibición',[1.05,.75,4.04],[Math.PI/2,Math.PI,0],[.72,.72,.72],.75],
+  ['a-1006','full_73','Daga C · hero',[1.05,1.53,3.32],[0,Math.PI/2,0],[.66,.66,.66],1.53],
+  ['a-1007','q_80','Espada corta bronce · hero',[1.05,1.53,3.78],[0,Math.PI/2,0],[.60,.60,.60],1.53],
+  // HACHAS
+  ['a-1008','full_61','Hacha A · exhibición',[1.05,.75,5.36],[Math.PI/2,0,0],[.62,.62,.62],.75],
+  ['a-1009','full_64','Hacha D · exhibición',[1.05,.75,6.34],[Math.PI/2,Math.PI,0],[.62,.62,.62],.75],
+  ['a-1010','axeA','Hacha I · hero',[1.05,1.53,5.62],[0,Math.PI/2,0],[.58,.58,.58],1.53],
+  ['a-1011','q_2','Hacha bronce · hero',[1.05,1.53,6.08],[0,Math.PI/2,0],[.58,.58,.58],1.53],
+  // MARTILLOS
+  ['a-1012','full_82','Martillo A · exhibición',[1.05,.75,7.66],[Math.PI/2,0,0],[.58,.58,.58],.75],
+  ['a-1013','full_85','Martillo D · exhibición',[1.05,.75,8.64],[Math.PI/2,Math.PI,0],[.58,.58,.58],.75],
+  ['a-1014','full_83','Martillo B · hero',[1.05,1.53,7.92],[0,Math.PI/2,0],[.54,.54,.54],1.53],
+  ['a-1015','full_84','Martillo C · hero',[1.05,1.53,8.38],[0,Math.PI/2,0],[.54,.54,.54],1.53],
+  // ESCUDOS
+  ['a-1016','full_87','Escudo A',[12.95,.75,.76],[0,-Math.PI/2,0],[.62,.62,.62],.75],
+  ['a-1017','full_88','Escudo B',[12.95,.75,1.74],[0,-Math.PI/2,0],[.62,.62,.62],.75],
+  ['a-1018','full_89','Escudo C · hero',[12.95,1.53,1.02],[0,-Math.PI/2,0],[.60,.60,.60],1.53],
+  ['a-1019','q_74','Escudo madera · hero',[12.95,1.53,1.48],[0,-Math.PI/2,0],[.60,.60,.60],1.53],
+  // ARMAS DE ASTA
+  ['a-1020','full_91','Lanza A',[12.95,.75,3.06],[0,-Math.PI/2,0],[.46,.46,.46],.75],
+  ['a-1021','full_92','Lanza B',[12.95,.75,4.04],[0,-Math.PI/2,0],[.46,.46,.46],.75],
+  ['a-1022','full_81','Alabarda · hero',[12.95,1.53,3.32],[0,-Math.PI/2,0],[.42,.42,.42],1.53],
+  ['a-1023','full_86','Guadaña · hero',[12.95,1.53,3.78],[0,-Math.PI/2,0],[.42,.42,.42],1.53],
+  // ARCOS
+  ['a-1024','full_65','Arco A',[12.95,.75,5.36],[0,-Math.PI/2,0],[.54,.54,.54],.75],
+  ['a-1025','full_67','Arco B',[12.95,.75,6.34],[0,-Math.PI/2,0],[.54,.54,.54],.75],
+  ['a-1026','full_69','Arco C · hero',[12.95,1.53,5.62],[0,-Math.PI/2,0],[.54,.54,.54],1.53],
+  ['a-1027','full_70','Arco C tensado · hero',[12.95,1.53,6.08],[0,-Math.PI/2,0],[.54,.54,.54],1.53],
+  // SELECCIÓN MAESTRA
+  ['a-1028','full_103','Espada G · maestra',[12.95,.75,7.66],[Math.PI/2,Math.PI,0],[.62,.62,.62],.75],
+  ['a-1029','full_81','Alabarda · maestra',[12.95,.75,8.64],[0,-Math.PI/2,0],[.42,.42,.42],.75],
+  ['a-1030','full_74','Fistweapon · hero',[12.95,1.53,7.92],[0,-Math.PI/2,0],[.56,.56,.56],1.53],
+  ['a-1031','full_104','Wand · hero',[12.95,1.53,8.38],[0,-Math.PI/2,0],[.56,.56,.56],1.53]
+ ];
+ heroCases.forEach(x=>add(makeAssetRec(...x)));
+ [[1.05,.30,1.25],[1.05,.30,3.55],[1.05,.30,5.85],[1.05,.30,8.15],[12.95,.30,1.25],[12.95,.30,3.55],[12.95,.30,5.85],[12.95,.30,8.15]]
+  .forEach((p,i)=>add(makePrim('p-'+(950+i),'Soporte hero hierro '+(i+1),'iron',[.28,.16,.34],p,'Exhibición')));
 
  // Fill the two showroom weapon stands with swords and spears.
  [
