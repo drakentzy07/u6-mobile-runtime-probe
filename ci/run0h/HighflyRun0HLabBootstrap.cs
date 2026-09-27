@@ -280,14 +280,14 @@ namespace Highfly.Run0H
             pr.anchorMin = pr.anchorMax = new Vector2(0f, 1f);
             pr.pivot = new Vector2(0f, 1f);
             pr.anchoredPosition = new Vector2(24f, -24f);
-            pr.sizeDelta = new Vector2(430f, 730f);
+            pr.sizeDelta = new Vector2(430f, 820f);
 
             panel.GetComponent<Image>().color =
                 new Color(0.018f, 0.026f, 0.045f, 0.93f);
 
             Text title = CreateText(
                 panel.transform,
-                "HIGHFLY • SKILLS LAB SUPREMO\nRUN0I.3 • SINGLE HUNTER + GUARD",
+                "HIGHFLY • SKILLS LAB SUPREMO\nSKILL3 • KAYKIT HUNTER CROWN",
                 24,
                 TextAnchor.UpperLeft);
 
@@ -318,8 +318,8 @@ namespace Highfly.Run0H
             Button dualSword = CreateButton(panel.transform,"DOBLE ESPADA",new Vector2(215f,-185f),new Vector2(185f,48f));
             dualSword.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualSword));
 
-            Button swordShield = CreateButton(panel.transform,"ESPADA + ESC",new Vector2(18f,-241f),new Vector2(185f,48f));
-            swordShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.SwordShield));
+            Button dagger1 = CreateButton(panel.transform,"DAGA 1H",new Vector2(18f,-241f),new Vector2(185f,48f));
+            dagger1.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Dagger1H));
 
             Button daggers = CreateButton(panel.transform,"DOBLE DAGA",new Vector2(215f,-241f),new Vector2(185f,48f));
             daggers.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualDaggers));
@@ -330,10 +330,13 @@ namespace Highfly.Run0H
             Button dualAxe = CreateButton(panel.transform,"DOBLE HACHA",new Vector2(215f,-297f),new Vector2(185f,48f));
             dualAxe.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.DualAxe));
 
-            Button axeShield = CreateButton(panel.transform,"HACHA + ESC",new Vector2(18f,-353f),new Vector2(185f,48f));
+            Button swordShield = CreateButton(panel.transform,"ESPADA + ESC",new Vector2(18f,-353f),new Vector2(185f,48f));
+            swordShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.SwordShield));
+
+            Button axeShield = CreateButton(panel.transform,"HACHA + ESC",new Vector2(215f,-353f),new Vector2(185f,48f));
             axeShield.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.AxeShield));
 
-            Button spear = CreateButton(panel.transform,"LANZA 2H",new Vector2(215f,-353f),new Vector2(185f,48f));
+            Button spear = CreateButton(panel.transform,"LANZA 2H",new Vector2(18f,-409f),new Vector2(382f,48f));
             spear.onClick.AddListener(()=>HighflyRun0HCharacterVisual.Instance?.UseLoadout(HighflyLoadoutProfile.Spear2H));
 
             _characterStatus = CreateText(
@@ -345,7 +348,7 @@ namespace Highfly.Run0H
             RectTransform csr = _characterStatus.rectTransform;
             csr.anchorMin = csr.anchorMax = new Vector2(0f, 1f);
             csr.pivot = new Vector2(0f, 1f);
-            csr.anchoredPosition = new Vector2(18f, -414f);
+            csr.anchoredPosition = new Vector2(18f, -467f);
             csr.sizeDelta = new Vector2(390f, 34f);
 
             Text skillsHeader = CreateText(
@@ -357,7 +360,7 @@ namespace Highfly.Run0H
             RectTransform shr = skillsHeader.rectTransform;
             shr.anchorMin = shr.anchorMax = new Vector2(0f, 1f);
             shr.pivot = new Vector2(0f, 1f);
-            shr.anchoredPosition = new Vector2(18f, -460f);
+            shr.anchoredPosition = new Vector2(18f, -510f);
             shr.sizeDelta = new Vector2(390f, 30f);
 
             string[] slots =
@@ -379,7 +382,7 @@ namespace Highfly.Run0H
                 RectTransform rr = row.rectTransform;
                 rr.anchorMin = rr.anchorMax = new Vector2(0f, 1f);
                 rr.pivot = new Vector2(0f, 1f);
-                rr.anchoredPosition = new Vector2(18f, -502f - i * 44f);
+                rr.anchoredPosition = new Vector2(18f, -550f - i * 44f);
                 rr.sizeDelta = new Vector2(390f, 40f);
             }
 
