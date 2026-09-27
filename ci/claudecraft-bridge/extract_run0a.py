@@ -3,7 +3,7 @@ import argparse, json, re
 from pathlib import Path
 
 PIN = "cecebab4da06287351b37e118c630c185717b81c"
-CANDIDATES = ["heroic_leap", "charge", "backstab", "eviscerate", "pummel"]
+CANDIDATES = ["heroic_leap", "ambush", "backstab", "eviscerate", "pummel"]
 
 def read(root, rel):
     p = root / rel
