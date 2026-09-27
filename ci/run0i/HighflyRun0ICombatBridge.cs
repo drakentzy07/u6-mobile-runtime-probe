@@ -143,13 +143,22 @@ namespace Highfly.Combat
                 return;
             }
 
+            bool dualCross=IsDualCrossFinisher(profile,pattern,step);
             float sourceLength = visual!=null ? visual.GetActionClipLength(pattern.MotionSlot) : 0.75f;
-            float duration = Mathf.Clamp(sourceLength / Mathf.Max(0.05f,pattern.AnimationSpeed),0.38f,1.45f);
+            float duration = dualCross
+                ? 0.72f
+                : Mathf.Clamp(sourceLength / Mathf.Max(0.05f,pattern.AnimationSpeed),0.38f,1.45f);
 
             BeginAction(kind,duration,PlayerState.Attack);
-            SetPhase(0,pattern.MotionSlot,pattern.AnimationSpeed);
+            if (dualCross)
+            {
+                ResolveDualCrossClips(profile,out string first,out _);
+                SetPhase(0,first,1.58f);
+            }
+            else SetPhase(0,pattern.MotionSlot,pattern.AnimationSpeed);
             PlayOneShot(_swing);
-            Debug.Log("[RUN0I.2] STRIKE "+profile+" • "+pattern.Id+" • "+pattern.Arrow);
+            Debug.Log("[SKILL4] STRIKE "+profile+" • "+pattern.Id+" • "+pattern.Arrow+
+                      (dualCross?" • AUTHORED X":""));
         }
 
         private void StartSonicLeap()
@@ -226,17 +235,62 @@ namespace Highfly.Combat
             float desiredDistance=pattern.MovementMeters*Mathf.SmoothStep(0f,1f,travelN);
             MoveForwardDistance(desiredDistance);
 
-            SetActiveWindow(
-                n>=pattern.ActiveStartN && n<=pattern.ActiveEndN,
-                0,
-                pattern.Damage,
-                pattern.Hitstop);
+            if (IsDualCrossFinisher(profile,pattern,_comboStep))
+                UpdateDualCross(profile,pattern,n);
+            else
+                SetActiveWindow(
+                    n>=pattern.ActiveStartN && n<=pattern.ActiveEndN,
+                    0,
+                    pattern.Damage,
+                    pattern.Hitstop);
 
             if (_queuedLight && n>=pattern.LinkAtN)
             {
                 int next=(_comboStep%3)+1;
                 FinishAction(false);
                 StartBasic(next);
+            }
+        }
+
+        private void UpdateDualCross(HighflyLoadoutProfile profile,HighflyStrikePattern pattern,float n)
+        {
+            ResolveDualCrossClips(profile,out string first,out string second);
+
+            if (n<0.46f)
+            {
+                if (_phase!=0) SetPhase(0,first,1.58f);
+                SetActiveWindow(n>=0.11f && n<=0.36f,0,pattern.Damage*0.52f,pattern.Hitstop*0.72f);
+            }
+            else
+            {
+                if (_phase!=1)
+                {
+                    SetActiveWindow(false,-1,0f,0f);
+                    SetPhase(1,second,1.62f);
+                    PlayOneShot(_swing);
+                }
+                SetActiveWindow(n>=0.52f && n<=0.79f,1,pattern.Damage*0.58f,pattern.Hitstop*0.78f);
+            }
+        }
+
+        private static bool IsDualCrossFinisher(HighflyLoadoutProfile profile,HighflyStrikePattern pattern,int step)
+        {
+            if (step!=3 || pattern==null || pattern.Direction!=HighflyStrikeDirection.Cross) return false;
+            return profile==HighflyLoadoutProfile.DualSword ||
+                   profile==HighflyLoadoutProfile.DualAxe ||
+                   profile==HighflyLoadoutProfile.DualDaggers;
+        }
+
+        private static void ResolveDualCrossClips(HighflyLoadoutProfile profile,out string first,out string second)
+        {
+            switch(profile)
+            {
+                case HighflyLoadoutProfile.DualAxe:
+                    first="DualAxe_A"; second="DualAxe_B"; break;
+                case HighflyLoadoutProfile.DualDaggers:
+                    first="Dagger_A"; second="Dagger_B"; break;
+                default:
+                    first="DualSword_A"; second="DualSword_B"; break;
             }
         }
 
@@ -374,12 +428,21 @@ namespace Highfly.Combat
                 HighflyStrikePattern pattern=HighflyMeleeLibrary.Get(visual.CurrentLoadout).GetBasic(_comboStep);
                 if (pattern!=null)
                 {
-                    tracePrimary=pattern.Hands==HighflyHandUsage.Right ||
-                                 pattern.Hands==HighflyHandUsage.Both ||
-                                 pattern.Hands==HighflyHandUsage.Alternating;
-                    traceSecondary=pattern.Hands==HighflyHandUsage.Left ||
-                                   pattern.Hands==HighflyHandUsage.Both ||
-                                   pattern.Hands==HighflyHandUsage.Alternating;
+                    if (IsDualCrossFinisher(visual.CurrentLoadout,pattern,_comboStep))
+                    {
+                        // Third dual beat is a literal crossing pair: right trace, then left trace.
+                        tracePrimary=_phase==0;
+                        traceSecondary=_phase==1;
+                    }
+                    else
+                    {
+                        tracePrimary=pattern.Hands==HighflyHandUsage.Right ||
+                                     pattern.Hands==HighflyHandUsage.Both ||
+                                     pattern.Hands==HighflyHandUsage.Alternating;
+                        traceSecondary=pattern.Hands==HighflyHandUsage.Left ||
+                                       pattern.Hands==HighflyHandUsage.Both ||
+                                       pattern.Hands==HighflyHandUsage.Alternating;
+                    }
                 }
 
                 if (visual.CurrentLoadout==HighflyLoadoutProfile.Unarmed)
