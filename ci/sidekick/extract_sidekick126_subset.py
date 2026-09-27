@@ -69,6 +69,18 @@ def main() -> None:
             )
 
         queue = [start_dir]
+
+        # Arsenal pass: include the official Sidekick axe and its dependency
+        # closure as a same-style weapon candidate for the Hunter.
+        sidekick_axe_dirs = [
+            d for logical, d in path_to_dir.items()
+            if logical.lower().endswith("sk_axe.fbx")
+            and "goblin_axe" in logical.lower()
+        ]
+        if not sidekick_axe_dirs:
+            raise SystemExit("Sidekick 1.2.6 package is missing Goblin_Axe/SK_Axe.fbx")
+        queue.extend(sidekick_axe_dirs)
+
         selected: set[Path] = set()
         unresolved: set[str] = set()
 
