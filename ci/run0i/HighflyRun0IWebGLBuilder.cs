@@ -33,7 +33,7 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[SKILL4] Building Hunter Base • RogueHooded • KayKit Fantasy grip-origin arsenal");
+            // CI retry marker: verify raw FBX bytes with Git filters disabled.\n            Debug.Log("[SKILL4] Building Hunter Base • RogueHooded • KayKit Fantasy grip-origin arsenal");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);

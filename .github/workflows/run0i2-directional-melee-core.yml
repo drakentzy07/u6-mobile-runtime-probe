@@ -195,10 +195,10 @@ jobs:
           curl -L --fail --retry 5 "$KFB_BASE/spear_A.fbx" -o "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasySpearA.fbx"
           curl -L --fail --retry 5 "$KFB_BASE/weapons_bits_texture.png" -o "$P/Assets/Resources/HIGHFLY/Run0I/weapons_bits_texture.png"
 
-          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyDaggerA.fbx")" = "a6dc58bebfbd01255f8b90a9d752ac6e2903d3b7"
-          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyAxeA.fbx")" = "207d3df65dca1a971771d69972ce03e26b1f04ad"
-          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasySpearA.fbx")" = "94a3dd51879443163f9936d866bdeb5f26aa1666"
-          test "$(git hash-object "$P/Assets/Resources/HIGHFLY/Run0I/weapons_bits_texture.png")" = "f94f11e0384d09132f8dbfc64d811812875dcc64"
+          test "$(git hash-object --no-filters "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyDaggerA.fbx")" = "a6dc58bebfbd01255f8b90a9d752ac6e2903d3b7"
+          test "$(git hash-object --no-filters "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasyAxeA.fbx")" = "207d3df65dca1a971771d69972ce03e26b1f04ad"
+          test "$(git hash-object --no-filters "$P/Assets/Resources/HIGHFLY/Run0I/KayKitFantasySpearA.fbx")" = "94a3dd51879443163f9936d866bdeb5f26aa1666"
+          test "$(git hash-object --no-filters "$P/Assets/Resources/HIGHFLY/Run0I/weapons_bits_texture.png")" = "f94f11e0384d09132f8dbfc64d811812875dcc64"
 
           QBASE="https://raw.githubusercontent.com/DevHuang1/embervale-godot/3f511a60fa9822a7de280a8da95a863525998237/assets/models/weapons/quaternius"
 
