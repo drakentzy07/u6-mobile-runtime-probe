@@ -135,7 +135,10 @@ def main() -> None:
         if not shader_path or not (args.project / shader_path).is_file():
             raise SystemExit("Sidekick shader was selected but not reconstructed")
 
-        if len(copied) < 4:\n            raise SystemExit(f"Sidekick dependency closure is unexpectedly small: {len(copied)}")\n\n        print(f"SIDEKICK126_EXTRACT_OK=1")
+        if len(copied) < 4:
+            raise SystemExit(f"Sidekick dependency closure is unexpectedly small: {len(copied)}")
+
+        print(f"SIDEKICK126_EXTRACT_OK=1")
         print(f"SIDEKICK126_SELECTED_ASSETS={len(copied)}")
         print(f"SIDEKICK126_RESOURCE={TARGET_RESOURCE}")
         print(f"SIDEKICK126_SHADER={shader_path}")
