@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    {"source":"/","destination":"/interior_factory/web/if01a.html"},
-    {"source":"/forge","destination":"/interior_factory/web/if01a.html"}
+    {"source":"/","destination":"/interior_factory/web/interior-editor-v24.html"},
+    {"source":"/forge","destination":"/interior_factory/web/interior-editor-v24.html"},
+    {"source":"/interior2","destination":"/interior_factory/web/interior-editor-v24.html"}
   ]
 }
