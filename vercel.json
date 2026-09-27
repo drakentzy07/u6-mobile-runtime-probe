@@ -1,10 +1,10 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    {"source":"/","destination":"/interior_factory/web/interior-editor-v32.html"},
-    {"source":"/forge","destination":"/interior_factory/web/interior-editor-v32.html"},
-    {"source":"/interior2","destination":"/interior_factory/web/interior-editor-v32.html"},
-    {"source":"/inn","destination":"/interior_factory/web/interior-posada-v3.html"},
-    {"source":"/posada","destination":"/interior_factory/web/interior-posada-v3.html"}
+    {"source":"/","destination":"/interior_factory/web/interior-editor-v33.html"},
+    {"source":"/forge","destination":"/interior_factory/web/interior-editor-v33.html"},
+    {"source":"/interior2","destination":"/interior_factory/web/interior-editor-v33.html"},
+    {"source":"/inn","destination":"/interior_factory/web/interior-posada-v4.html"},
+    {"source":"/posada","destination":"/interior_factory/web/interior-posada-v4.html"}
   ]
 }
