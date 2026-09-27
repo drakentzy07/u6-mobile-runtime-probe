@@ -24,45 +24,41 @@ jobs:
           import fs from 'node:fs';
           const approved=JSON.parse(fs.readFileSync('interior_factory/runs/IF-00A-layout.json','utf8'));
           const generated=JSON.parse(fs.readFileSync('/tmp/IF-00A-layout.json','utf8'));
-          if(JSON.stringify(approved)!==JSON.stringify(generated)){
-            console.error('Generated layout differs from approved semantic JSON');
-            process.exit(1);
-          }
+          if(JSON.stringify(approved)!==JSON.stringify(generated)){console.error('Generated layout differs from approved semantic JSON');process.exit(1)}
           console.log('Semantic layout match: PASS');
           NODE
-      - name: Syntax-check Interior Editor v20
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v20.html
-      - name: Guard v20 layout
+      - name: Syntax-check Interior Editor v21
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v21.html
+      - name: Guard v21 editor/catalog/showroom
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v20.html','utf8');
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v21.html','utf8');
           for(const token of [
-            'const DEFAULT_LAYOUT_V20=',
-            'HIGHFLY_FORJA_WORKSPACE_STABLE_3',
-            'supportY',
-            'Pedestal 1 PREMIUM ESPADAS',
-            'Panel armero ESPADAS',
-            'Panel armero HACHAS',
-            'Banco de inspección / afilado',
-            'Espada en revisión',
-            'Cobre · pila grande',
-            'Hierro · pila grande',
-            'Plata · pila grande',
-            'Oro · pila grande'
-          ]){
-            if(!s.includes(token)){console.error('Missing V20 invariant:',token);process.exit(1)}
-          }
-          const m=s.match(/const DEFAULT_LAYOUT_V20=(\{.*?\});\s*async function init/s);
-          if(!m){console.error('DEFAULT_LAYOUT_V20 not parseable');process.exit(1)}
+            'const DEFAULT_LAYOUT_V21=',
+            'HIGHFLY_FORJA_WORKSPACE_STABLE_4',
+            'MIDDLE:THREE.MOUSE.ROTATE',
+            'RIGHT:THREE.MOUSE.PAN',
+            'WEB-READY INSERTABLES:',
+            'AUDITED_LOCAL',
+            "let filter='all'",
+            'SIN RESULTADOS',
+            'F ENFOCAR',
+            'nudgeSelected',
+            'Estante 4 PREMIUM ESPADAS',
+            'Estante 4 ESCUDOS',
+            'Puerta doble medieval premium',
+            'q_115'
+          ]){if(!s.includes(token)){console.error('Missing V21 invariant:',token);process.exit(1)}}
+          const m=s.match(/const DEFAULT_LAYOUT_V21=(\{.*?\});\s*async function init/s);
+          if(!m){console.error('DEFAULT_LAYOUT_V21 not parseable');process.exit(1)}
           const d=JSON.parse(m[1]);
-          const ingots=(d.objects||[]).filter(o=>/^(Cobre|Hierro|Plata|Oro) · pila/.test(o.name||''));
-          if(ingots.length<12){console.error('Expected 12 ingot stacks, got',ingots.length);process.exit(1)}
-          if(ingots.some(o=>o.pos[2]>16)){console.error('Ingot wall is not on opposite/front wall');process.exit(1)}
-          const stairBlockers=(d.objects||[]).filter(o=>o.pos&&o.pos[1]<-1&&o.pos[0]>10.8&&o.pos[2]>20.7&&['Materiales','Almacenamiento'].includes(o.category));
-          if(stairBlockers.length){console.error('Basement stair landing blocked:',stairBlockers.map(x=>x.name));process.exit(1)}
-          const floatingRoom2=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>=14.4&&o.pos[2]<=23.5&&!/mural/i.test(o.name||'')&&!Number.isFinite(o.supportY));
-          if(floatingRoom2.length){console.error('Room2 weapon missing supportY:',floatingRoom2.map(x=>x.name));process.exit(1)}
-          console.log('V20 forge guards: PASS');
+          const shelves=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Estante [1-4] /.test(o.name||''));
+          if(shelves.length!==24){console.error('Expected 24 showcase shelves, got',shelves.length);process.exit(1)}
+          const stock=(d.objects||[]).filter(o=>/STOCK FORJA/.test(o.name||''));
+          if(stock.length){console.error('Old STOCK FORJA showcase survived',stock.map(x=>x.name));process.exit(1)}
+          const entrance=(d.objects||[]).filter(o=>/Puerta doble medieval premium|Marco puerta doble/.test(o.name||''));
+          if(entrance.length<2){console.error('Premium double entrance incomplete');process.exit(1)}
+          console.log('V21 editor/catalog/showroom guards: PASS');
           NODE
