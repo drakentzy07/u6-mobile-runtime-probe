@@ -1,0 +1,66 @@
+name: Publish HIGHFLY ClaudeCraft Run0B Heroic Leap
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - highfly/claudecraft-unity-bridge-lab
+    paths:
+      - ".github/workflows/publish-claudecraft-run0b-heroic-leap.yml"
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-claudecraft-run0b-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Publish ClaudeCraft Run0B Heroic Leap
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Download verified green Run0B artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-claudecraft-run0b-heroic-leap-webgl
+          path: site
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: 36354396889
+
+      - name: Verify exact playable WebGL
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -f site/index.html
+          test -d site/Build
+          test -f site/CLAUDE_RUN0B_BUILD.txt
+          grep -q "NATIVE UNITY POSE BAKER" site/CLAUDE_RUN0B_BUILD.txt
+          grep -q "FLIGHT 0.60" site/CLAUDE_RUN0B_BUILD.txt
+          grep -q "APEX 3.20" site/CLAUDE_RUN0B_BUILD.txt
+          grep -q "AOE 6" site/CLAUDE_RUN0B_BUILD.txt
+          grep -q "DAMAGE 24-32" site/CLAUDE_RUN0B_BUILD.txt
+          test -n "$(find site/Build -maxdepth 1 -type f -name '*.wasm*' -size +0c -print -quit)"
+          test -n "$(find site/Build -maxdepth 1 -type f -name '*.js*' -size +0c -print -quit)"
+          touch site/.nojekyll
+          du -sh site
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
