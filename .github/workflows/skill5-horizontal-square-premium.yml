@@ -1,4 +1,4 @@
-name: HIGHFLY SKILL5 Horizontal Square Premium
+name: HIGHFLY SKILL5 PREMIUM FIVE
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build SKILL5 • Horizontal Square Premium • Unity 6000.6.2
+    name: Build SKILL5 • PREMIUM FIVE • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -149,10 +149,14 @@ jobs:
 
           test ! -d "$P/Assets/HIGHFLY/Lab"
           grep -q "SonicLeap" "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
-          grep -q "HIGHFLY_SKILL5_HORIZONTAL_SQUARE_PREMIUM" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
+          grep -q "HIGHFLY_SKILL5_PREMIUM_FIVE" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
           grep -q "NO_PROXY_TEXTURED_SCARS" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Fx.cs"
           grep -q "HorizontalSquareCooldown = 7f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
           grep -q "HorizontalSquareVolition = 18f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
+          grep -q "SonicCooldown = 6f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
+          grep -q "DoubleCircularCooldown = 6f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
+          grep -q "ApocalypseCooldown = 16f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
+          grep -q "SpinningShieldCooldown = 12f" "$P/Assets/HIGHFLY/Skill5/HighflySkill5Runtime.cs"
           grep -q "OverlapCapsuleNonAlloc" "$P/Assets/HIGHFLY/Core/Combat/HighflyLucidCombatBridge.cs"
           grep -q "HighflyRun0IParkour" "$P/Assets/HIGHFLY/Run0I/HighflyRun0IParkour.cs"
           grep -q "HighflyLoadoutProfile" "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
@@ -288,9 +292,14 @@ jobs:
           grep -q "SHIELD ATK-ATK-HEAVY SHOVE" "$OUT/RUN0I3_BUILD.txt"
           grep -q "SPEAR THRUST-SWEEP-THRUST" "$OUT/RUN0I3_BUILD.txt"
           grep -q "NORMALIZED BASIC SPEED" "$OUT/RUN0I3_BUILD.txt"
-          printf '%s\\n' 'HIGHFLY SKILL5 | HORIZONTAL SQUARE PREMIUM | FOUNDATION 7ebd380c READ ONLY | 4 HIT WINDOWS | 4 TEXTURED SCARS | FINAL CROSS IMPACT | CD 7S | COST 18 | RECOVERY CANCEL | LINK WINDOW | UNITY 6000.6.2' > "$OUT/SKILL5_BUILD.txt"
+          printf '%s\\n' 'HIGHFLY SKILL5 | PREMIUM FIVE | SONIC LEAP REFORGED | HORIZONTAL SQUARE | DOUBLE CIRCULAR | SPINNING SHIELD | APOCALYPSE | FOUNDATION 7ebd380c READ ONLY | MULTI-HIT | DUAL TRACE | REAL REPEL BLOCK | TEXTURED VFX | COOLDOWNS | RECOVERY CANCEL | LINK WINDOWS | UNITY 6000.6.2' > "$OUT/SKILL5_BUILD.txt"
           test -f "$OUT/SKILL5_BUILD.txt"
-          grep -q "HORIZONTAL SQUARE PREMIUM" "$OUT/SKILL5_BUILD.txt"
+          grep -q "PREMIUM FIVE" "$OUT/SKILL5_BUILD.txt"
+          grep -q "SONIC LEAP REFORGED" "$OUT/SKILL5_BUILD.txt"
+          grep -q "HORIZONTAL SQUARE" "$OUT/SKILL5_BUILD.txt"
+          grep -q "DOUBLE CIRCULAR" "$OUT/SKILL5_BUILD.txt"
+          grep -q "SPINNING SHIELD" "$OUT/SKILL5_BUILD.txt"
+          grep -q "APOCALYPSE" "$OUT/SKILL5_BUILD.txt"
           grep -q "FOUNDATION 7ebd380c READ ONLY" "$OUT/SKILL5_BUILD.txt"
           grep -q "4 HIT WINDOWS" "$OUT/SKILL5_BUILD.txt"
           grep -q "RECOVERY CANCEL" "$OUT/SKILL5_BUILD.txt"
@@ -298,7 +307,7 @@ jobs:
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4
         with:
-          name: highfly-skill5-horizontal-square-webgl
+          name: highfly-skill5-premium-five-webgl
           path: LucidHost/3D_game/build/WebGL
           if-no-files-found: error
           retention-days: 7
