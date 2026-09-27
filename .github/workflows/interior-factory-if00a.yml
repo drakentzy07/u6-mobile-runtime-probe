@@ -27,34 +27,37 @@ jobs:
           if(JSON.stringify(approved)!==JSON.stringify(generated)){console.error('Generated layout differs from approved semantic JSON');process.exit(1)}
           console.log('Semantic layout match: PASS');
           NODE
-      - name: Syntax-check Interior Editor v22
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v22.html
-      - name: Guard v22 catalog and showcases
+      - name: Syntax-check Interior Editor v23
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v23.html
+      - name: Guard v23 showroom
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v22.html','utf8');
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v23.html','utf8');
           for(const token of [
-            'const DEFAULT_LAYOUT_V22=',
-            'HIGHFLY_FORJA_WORKSPACE_STABLE_5',
-            "const base=(' '+String(s??'')+' ')",
-            'CATÁLOGO ◀',
-            'catalogCollapsed',
-            'Estante diagonal 4 ESPADAS SUPREMAS',
-            'Estante diagonal 4 SELECCIÓN MAESTRA',
-            'Mostrador atención premium',
-            'Cierre pared sobre puerta'
-          ]){if(!s.includes(token)){console.error('Missing V22 invariant:',token);process.exit(1)}}
-
-          const m=s.match(/const DEFAULT_LAYOUT_V22=(\{.*?\});\s*async function init/s);
-          if(!m){console.error('DEFAULT_LAYOUT_V22 not parseable');process.exit(1)}
+            'const DEFAULT_LAYOUT_V23=',
+            'HIGHFLY_FORJA_WORKSPACE_STABLE_6',
+            'function normalizedText',
+            'catalogBtn',
+            'Fondo vitrina ESPADAS SUPREMAS',
+            'Estante 4 MARTILLOS',
+            'Estante 4 ARCOS',
+            'Mostrador / escritorio grande decorado',
+            'Pared continua detrás de puerta',
+            'Puerta principal medieval'
+          ]){if(!s.includes(token)){console.error('Missing V23 invariant:',token);process.exit(1)}}
+          if(s.includes("out+=' '+out.replace")){console.error('Exponential normalizedText regression');process.exit(1)}
+          const m=s.match(/const DEFAULT_LAYOUT_V23=(\{.*?\});\s*async function init/s);
+          if(!m){console.error('DEFAULT_LAYOUT_V23 not parseable');process.exit(1)}
           const d=JSON.parse(m[1]);
-          const shelves=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Estante diagonal [1-4] /.test(o.name||''));
-          if(shelves.length!==32){console.error('Expected 32 diagonal shelves, got',shelves.length);process.exit(1)}
-          const cases=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Vidrio vitrina /.test(o.name||''));
-          if(cases.length!==8){console.error('Expected 8 showcases, got',cases.length);process.exit(1)}
-          const supported=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]<9.4&&o.pos[1]<1.8&&Number.isFinite(o.supportY));
-          if(supported.length<32){console.error('Expected at least 32 supported showcase weapons, got',supported.length);process.exit(1)}
-          console.log('V22 catalog/showcase guards: PASS');
+          const shelves=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Estante [1-4] /.test(o.name||''));
+          if(shelves.length!==32){console.error('Expected 32 shelves, got',shelves.length);process.exit(1)}
+          const diagonal=(d.objects||[]).filter(o=>/Estante diagonal|Rampa|Tope rampa/.test(o.name||''));
+          if(diagonal.length){console.error('Old diagonal showcase parts survived',diagonal.map(x=>x.name));process.exit(1)}
+          const backs=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Fondo vitrina /.test(o.name||''));
+          if(backs.length!==8){console.error('Expected 8 armory backboards, got',backs.length);process.exit(1)}
+          const weapons=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>.25&&o.pos[2]<9.35&&(o.pos[0]<2.7||o.pos[0]>11.3));
+          if(weapons.length!==32){console.error('Expected exactly 32 showcase weapons, got',weapons.length);process.exit(1)}
+          console.log('V23 reference showroom guards: PASS');
           NODE
