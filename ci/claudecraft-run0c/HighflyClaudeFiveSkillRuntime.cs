@@ -25,7 +25,7 @@ namespace Highfly.ClaudeBridge.Run0C
 
         private PlayerController _player;
         private PlayerStats _self;
-        private HighflyClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime _heroic;
+        private global::Highfly.ClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime _heroic;
         private AudioSource _audio;
         private AudioClip _swingSfx;
         private AudioClip _longSwingSfx;
@@ -98,7 +98,7 @@ namespace Highfly.ClaudeBridge.Run0C
                 if (_player != null) _self = _player.GetComponent<PlayerStats>();
             }
             if (_heroic == null)
-                _heroic = FindAnyObjectByType<HighflyClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime>();
+                _heroic = FindAnyObjectByType<global::Highfly.ClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime>();
         }
 
         private void OnGUI()
