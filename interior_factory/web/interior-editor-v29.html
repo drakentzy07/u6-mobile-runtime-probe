@@ -1127,14 +1127,14 @@ d.objects=d.objects.filter(o=>{
  // Replace generic tables with real workbenches.
  d.objects=d.objects.filter(o=>!['a-763','a-765'].includes(o.id));by.delete('a-763');by.delete('a-765');
  add(makeAssetRec('a-974','q_92','Workbench subsuelo A',[4.15,-4.2,23.05],[0,0,0],[1.45,1.45,1.45],-4.2));
- add(makeAssetRec('a-975','q_93','Workbench subsuelo B',[7.0,-4.2,23.05],[0,0,0],[1.45,1.45,1.45],-4.2));
+ add(makeAssetRec('a-975','q_92','Workbench subsuelo B',[7.0,-4.2,23.05],[0,0,0],[1.45,1.45,1.45],-4.2));
  add(makeAssetRec('a-976','q_92','Workbench subsuelo C',[9.85,-4.2,23.05],[0,0,0],[1.45,1.45,1.45],-4.2));
 
  // Anvil line aligned deliberately.
  set('a-776',{pos:[4.6,-4.2,19.6]});set('a-772',{pos:[6.4,-4.2,19.6]});set('a-371',{pos:[8.2,-4.2,19.6]});set('a-372',{pos:[10.0,-4.2,19.6]});
  set('a-777',{pos:[4.83,-3.58,19.55],hot:true,name:'Espada al rojo · martillado'});
  add(makeAssetRec('a-977','q_80','SemiSword caliente · proceso',[6.40,-3.58,19.58],[0,0,.08],[.95,.95,.95],null,{hot:true}));
- add(makeAssetRec('a-978','full_102','Espada caliente · proceso',[8.20,-3.58,19.60],[0,0,-.08],[.78,.78,.78],null,{hot:true}));
+ add(makeAssetRec('a-978','q_80','Espada bronce caliente · proceso',[8.20,-3.58,19.60],[0,0,-.08],[.82,.82,.82],null,{hot:true}));
  add(makeAssetRec('a-979','full_82','Martillo de trabajo',[10.0,-3.60,19.62],[0,0,0],[.82,.82,.82],null));
 
  // Organized tool-rich workbenches.
@@ -1183,7 +1183,7 @@ async function init(){
    if(legacy){try{await restore(premiumV29(JSON.parse(legacy)));toast('V28 migrada → FORJA FINAL REAL v29')}catch(e){console.warn(e);await restore(premiumV29(DEFAULT_LAYOUT_V23))}
    }else{await restore(premiumV29(DEFAULT_LAYOUT_V23));toast('FORJA FINAL REAL v29 cargada')}
  }
- renderCards();saveNow(false)
+ renderCards();saveNow(false);rebuildWallColliders()
 }
 init();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
