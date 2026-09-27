@@ -79,7 +79,7 @@ namespace Highfly.Run0I
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
                 "Último: "+HighflyLucidCombatBridge.LastHit+"\n"+
-                "1 Hunter Base • Daga trio real • Hacha giro • Shield shove • Lanza T→Barrido→T";
+                "Hunter limpio • Melee 1-2-3 giro • Escudo ATK-ATK-BASH • Lanza T→Barrido→T";
         }
 
         private void BuildMetrics()

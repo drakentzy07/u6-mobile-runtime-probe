@@ -33,13 +33,13 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            // CI retry marker: verify raw FBX bytes with Git filters disabled.\n            // CI retry marker 2: verification uses only current SKILL4 markers.\n            Debug.Log("[SKILL4] Building Hunter Base • RogueHooded • KayKit Fantasy grip-origin arsenal");
+            // CI retry marker: verify raw FBX bytes with Git filters disabled.\n            // CI retry marker 2: verification uses only current SKILL4 markers.\n            Debug.Log("[SKILL4] Building frozen Hunter Base • RogueHooded cleaned props • unified classic melee");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | HUNTER BASE ROGUE HOODED | KAYKIT FANTASY GRIP ORIGIN | 10 LOADOUTS | UNARMED R-L-KICK | SINGLE 1-2-3 SPIN | DUAL SWORD R-L-X | DUAL DAGGER CHOP-SLICE-STAB | DUAL AXE CLASSIC 1-2-3 SPIN | SHIELD HEAVY SHOVE | SPEAR THRUST-SWEEP-THRUST | UNITY 6000.6.2");
+                "HIGHFLY SKILL4 | KAYKIT WEAPON FOUNDATION | HUNTER BASE ROGUE HOODED | SKIN PROP CLEANUP | KAYKIT FANTASY GRIP ORIGIN | 10 LOADOUTS | UNARMED R-L-KICK | ALL MELEE CLASSIC 1-2-3 SPIN | SHIELD ATK-ATK-HEAVY SHOVE | SPEAR THRUST-SWEEP-THRUST | NORMALIZED BASIC SPEED | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
         }
 

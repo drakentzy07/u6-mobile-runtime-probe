@@ -378,10 +378,14 @@ namespace Highfly.Run0H
                 if (r == null) continue;
                 string path = RelativePathBelowRoot(r.transform,_visualRoot.transform).ToLowerInvariant();
                 if (path.Contains("sword") || path.Contains("weapon") || path.Contains("shield") ||
-                    path.Contains("dagger") || path.Contains("axe") || path.Contains("mace") ||
-                    path.Contains("bow") || path.Contains("quiver") || path.Contains("staff") ||
-                    path.Contains("spear"))
+                    path.Contains("dagger") || path.Contains("knife") || path.Contains("axe") ||
+                    path.Contains("mace") || path.Contains("bow") || path.Contains("crossbow") ||
+                    path.Contains("quiver") || path.Contains("staff") || path.Contains("spear") ||
+                    path.Contains("throwable"))
+                {
                     r.enabled = false;
+                    Debug.Log("[SKILL4] SKIN_PROP_OFF " + path);
+                }
             }
         }
 

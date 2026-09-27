@@ -267,11 +267,11 @@ jobs:
           grep -q "UNARMED R-L-KICK" "$OUT/RUN0I3_BUILD.txt"
           grep -q "HUNTER BASE ROGUE HOODED" "$OUT/RUN0I3_BUILD.txt"
           grep -q "KAYKIT FANTASY GRIP ORIGIN" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "DUAL SWORD R-L-X" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "DUAL DAGGER CHOP-SLICE-STAB" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" "$OUT/RUN0I3_BUILD.txt"
-          grep -q "SHIELD HEAVY SHOVE" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SKIN PROP CLEANUP" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "ALL MELEE CLASSIC 1-2-3 SPIN" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SHIELD ATK-ATK-HEAVY SHOVE" "$OUT/RUN0I3_BUILD.txt"
           grep -q "SPEAR THRUST-SWEEP-THRUST" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "NORMALIZED BASIC SPEED" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4
