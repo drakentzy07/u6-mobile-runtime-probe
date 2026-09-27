@@ -1,0 +1,121 @@
+{
+  "id": "HF_CITY_HUB_TERRAIN_01",
+  "version": 1,
+  "status": "PRE_DESIGN",
+  "theme": [
+    "medieval",
+    "viking",
+    "fantasy"
+  ],
+  "modernTech": false,
+  "footprint": {
+    "width": 110,
+    "depth": 90
+  },
+  "anchors": [
+    {
+      "id": "GUILD",
+      "position": [
+        0,
+        0,
+        22
+      ],
+      "frontFacing": "south",
+      "importance": "landmark"
+    },
+    {
+      "id": "INN",
+      "position": [
+        -30,
+        0,
+        8
+      ],
+      "frontFacing": "east",
+      "importance": "social"
+    },
+    {
+      "id": "FORGE",
+      "position": [
+        31,
+        0,
+        8
+      ],
+      "frontFacing": "west",
+      "importance": "crafting"
+    },
+    {
+      "id": "MARKET",
+      "position": [
+        0,
+        0,
+        -18
+      ],
+      "importance": "commerce"
+    },
+    {
+      "id": "CITY_GATE",
+      "position": [
+        0,
+        0,
+        -42
+      ],
+      "importance": "main entry"
+    }
+  ],
+  "routes": [
+    {
+      "from": "CITY_GATE",
+      "to": "GUILD",
+      "type": "main stone road",
+      "width": 7
+    },
+    {
+      "from": "main plaza",
+      "to": "INN",
+      "type": "stone+timber street",
+      "width": 5
+    },
+    {
+      "from": "main plaza",
+      "to": "FORGE",
+      "type": "stone service street",
+      "width": 5
+    }
+  ],
+  "plaza": {
+    "size": [
+      34,
+      28
+    ],
+    "features": [
+      "pozo/fuente medieval",
+      "bancos",
+      "faroles de fuego",
+      "árboles",
+      "puestos temporales"
+    ],
+    "noMonsters": true
+  },
+  "terrainProfile": {
+    "center": "mostly flat",
+    "edges": "gentle elevation",
+    "drainage": "shallow stone gutters",
+    "vegetation": "grass patches + shrubs + trees outside dense plaza"
+  },
+  "ambience": [
+    "carteles de madera",
+    "carros",
+    "barriles",
+    "cajas",
+    "estandartes",
+    "fogatas controladas",
+    "NPC ambientales"
+  ],
+  "rules": [
+    "sin monstruos dentro de ciudad",
+    "caminos libres de props",
+    "entradas legibles",
+    "edificios con silueta distinta",
+    "cero objetos modernos"
+  ]
+}
