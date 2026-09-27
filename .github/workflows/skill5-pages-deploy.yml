@@ -50,6 +50,39 @@ jobs:
           grep -q "SPINNING SHIELD" skill5-webgl/SKILL5_BUILD.txt
           grep -q "APOCALYPSE" skill5-webgl/SKILL5_BUILD.txt
 
+      - name: Brand SKILL5 and bust stale WebGL cache
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+
+          root = Path("skill5-webgl")
+          index = root / "index.html"
+          html = index.read_text(encoding="utf-8")
+          html = html.replace("Unity Web Player | Lucid Knight", "HIGHFLY SKILL5 | PREMIUM FIVE")
+          html = html.replace('<div id="unity-build-title">Lucid Knight</div>', '<div id="unity-build-title">HIGHFLY SKILL5 • PREMIUM FIVE</div>')
+          html = html.replace('loaderUrl = buildUrl + "/WebGL.loader.js";', 'loaderUrl = buildUrl + "/WebGL.loader.js?v=skill5-premium-five-2";')
+          html = html.replace('dataUrl: buildUrl + "/WebGL.data",', 'dataUrl: buildUrl + "/WebGL.data?v=skill5-premium-five-2",')
+          html = html.replace('frameworkUrl: buildUrl + "/WebGL.framework.js",', 'frameworkUrl: buildUrl + "/WebGL.framework.js?v=skill5-premium-five-2",')
+          html = html.replace('codeUrl: buildUrl + "/WebGL.wasm",', 'codeUrl: buildUrl + "/WebGL.wasm?v=skill5-premium-five-2",')
+          index.write_text(html, encoding="utf-8")
+
+          data_path = root / "Build" / "WebGL.data"
+          data = data_path.read_bytes()
+          old = "SKILL3 • KAYKIT HUNTER CROWN".encode("utf-8")
+          new = "SKILL5 • PREMIUM FIVE".encode("utf-8") + b" " * 7
+          count = data.count(old)
+          if count < 1:
+              raise SystemExit("Expected inherited SKILL3 title not found in WebGL.data")
+          data = data.replace(old, new)
+          data_path.write_bytes(data)
+          print(f"Patched inherited title occurrences: {count}")
+          PY
+
+          grep -q "HIGHFLY SKILL5 | PREMIUM FIVE" skill5-webgl/index.html
+          grep -q "skill5-premium-five-2" skill5-webgl/index.html
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
