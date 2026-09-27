@@ -3,7 +3,7 @@ name: HIGHFLY Run0I.3 Single Hunter Guard Core
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/run0i3-single-hunter-guard-core, highfly/skill3-sidekick126-fix]
+    branches: [highfly/run0i3-single-hunter-guard-core, highfly/skill3-sidekick126-fix, highfly/skill3-arsenal-pass1]
     paths:
       - "ci/**"
 
