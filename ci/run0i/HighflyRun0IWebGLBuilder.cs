@@ -12,7 +12,9 @@ namespace Highfly.Run0I.Editor
     {
         public static void Build()
         {
+            PrepareWeaponDonors();
             ValidateSidekick126();
+            ValidateArsenal();
             PrepareAnimations();
 
             string[] scenes=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).ToArray();
@@ -37,8 +39,105 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY SKILL3 | SIDEKICK 1.2.6 MATERIAL FIX | SINGLE HUNTER | 9 LOADOUTS | UNITY 6000.6.2");
+                "HIGHFLY SKILL3 | SIDEKICK 1.2.6 | ARSENAL PASS 1 | POLYGON PRIDE + QUATERNIUS | SIDEKICK PROP SOCKETS | 9 LOADOUTS | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
+        }
+
+        private static void PrepareWeaponDonors()
+        {
+            AssetDatabase.Refresh();
+
+            string swordPath=FindPrideGameObjectPath("sword");
+            string spearPath=FindPrideGameObjectPath("spear");
+            if(string.IsNullOrWhiteSpace(swordPath))
+                throw new Exception("[SKILL3-ARSENAL] POLYGON Pride sword not found after package import.");
+            if(string.IsNullOrWhiteSpace(spearPath))
+                throw new Exception("[SKILL3-ARSENAL] POLYGON Pride spear not found after package import.");
+
+            SaveRuntimePrefab(swordPath,"Assets/Resources/HIGHFLY/Run0I/PrideSword.prefab");
+            SaveRuntimePrefab(spearPath,"Assets/Resources/HIGHFLY/Run0I/PrideSpear.prefab");
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("[SKILL3-ARSENAL] PRIDE_READY sword="+swordPath+" spear="+spearPath);
+        }
+
+        private static string FindPrideGameObjectPath(string token)
+        {
+            string[] paths=AssetDatabase.GetAllAssetPaths()
+                .Where(p=>p.IndexOf("pride",StringComparison.OrdinalIgnoreCase)>=0 &&
+                          p.IndexOf(token,StringComparison.OrdinalIgnoreCase)>=0 &&
+                          (p.EndsWith(".fbx",StringComparison.OrdinalIgnoreCase) ||
+                           p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)))
+                .OrderBy(p=>p.EndsWith(".prefab",StringComparison.OrdinalIgnoreCase)?0:1)
+                .ThenBy(p=>p.Length)
+                .ToArray();
+
+            foreach(string path in paths)
+            {
+                GameObject go=AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                if(go==null) continue;
+                if(go.GetComponentsInChildren<Renderer>(true).Length==0 &&
+                   go.GetComponentsInChildren<MeshFilter>(true).Length==0) continue;
+                return path;
+            }
+            return null;
+        }
+
+        private static void SaveRuntimePrefab(string sourcePath,string targetPath)
+        {
+            GameObject source=AssetDatabase.LoadAssetAtPath<GameObject>(sourcePath);
+            if(source==null) throw new Exception("[SKILL3-ARSENAL] Could not load "+sourcePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(targetPath));
+            if(AssetDatabase.LoadAssetAtPath<GameObject>(targetPath)!=null)
+                AssetDatabase.DeleteAsset(targetPath);
+
+            GameObject instance=UnityEngine.Object.Instantiate(source);
+            instance.name=Path.GetFileNameWithoutExtension(targetPath);
+            PrefabUtility.SaveAsPrefabAsset(instance,targetPath);
+            UnityEngine.Object.DestroyImmediate(instance);
+        }
+
+        private static void ValidateArsenal()
+        {
+            const string sidekickPath="Assets/Resources/HIGHFLY/Run0I/Sidekick126.prefab";
+            GameObject sidekick=AssetDatabase.LoadAssetAtPath<GameObject>(sidekickPath);
+            if(sidekick==null) throw new Exception("[SKILL3-ARSENAL] Sidekick prefab missing.");
+
+            if(FindDescendant(sidekick.transform,"prop_r")==null ||
+               FindDescendant(sidekick.transform,"prop_l")==null)
+                throw new Exception("[SKILL3-ARSENAL] Sidekick prop_r/prop_l sockets missing.");
+
+            string[] resources={
+                "HIGHFLY/Run0I/PrideSword",
+                "HIGHFLY/Run0I/PrideSpear",
+                "HIGHFLY/Run0I/QSwordGolden",
+                "HIGHFLY/Run0I/QDagger2",
+                "HIGHFLY/Run0I/QAxeDouble",
+                "HIGHFLY/Run0I/QShieldCelticGolden"
+            };
+
+            foreach(string resource in resources)
+            {
+                GameObject go=Resources.Load<GameObject>(resource);
+                if(go==null) throw new Exception("[SKILL3-ARSENAL] Missing resource: "+resource);
+                Renderer[] rs=go.GetComponentsInChildren<Renderer>(true);
+                MeshFilter[] mfs=go.GetComponentsInChildren<MeshFilter>(true);
+                if(rs.Length==0 && mfs.Length==0)
+                    throw new Exception("[SKILL3-ARSENAL] Weapon has no renderable mesh: "+resource);
+            }
+
+            Debug.Log("[SKILL3-ARSENAL] ARSENAL_GATE_OK • Pride sword/spear • Quaternius sword/dagger/axe/shield • Sidekick prop sockets");
+        }
+
+        private static Transform FindDescendant(Transform root,string exact)
+        {
+            if(root==null) return null;
+            Transform[] all=root.GetComponentsInChildren<Transform>(true);
+            for(int i=0;i<all.Length;i++)
+                if(all[i]!=null && string.Equals(all[i].name,exact,StringComparison.OrdinalIgnoreCase))
+                    return all[i];
+            return null;
         }
 
         private static void ValidateSidekick126()
