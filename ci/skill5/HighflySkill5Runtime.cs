@@ -371,7 +371,7 @@ namespace Highfly.Skill5
             int window = -1;
             if (now >= 0.096f && now <= 0.173f) { active = true; window = 0; }
             else if (now >= 0.327f && now <= 0.401f) { active = true; window = 1; }
-            else if (now >= 0.551f && now <= 0.641f) { active = true; window = 2; }
+            else if (now >= 0.537f && now <= 0.657f) { active = true; window = 2; }
             else if (now >= 0.797f && now <= 0.871f) { active = true; window = 3; }
 
             bool opened = SetWindow(active, window);
@@ -771,7 +771,7 @@ namespace Highfly.Skill5
             switch (_action)
             {
                 case HighflySkill5Action.SonicLeapReforged: return _elapsed >= 0.660f;
-                case HighflySkill5Action.HorizontalSquare: return _elapsed >= 0.425f;
+                case HighflySkill5Action.HorizontalSquare: return _elapsed >= 0.916f;
                 case HighflySkill5Action.DoubleCircular: return _elapsed >= 0.626f;
                 case HighflySkill5Action.Apocalypse: return _elapsed >= 0.335f;
                 case HighflySkill5Action.SpinningShield: return _elapsed >= 1.090f;
@@ -783,10 +783,10 @@ namespace Highfly.Skill5
         {
             switch (_action)
             {
-                // v2.1 benchmark rule: queue the next valid action from hit 3 onward.
-                // Execution still waits for the authored link window so the fourth strike stays readable.
+                // v2.1: input buffer opens 0.090s before the penultimate node ends (0.710 - 0.090 = 0.620).
+                // It hands off to the authored final LinkWindow at 1.110s, preserving hit 4 readability.
                 case HighflySkill5Action.HorizontalSquare:
-                    return _elapsed >= 0.551f && _elapsed <= SquareDuration;
+                    return _elapsed >= 0.620f && _elapsed < 1.110f;
                 default:
                     return false;
             }
