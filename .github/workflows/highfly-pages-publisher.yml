@@ -1,5 +1,5 @@
 name: HIGHFLY Pages Publisher
-# refresh bridges fusion2b
+# refresh SKILL4 hunter-base publish
 # republish: melee-fusion2b private-run-36272250830
 # republish: melee-fusion2 private-run-36267369905
 # republish: melee-fusion private-run-36262118568
@@ -153,9 +153,12 @@ jobs:
           test -f site/index.html
           test -f site/RUN0I3_BUILD.txt
           grep -q "KAYKIT WEAPON FOUNDATION" site/RUN0I3_BUILD.txt
-          grep -q "PRIDE SPEAR RAW FBX" site/RUN0I3_BUILD.txt
+          grep -q "HUNTER BASE ROGUE HOODED" site/RUN0I3_BUILD.txt
+          grep -q "KAYKIT FANTASY GRIP ORIGIN" site/RUN0I3_BUILD.txt
+          grep -q "DUAL DAGGER CHOP-SLICE-STAB" site/RUN0I3_BUILD.txt
           grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" site/RUN0I3_BUILD.txt
-          grep -q "SHIELD BASH LUNGE" site/RUN0I3_BUILD.txt
+          grep -q "SHIELD HEAVY SHOVE" site/RUN0I3_BUILD.txt
+          grep -q "SPEAR THRUST-SWEEP-THRUST" site/RUN0I3_BUILD.txt
 
           test -f site/loot-monster-lab-run0a/index.html
           test -f site/loot-monster-lab-run0a/RUN0A_BUILD.txt
