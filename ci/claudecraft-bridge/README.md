@@ -1,6 +1,6 @@
 # HIGHFLY — ClaudeCraft → Unity Bridge LAB
 
-Status: **RUN0A / ISOLATED**
+Status: **RUN0B / NATIVE UNITY POSE BAKER**
 Base: SKILL4 frozen commit `7ebd380c800e720d41262d7f54ed31d6d3a79332`
 ClaudeCraft donor pin: `levy-street/world-of-claudecraft@cecebab4da06287351b37e118c630c185717b81c` (v0.43.3)
 
@@ -25,7 +25,7 @@ Prove that one reproducible extraction pass can read ClaudeCraft v0.43.3 and pro
 Initial bridge candidates:
 
 - `heroic_leap`
-- `charge`
+- `ambush`
 - `backstab`
 - `eviscerate`
 - `pummel`
@@ -53,4 +53,7 @@ HighflyClaudeSkillDefinition
 HIGHFLY CombatCore
 ```
 
-The next stage after RUN0A metadata green is RUN0B: import/retarget the selected animation clips and execute one converted skill through the frozen Hunter.
+RUN0A metadata is green. RUN0B no longer transports ClaudeCraft's animation-only GLB files through Assimp.
+Instead, Unity recreates the five selected body clips directly from the same KayKit FBX donor poses used
+by ClaudeCraft's pose-sample-and-blend recipes, then executes Heroic Leap through the frozen Hunter.
+This keeps SKILL4 unchanged and removes the fragile GLB → Assimp → FBX conversion seam.
