@@ -173,5 +173,19 @@
       "muebles de oficina",
       "tecnología contemporánea"
     ]
-  }
+  },
+  "assetIntakeRef": "HIGHFLY_MASTER_ASSET_INTAKE_V1",
+  "assetThemeContract": {
+    "theme": [
+      "medieval",
+      "viking",
+      "fantasy-rpg"
+    ],
+    "modernTech": false,
+    "curatedOnly": true
+  },
+  "assetPools": [
+    "INN_TAVERN",
+    "CITY"
+  ]
 }
