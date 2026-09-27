@@ -644,7 +644,7 @@ addEventListener('keydown',async e=>{
  }
 });
 
-let filter='all',visibleList=[],renderedCount=0,catalogCollapsed=false;
+let filter='forge',visibleList=[],renderedCount=0,catalogCollapsed=false;
 const cats=[...new Set(CATALOG.map(a=>a.category))].sort(),sel=document.querySelector('#category'),packSel=document.querySelector('#packFilter');
 for(const c of cats){const o=document.createElement('option');o.value=c;o.textContent=c;sel.append(o)}
 for(const p of [...new Set(CATALOG.map(a=>a.pack))].sort()){const o=document.createElement('option');o.value=p;o.textContent=p;packSel.append(o)}
@@ -717,7 +717,7 @@ function normalizedText(s){
  return (base+' '+aliases.join(' ')).replace(/\s+/g,' ').trim();
 }
 const SEARCH_GROUPS=[
- ['carbon','carbón','coal','charcoal','coke','fuel','combustible','mineral','ore'],
+ ['carbon','carbón','coal','coat','charcoal','coke','fuel','combustible','mineral','ore'],
  ['mesa','table','worktable','workbench','work bench','banco de trabajo','banco','counter','mostrador','desk','escritorio'],
  ['silla','chair','stool','banqueta','bench','banco'],
  ['cofre','chest','crate','caja','box','storage','almacenamiento'],
