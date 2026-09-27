@@ -213,7 +213,7 @@ namespace Highfly.Run0I2
             HighflyLoadoutProfile.Sword1H,"ESPADA 1H",HighflyWeaponKind.Sword,null,HighflyGuardStyle.WeaponGuard,false,
             P("S1_VDOWN",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",2.00f,.22f,.46f,.22f,210f,22f,.045f),
             P("S1_HLR",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.50f,.20f,.50f,.25f,190f,24f,.050f),
-            P("S1_DUP",HighflyStrikeDirection.DiagonalUpRight,HighflyHandUsage.Right,"Warrior_C",1.50f,.28f,.66f,.34f,160f,30f,.070f,.86f));
+            P("S1_SPIN",HighflyStrikeDirection.Spin,HighflyHandUsage.Right,"Warrior_C",1.50f,.28f,.66f,.34f,160f,30f,.070f,.86f));
 
         private static readonly HighflyLoadoutDefinition DualSword = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualSword,"DOBLE ESPADA",HighflyWeaponKind.Sword,HighflyWeaponKind.Sword,HighflyGuardStyle.CrossGuard,true,
@@ -230,10 +230,10 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition Axe1H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Axe1H,"HACHA 1H",HighflyWeaponKind.Axe,null,HighflyGuardStyle.WeaponGuard,false,
-            // One-handed weapons share one proven body language for the official test.
-            P("AXE_1H_A",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.80f,.22f,.46f,.22f,190f,25f,.050f),
-            P("AXE_1H_B",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.45f,.20f,.50f,.24f,175f,27f,.055f),
-            P("AXE_1H_C",HighflyStrikeDirection.DiagonalUpRight,HighflyHandUsage.Right,"Warrior_C",1.42f,.28f,.66f,.30f,150f,34f,.078f,.86f));
+            // Real KayKit 1H axe opening beats, then the proven spinning finisher.
+            P("AXE_1H_A",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Axe_A",1.34f,.20f,.48f,.22f,190f,25f,.050f),
+            P("AXE_1H_B",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Axe_B",1.28f,.18f,.50f,.24f,175f,27f,.055f),
+            P("AXE_1H_SPIN",HighflyStrikeDirection.Spin,HighflyHandUsage.Right,"Warrior_C",1.42f,.28f,.66f,.30f,150f,34f,.078f,.86f));
 
         private static readonly HighflyLoadoutDefinition DualAxe = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.DualAxe,"DOBLE HACHA",HighflyWeaponKind.Axe,HighflyWeaponKind.Axe,HighflyGuardStyle.CrossGuard,true,
@@ -244,8 +244,8 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition AxeShield = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.AxeShield,"HACHA + ESCUDO",HighflyWeaponKind.Axe,HighflyWeaponKind.Shield,HighflyGuardStyle.ShieldGuard,false,
-            P("AS_ATK_R",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Warrior_A",1.72f,.22f,.46f,.18f,155f,29f,.065f),
-            P("AS_ATK_L",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Warrior_B",1.38f,.20f,.50f,.20f,145f,31f,.070f),
+            P("AS_ATK_R",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Right,"Axe_A",1.32f,.20f,.48f,.18f,155f,29f,.065f),
+            P("AS_ATK_L",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Right,"Axe_B",1.26f,.18f,.50f,.20f,145f,31f,.070f),
             P("AS_SHIELD_BASH",HighflyStrikeDirection.Thrust,HighflyHandUsage.Left,"Shield_Bash",1.08f,.20f,.58f,.32f,125f,42f,.095f,.86f));
 
         private static readonly HighflyLoadoutDefinition Dagger1H = new HighflyLoadoutDefinition(
@@ -262,10 +262,10 @@ namespace Highfly.Run0I2
 
         private static readonly HighflyLoadoutDefinition Spear2H = new HighflyLoadoutDefinition(
             HighflyLoadoutProfile.Spear2H,"LANZA 2H",HighflyWeaponKind.Spear,null,HighflyGuardStyle.PoleGuard,false,
-            // Official spear test stays honest: three forward thrust beats, no fake sweep/chop.
-            P("SP_THRUST_A",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_A",1.08f,.20f,.48f,.44f,145f,27f,.055f),
-            P("SP_THRUST_B",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_A",1.18f,.18f,.46f,.52f,150f,30f,.060f),
-            P("SP_THRUST_C",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_A",1.28f,.16f,.44f,.62f,155f,38f,.080f,.84f));
+            // SKILL4: use the complete audited KayKit 2H bank: thrust -> sweep -> chop.
+            P("SP_THRUST_A",HighflyStrikeDirection.Thrust,HighflyHandUsage.Both,"Spear_A",1.12f,.20f,.48f,.44f,145f,27f,.055f),
+            P("SP_SWEEP_B",HighflyStrikeDirection.HorizontalLeftToRight,HighflyHandUsage.Both,"Spear_B",1.18f,.18f,.52f,.48f,150f,30f,.060f),
+            P("SP_CHOP_C",HighflyStrikeDirection.VerticalDown,HighflyHandUsage.Both,"Spear_C",1.22f,.18f,.56f,.56f,155f,38f,.080f,.84f));
 
                 public static HighflyLoadoutDefinition Get(HighflyLoadoutProfile profile)
         {
