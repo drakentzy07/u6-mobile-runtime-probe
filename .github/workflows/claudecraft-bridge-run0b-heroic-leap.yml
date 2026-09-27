@@ -234,8 +234,8 @@ jobs:
           mkdir -p "$P/Assets/HIGHFLY/ClaudeBridge" "$P/Assets/Resources/HIGHFLY/ClaudeBridge" "$P/Assets/Editor"
 
           # Exact ClaudeCraft v0.43.3 animation-only donor GLB.
-          curl -L --fail --retry 5             "https://media.githubusercontent.com/media/levy-street/world-of-claudecraft/cecebab4da06287351b37e118c630c185717b81c/public/models/chars/players/warrior_ability_anims.glb"             -o /tmp/warrior_ability_anims.glb
-          test "$(stat -c%s /tmp/warrior_ability_anims.glb)" -gt 1000
+          curl -L --fail --retry 5             "https://raw.githubusercontent.com/levy-street/world-of-claudecraft/cecebab4da06287351b37e118c630c185717b81c/public/models/chars/players/warrior_ability_anims.glb"             -o /tmp/warrior_ability_anims.glb
+          test "$(stat -c%s /tmp/warrior_ability_anims.glb)" = "24480"\n          test "$(git hash-object --no-filters /tmp/warrior_ability_anims.glb)" = "753fd1a93c59a9e987f57262a6c46e2e70112b71"
 
           # Convert the animation-only GLB to an FBX Unity can ingest using Assimp.
           sudo apt-get update -y
