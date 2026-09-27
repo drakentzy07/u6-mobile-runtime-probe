@@ -5,7 +5,8 @@ on:
   push:
     branches: [highfly/claudecraft-unity-bridge-lab]
     paths:
-      - "ci/claudecraft-bridge/**"\n      - ".github/workflows/claudecraft-bridge-run0b-heroic-leap.yml"
+      - "ci/claudecraft-bridge/**"
+      - ".github/workflows/claudecraft-bridge-run0b-heroic-leap.yml"
 
 permissions:
   contents: read
