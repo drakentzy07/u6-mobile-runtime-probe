@@ -662,7 +662,7 @@ namespace Highfly.Run0H
             switch (loadout)
             {
                 case HighflyLoadoutProfile.Spear2H:
-                    targetLength=2.02f;
+                    targetLength=2.15f;
                     // The previous Sidekick pass showed the Pride spear thrusting
                     // with the butt. Reverse its yaw so the spearhead leads.
                     weapon.transform.localRotation=pride
@@ -795,7 +795,9 @@ namespace Highfly.Run0H
             NormalizeWeaponWorldLength(weapon,targetLength);
 
             if (alignSpearGrip)
-                AlignSpearGripToHand(weapon,0.30f);
+                // Seat the dominant hand behind centre so the crystal spearhead has
+                // visible reach in the KayKit 2H thrust/sweep/chop bank.
+                AlignSpearGripToHand(weapon,0.26f);
             else if (alignGenericGrip && !shieldPiece)
                 AlignSpearGripToHand(weapon,genericGripFraction);
 
