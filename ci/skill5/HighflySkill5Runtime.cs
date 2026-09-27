@@ -71,6 +71,7 @@ namespace Highfly.Skill5
         private bool _active;
         private bool _shieldSecondGuard;
         private bool _shieldMidPose;
+        private HighflyCombatAction _bufferedAction = HighflyCombatAction.None;
         private Vector3 _facing;
         private Vector3 _previousMotionOffset;
         private Vector3 _previousPrimaryTip;
@@ -144,7 +145,10 @@ namespace Highfly.Skill5
                     break;
                 case HighflySkill5Action.HorizontalSquare:
                     UpdateHorizontalSquare(_elapsed);
-                    if (_elapsed >= SquareDuration) FinishSkill5Action();
+                    if (_bufferedAction != HighflyCombatAction.None && LinkWindowOpen())
+                        ExecuteBufferedLink();
+                    else if (_elapsed >= SquareDuration)
+                        FinishSkill5Action();
                     break;
                 case HighflySkill5Action.DoubleCircular:
                     UpdateDoubleCircular(_elapsed);
@@ -197,6 +201,13 @@ namespace Highfly.Skill5
                     Debug.Log("[SKILL5] " + _action + " recovery cancel -> " + action);
                     FinishSkill5Action();
                     return false;
+                }
+
+                if (BufferWindowOpen() && CanLinkTo(action))
+                {
+                    _bufferedAction = action;
+                    Debug.Log("[SKILL5] BUFFER " + _action + " -> " + action);
+                    return true;
                 }
 
                 if (LinkWindowOpen() && CanLinkTo(action))
@@ -360,7 +371,7 @@ namespace Highfly.Skill5
             int window = -1;
             if (now >= 0.096f && now <= 0.173f) { active = true; window = 0; }
             else if (now >= 0.327f && now <= 0.401f) { active = true; window = 1; }
-            else if (now >= 0.537f && now <= 0.657f) { active = true; window = 2; }
+            else if (now >= 0.551f && now <= 0.641f) { active = true; window = 2; }
             else if (now >= 0.797f && now <= 0.871f) { active = true; window = 3; }
 
             bool opened = SetWindow(active, window);
@@ -603,6 +614,7 @@ namespace Highfly.Skill5
             _window = -1;
             _active = false;
             _previousMotionOffset = Vector3.zero;
+            _bufferedAction = HighflyCombatAction.None;
             _hasPreviousPrimaryTip = false;
             _hasPreviousSecondaryTip = false;
             _hitThisWindow.Clear();
@@ -759,11 +771,24 @@ namespace Highfly.Skill5
             switch (_action)
             {
                 case HighflySkill5Action.SonicLeapReforged: return _elapsed >= 0.660f;
-                case HighflySkill5Action.HorizontalSquare: return _elapsed >= 0.916f;
+                case HighflySkill5Action.HorizontalSquare: return _elapsed >= 0.425f;
                 case HighflySkill5Action.DoubleCircular: return _elapsed >= 0.626f;
                 case HighflySkill5Action.Apocalypse: return _elapsed >= 0.335f;
                 case HighflySkill5Action.SpinningShield: return _elapsed >= 1.090f;
                 default: return false;
+            }
+        }
+
+        private bool BufferWindowOpen()
+        {
+            switch (_action)
+            {
+                // v2.1 benchmark rule: queue the next valid action from hit 3 onward.
+                // Execution still waits for the authored link window so the fourth strike stays readable.
+                case HighflySkill5Action.HorizontalSquare:
+                    return _elapsed >= 0.551f && _elapsed <= SquareDuration;
+                default:
+                    return false;
             }
         }
 
@@ -795,12 +820,30 @@ namespace Highfly.Skill5
                 case HighflySkill5Action.SonicLeapReforged:
                     return next == HighflyCombatAction.Skill2;
                 case HighflySkill5Action.HorizontalSquare:
-                    return next == HighflyCombatAction.Skill1;
+                    return next == HighflyCombatAction.Skill1 ||
+                           next == HighflyCombatAction.Ultimate;
                 case HighflySkill5Action.DoubleCircular:
                     return next == HighflyCombatAction.Skill1;
                 default:
                     return false;
             }
+        }
+
+        private void ExecuteBufferedLink()
+        {
+            HighflyCombatAction next = _bufferedAction;
+            if (next == HighflyCombatAction.None) return;
+
+            HighflySkill5Action from = _action;
+            _bufferedAction = HighflyCombatAction.None;
+            Debug.Log("[SKILL5] BUFFER EXEC " + from + " -> " + next);
+
+            FinishSkill5Action();
+
+            if (IsPremiumInput(next))
+                StartMapped(next);
+            else if (_foundation != null)
+                _foundation.Request(next);
         }
 
         private string DualClip(int index)
