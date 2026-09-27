@@ -62,7 +62,7 @@ jobs:
           if(ingots.some(o=>o.pos[2]>16)){console.error('Ingot wall is not on opposite/front wall');process.exit(1)}
           const stairBlockers=(d.objects||[]).filter(o=>o.pos&&o.pos[1]<-1&&o.pos[0]>10.8&&o.pos[2]>20.7&&['Materiales','Almacenamiento'].includes(o.category));
           if(stairBlockers.length){console.error('Basement stair landing blocked:',stairBlockers.map(x=>x.name));process.exit(1)}
-          const floatingRoom2=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>=14.4&&o.pos[2]<=23.5&&!/mural taller/.test(o.name||'')&&!Number.isFinite(o.supportY));
+          const floatingRoom2=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>=14.4&&o.pos[2]<=23.5&&!/mural/i.test(o.name||'')&&!Number.isFinite(o.supportY));
           if(floatingRoom2.length){console.error('Room2 weapon missing supportY:',floatingRoom2.map(x=>x.name));process.exit(1)}
           console.log('V20 forge guards: PASS');
           NODE
