@@ -3,7 +3,7 @@ name: HIGHFLY SKILL5 PREMIUM FIVE
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/skill5-horizontal-square-premium]
+    branches: [highfly/skill5-premium-five-candidate]
     paths:
       - "ci/**"
       - ".github/workflows/skill5-horizontal-square-premium.yml"
@@ -13,7 +13,7 @@ permissions:
   actions: read
 
 concurrency:
-  group: highfly-skill5-horizontal-square-premium
+  group: highfly-skill5-premium-five-candidate
   cancel-in-progress: true
 
 jobs:
