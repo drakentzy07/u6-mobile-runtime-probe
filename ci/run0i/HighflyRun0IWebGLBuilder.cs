@@ -33,7 +33,7 @@ namespace Highfly.Run0I.Editor
                 options=BuildOptions.None
             };
 
-            Debug.Log("[SKILL4] Building KayKit Weapon Foundation");
+            Debug.Log("[SKILL4] Building KayKit Weapon Foundation • spear FBX • dual-axe spin • shield lunge");
             BuildReport report=BuildPipeline.BuildPlayer(options);
             if (report.summary.result!=BuildResult.Succeeded)
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
