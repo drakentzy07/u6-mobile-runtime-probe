@@ -1,0 +1,84 @@
+name: HIGHFLY ClaudeCraft Bridge Run0A
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [highfly/claudecraft-unity-bridge-lab]
+    paths:
+      - "ci/claudecraft-bridge/**"
+      - ".github/workflows/claudecraft-bridge-run0a.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: highfly-claudecraft-bridge-run0a
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Audit ClaudeCraft v0.43.3 → HIGHFLY bridge contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout HIGHFLY bridge branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Freeze guard — SKILL4 remains untouched
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BASE=7ebd380c800e720d41262d7f54ed31d6d3a79332
+          git cat-file -e "$BASE^{commit}"
+          BAD="$(git diff --name-only "$BASE"...HEAD | grep -Ev '^(ci/claudecraft-bridge/|\.github/workflows/claudecraft-bridge-run0a\.yml$)' || true)"
+          if [ -n "$BAD" ]; then
+            echo "Bridge branch modified frozen files:"
+            echo "$BAD"
+            exit 1
+          fi
+
+      - name: Clone exact ClaudeCraft donor
+        shell: bash
+        run: |
+          set -euxo pipefail
+          git clone --filter=blob:none --no-checkout https://github.com/levy-street/world-of-claudecraft.git /tmp/claudecraft
+          git -C /tmp/claudecraft checkout --detach cecebab4da06287351b37e118c630c185717b81c
+          test "$(git -C /tmp/claudecraft rev-parse HEAD)" = "cecebab4da06287351b37e118c630c185717b81c"
+
+      - name: Extract and validate bridge catalog
+        shell: bash
+        run: |
+          set -euxo pipefail
+          python3 ci/claudecraft-bridge/extract_run0a.py             --source /tmp/claudecraft             --out build/claudecraft-bridge/run0a-catalog.json
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path("build/claudecraft-bridge/run0a-catalog.json")
+          d=json.loads(p.read_text(encoding="utf-8"))
+          assert d["source"]["commit"] == "cecebab4da06287351b37e118c630c185717b81c"
+          assert d["audioGuard"]["directAudioBytesImported"] is False
+          assert len(d["selectedSkills"]) == 5
+          assert all(x["hasVfx"] and x["hasAuthoredAnimationBinding"] for x in d["selectedSkills"])
+          print("HIGHFLY_CLAUDECRAFT_BRIDGE_RUN0A_GREEN=1")
+          PY
+
+      - name: Assert no ClaudeCraft audio bytes entered HIGHFLY
+        shell: bash
+        run: |
+          set -euxo pipefail
+          if find ci/claudecraft-bridge -type f \( -iname '*.mp3' -o -iname '*.wav' -o -iname '*.ogg' -o -iname '*.flac' \) -print -quit | grep -q .; then
+            echo "Audio byte import is forbidden in RUN0A."
+            exit 1
+          fi
+
+      - name: Upload bridge catalog
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-claudecraft-bridge-run0a-catalog
+          path: build/claudecraft-bridge/run0a-catalog.json
+          if-no-files-found: error
+          retention-days: 14
