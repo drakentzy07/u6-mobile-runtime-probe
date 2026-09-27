@@ -252,8 +252,75 @@ jobs:
         run: |
           set -euxo pipefail
           BASE=7ebd380c800e720d41262d7f54ed31d6d3a79332
-          git diff --exit-code "$BASE" -- ci/run0i ci/run0i2 ci/mobile ci/combat
+          git fetch --no-tags --depth=64 origin highfly/skill4-kaykit-weapon-foundation
+          git cat-file -e "$BASE^{commit}"
+          git diff --exit-code "$BASE" HEAD -- ci/run0i ci/run0i2 ci/mobile ci/combat
+          UNEXPECTED="$(git diff --name-only "$BASE" HEAD | grep -vE '^ci/skill5/|^\.github/workflows/skill5-horizontal-square-premium\.yml
+
+      - name: Build WebGL
+        uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: LucidHost/3D_game
+          unityVersion: 6000.6.2f1
+          targetPlatform: WebGL
+          buildMethod: Highfly.Run0I.Editor.WebGLBuilder.Build
+          customParameters: -job-worker-count 1
+          allowDirtyBuild: true
+
+      - name: Verify Run0I
+        shell: bash
+        run: |
+          set -euxo pipefail
+          OUT="LucidHost/3D_game/build/WebGL"
+          sudo chown -R "$(id -u):$(id -g)" "$OUT"
+          chmod -R u+rwX "$OUT"
+          test -f "$OUT/index.html"
+          test -f "$OUT/RUN0I3_BUILD.txt"
+          test -d "$OUT/Build"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
+          test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
+          test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
+          grep -q "KAYKIT WEAPON FOUNDATION" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "10 LOADOUTS" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "UNARMED R-L-KICK" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "HUNTER BASE ROGUE HOODED" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "KAYKIT FANTASY GRIP ORIGIN" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SKIN PROP CLEANUP" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "ALL MELEE CLASSIC 1-2-3 SPIN" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SHIELD ATK-ATK-HEAVY SHOVE" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SPEAR THRUST-SWEEP-THRUST" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "NORMALIZED BASIC SPEED" "$OUT/RUN0I3_BUILD.txt"
+          printf '%s\\n' 'HIGHFLY SKILL5 | PREMIUM FIVE | SONIC LEAP REFORGED | HORIZONTAL SQUARE | DOUBLE CIRCULAR | SPINNING SHIELD | APOCALYPSE | FOUNDATION 7ebd380c READ ONLY | MULTI-HIT | DUAL TRACE | REAL REPEL BLOCK | TEXTURED VFX | COOLDOWNS | RECOVERY CANCEL | LINK WINDOWS | UNITY 6000.6.2' > "$OUT/SKILL5_BUILD.txt"
+          test -f "$OUT/SKILL5_BUILD.txt"
+          grep -q "PREMIUM FIVE" "$OUT/SKILL5_BUILD.txt"
+          grep -q "SONIC LEAP REFORGED" "$OUT/SKILL5_BUILD.txt"
+          grep -q "HORIZONTAL SQUARE" "$OUT/SKILL5_BUILD.txt"
+          grep -q "DOUBLE CIRCULAR" "$OUT/SKILL5_BUILD.txt"
+          grep -q "SPINNING SHIELD" "$OUT/SKILL5_BUILD.txt"
+          grep -q "APOCALYPSE" "$OUT/SKILL5_BUILD.txt"
+          grep -q "FOUNDATION 7ebd380c READ ONLY" "$OUT/SKILL5_BUILD.txt"
+          grep -q "4 HIT WINDOWS" "$OUT/SKILL5_BUILD.txt"
+          grep -q "RECOVERY CANCEL" "$OUT/SKILL5_BUILD.txt"
+
+      - name: Upload Run0I WebGL
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-skill5-premium-five-webgl
+          path: LucidHost/3D_game/build/WebGL
+          if-no-files-found: error
+          retention-days: 7
+ || true)"
+          if [ -n "$UNEXPECTED" ]; then
+            echo "ERROR: SKILL5 branch changed files outside its allowed module:"
+            printf '%s\n' "$UNEXPECTED"
+            exit 1
+          fi
           echo "SKILL4_FOUNDATION_READ_ONLY=1"
+          echo "SKILL5_ALLOWED_DIFF_ONLY=1"
 
       - name: Build WebGL
         uses: game-ci/unity-builder@v4
