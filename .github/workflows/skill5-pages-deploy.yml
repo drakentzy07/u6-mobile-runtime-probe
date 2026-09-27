@@ -1,0 +1,74 @@
+name: HIGHFLY SKILL5 Pages Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/skill5-pages-deploy.yml"
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+env:
+  SKILL5_SOURCE_RUN_ID: "36340066886"
+  SKILL5_ARTIFACT_NAME: "highfly-skill5-premium-five-webgl"
+
+jobs:
+  prepare:
+    name: Prepare SKILL5 Pages artifact
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download green SKILL5 WebGL from Run 14
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.SKILL5_ARTIFACT_NAME }}
+          path: skill5-webgl
+          repository: drakentzy07/u6-mobile-runtime-probe
+          run-id: ${{ env.SKILL5_SOURCE_RUN_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Verify downloaded PREMIUM FIVE build
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test -f skill5-webgl/index.html
+          test -f skill5-webgl/SKILL5_BUILD.txt
+          test -d skill5-webgl/Build
+          grep -q "PREMIUM FIVE" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "FOUNDATION 7ebd380c READ ONLY" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "HORIZONTAL SQUARE" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "SONIC LEAP REFORGED" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "DOUBLE CIRCULAR" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "SPINNING SHIELD" skill5-webgl/SKILL5_BUILD.txt
+          grep -q "APOCALYPSE" skill5-webgl/SKILL5_BUILD.txt
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: skill5-webgl
+
+  deploy:
+    name: Deploy SKILL5 to GitHub Pages
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy PREMIUM FIVE
+        id: deployment
+        uses: actions/deploy-pages@v4
