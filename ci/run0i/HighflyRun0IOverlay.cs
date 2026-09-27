@@ -70,8 +70,10 @@ namespace Highfly.Run0I
             HighflyRun0HCharacterVisual visual=HighflyRun0HCharacterVisual.Instance;
             HighflyLoadoutDefinition load=visual!=null?HighflyMeleeLibrary.Get(visual.CurrentLoadout):null;
             _metrics.text=
-                "RUN0I.3 • SINGLE HUNTER / GUARD CORE\n"+
+                "SKILL3 • SIDEKICK / ARSENAL PASS 1\n"+
                 "Loadout: "+(visual!=null?visual.CurrentLabel:"...")+"\n"+
+                "Arma: "+(visual!=null?visual.CurrentWeaponDonor:"...")+"\n"+
+                "Socket: "+(visual!=null?visual.CurrentSocketLabel:"...")+"\n"+
                 "Guard: "+(load!=null?load.Guard.ToString():"-")+" • Combo: "+(load!=null?load.Grammar:"-")+"\n"+
                 "Acción: "+(combat!=null?combat.DebugAction:"-")+"\n"+
                 "Hits: "+HighflyLucidCombatBridge.TotalHits+"  Daño: "+HighflyLucidCombatBridge.TotalDamage.ToString("0")+"\n"+
@@ -92,7 +94,7 @@ namespace Highfly.Run0I
             panel.transform.SetParent(canvasGo.transform,false);
             RectTransform pr=panel.GetComponent<RectTransform>();
             pr.anchorMin=pr.anchorMax=new Vector2(1f,1f); pr.pivot=new Vector2(1f,1f);
-            pr.anchoredPosition=new Vector2(-24f,-24f); pr.sizeDelta=new Vector2(560f,230f);
+            pr.anchoredPosition=new Vector2(-24f,-24f); pr.sizeDelta=new Vector2(600f,280f);
             panel.GetComponent<Image>().color=new Color(0.018f,0.026f,0.045f,0.90f);
 
             GameObject textGo=new GameObject("Text",typeof(RectTransform),typeof(Text));
