@@ -23,12 +23,12 @@ namespace Highfly.Skill5
         VorpalStrike
     }
 
-    // HIGHFLY_SKILL5_PREMIUM_FIVE
+    // HIGHFLY_SKILL5_SWORD_FIVE_COMPLETION
     // SKILL4 is an immutable dependency. This runtime owns only SKILL5 execution.
     [DisallowMultipleComponent]
     public sealed class HighflySkill5Runtime : MonoBehaviour
     {
-        public const string BuildMarker = "HIGHFLY_SKILL5_PREMIUM_FIVE";
+        public const string BuildMarker = "HIGHFLY_SKILL5_SWORD_FIVE_COMPLETION";
 
         public const float SonicCooldown = 6f;
         public const float SonicVolition = 14f;
@@ -293,8 +293,8 @@ namespace Highfly.Skill5
             if (phase != _phase)
             {
                 _phase = phase;
-                if (phase == 0) PlayClip("NinjaJump_Start", 1.15f, _swing);
-                else if (phase == 1) PlayClip("Sword_Heavy_Combo", 1.30f, _longSwing);
+                if (phase == 0) PlayClip("NinjaJump_Start", 1.15f, _swing, 0.045f);
+                else if (phase == 1) PlayClip("Sword_Heavy_Combo", 1.30f, _longSwing, 0.085f);
             }
 
             float z;
@@ -357,10 +357,10 @@ namespace Highfly.Skill5
             if (phase < 4 && phase != _phase)
             {
                 _phase = phase;
-                if (phase == 0) PlayClip("Sword_Regular_A", 1.28f, _swing);
-                else if (phase == 1) PlayClip("Sword_Regular_B", 1.28f, _swing);
-                else if (phase == 2) PlayClip("Sword_Regular_C", 1.22f, _swing);
-                else PlayClip("Warrior_B", 1.18f, _longSwing);
+                if (phase == 0) PlayClip("Sword_Regular_A", 1.28f, _swing, 0.040f);
+                else if (phase == 1) PlayClip("Sword_Regular_B", 1.28f, _swing, 0.055f);
+                else if (phase == 2) PlayClip("Sword_Regular_C", 1.22f, _swing, 0.060f);
+                else PlayClip("Sword_Regular_B", 1.18f, _longSwing, 0.070f);
             }
 
             float z;
