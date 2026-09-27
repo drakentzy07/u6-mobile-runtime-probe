@@ -154,11 +154,12 @@ jobs:
           test -f site/RUN0I3_BUILD.txt
           grep -q "KAYKIT WEAPON FOUNDATION" site/RUN0I3_BUILD.txt
           grep -q "HUNTER BASE ROGUE HOODED" site/RUN0I3_BUILD.txt
+          grep -q "SKIN PROP CLEANUP" site/RUN0I3_BUILD.txt
           grep -q "KAYKIT FANTASY GRIP ORIGIN" site/RUN0I3_BUILD.txt
-          grep -q "DUAL DAGGER CHOP-SLICE-STAB" site/RUN0I3_BUILD.txt
-          grep -q "DUAL AXE CLASSIC 1-2-3 SPIN" site/RUN0I3_BUILD.txt
-          grep -q "SHIELD HEAVY SHOVE" site/RUN0I3_BUILD.txt
+          grep -q "ALL MELEE CLASSIC 1-2-3 SPIN" site/RUN0I3_BUILD.txt
+          grep -q "SHIELD ATK-ATK-HEAVY SHOVE" site/RUN0I3_BUILD.txt
           grep -q "SPEAR THRUST-SWEEP-THRUST" site/RUN0I3_BUILD.txt
+          grep -q "NORMALIZED BASIC SPEED" site/RUN0I3_BUILD.txt
 
           test -f site/loot-monster-lab-run0a/index.html
           test -f site/loot-monster-lab-run0a/RUN0A_BUILD.txt
