@@ -29,6 +29,7 @@ namespace Highfly.Run0H
         // while keeping the proven KayKit resources as hard rollback fallbacks.
         private const string PrideSwordResource = "HIGHFLY/Run0I/PrideSword";
         private const string PrideSpearResource = "HIGHFLY/Run0I/PrideSpear";
+        private const string SidekickAxeResource = "HIGHFLY/Run0I/SidekickAxe";
         private const string QuaterniusSwordGoldenResource = "HIGHFLY/Run0I/QSwordGolden";
         private const string QuaterniusDagger2Resource = "HIGHFLY/Run0I/QDagger2";
         private const string QuaterniusAxeDoubleResource = "HIGHFLY/Run0I/QAxeDouble";
@@ -497,7 +498,7 @@ namespace Highfly.Run0H
         {
             string sword = FirstAvailable(PrideSwordResource, QuaterniusSwordGoldenResource, KayKitSwordResource);
             string dagger = FirstAvailable(PrideSwordResource, QuaterniusDagger2Resource, KayKitDaggerResource);
-            string axe = FirstAvailable(QuaterniusAxeDoubleResource, KayKitAxeResource);
+            string axe = FirstAvailable(SidekickAxeResource, QuaterniusAxeDoubleResource, KayKitAxeResource);
             string shield = FirstAvailable(QuaterniusShieldGoldenResource, KayKitShieldResource);
             string spear = FirstAvailable(PrideSpearResource, QuaterniusSpearResource);
 
@@ -561,6 +562,7 @@ namespace Highfly.Run0H
         {
             if (string.IsNullOrWhiteSpace(resource)) return "MISSING";
             if (resource.IndexOf("Pride",StringComparison.OrdinalIgnoreCase)>=0) return "POLYGON PRIDE";
+            if (resource.IndexOf("SidekickAxe",StringComparison.OrdinalIgnoreCase)>=0) return "SIDEKICK 1.2.6";
             if (resource.IndexOf("Q",StringComparison.OrdinalIgnoreCase)>=0 &&
                 resource.IndexOf("Run0I",StringComparison.OrdinalIgnoreCase)>=0) return "QUATERNIUS";
             if (resource.IndexOf("Quaternius",StringComparison.OrdinalIgnoreCase)>=0) return "QUATERNIUS";
