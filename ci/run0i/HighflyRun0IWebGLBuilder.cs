@@ -107,15 +107,6 @@ namespace Highfly.Run0I.Editor
 
         private static void ValidateArsenal()
         {
-            GameObject hunter=AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx");
-            if(hunter==null) throw new Exception("[SKILL3-CROWN] KayKit Hunter FBX missing.");
-            Animator hunterAnimator=hunter.GetComponent<Animator>();
-            if(hunterAnimator==null || hunterAnimator.avatar==null || !hunterAnimator.avatar.isValid || !hunterAnimator.avatar.isHuman)
-                throw new Exception("[SKILL3-CROWN] KayKit Hunter does not have a valid Humanoid avatar.");
-            if(hunterAnimator.GetBoneTransform(HumanBodyBones.RightHand)==null ||
-               hunterAnimator.GetBoneTransform(HumanBodyBones.LeftHand)==null)
-                throw new Exception("[SKILL3-CROWN] KayKit Hunter hand bones missing.");
-
             string[] resources={
                 "HIGHFLY/Run0I/PrideSword",
                 "HIGHFLY/Run0I/PrideSpear",
@@ -123,7 +114,9 @@ namespace Highfly.Run0I.Editor
                 "HIGHFLY/Run0I/QSwordGolden",
                 "HIGHFLY/Run0I/QDagger2",
                 "HIGHFLY/Run0I/QAxeDouble",
-                "HIGHFLY/Run0I/QShieldCelticGolden"
+                "HIGHFLY/Run0I/QShieldCelticGolden",
+                "HIGHFLY/Run0H/KayKitShieldRound",
+                "HIGHFLY/Run0H/KayKitDagger"
             };
 
             foreach(string resource in resources)
@@ -163,21 +156,32 @@ namespace Highfly.Run0I.Editor
         private static void ValidateKayKitHunter()
         {
             const string hunterPath="Assets/Resources/HIGHFLY/Run0H/KayKitKnight.fbx";
-            GameObject hunter=AssetDatabase.LoadAssetAtPath<GameObject>(hunterPath);
-            if(hunter==null) throw new Exception("[SKILL3-CROWN] Missing KayKit Hunter: "+hunterPath);
+            GameObject hunterAsset=AssetDatabase.LoadAssetAtPath<GameObject>(hunterPath);
+            if(hunterAsset==null) throw new Exception("[SKILL3-CROWN] Missing KayKit Hunter: "+hunterPath);
 
-            Animator animator=hunter.GetComponent<Animator>();
-            if(animator==null || animator.avatar==null || !animator.avatar.isValid || !animator.avatar.isHuman)
-                throw new Exception("[SKILL3-CROWN] KayKit Hunter humanoid avatar invalid.");
+            GameObject hunter=UnityEngine.Object.Instantiate(hunterAsset);
+            try
+            {
+                Animator animator=hunter.GetComponent<Animator>();
+                if(animator==null) animator=hunter.GetComponentInChildren<Animator>(true);
+                if(animator==null || animator.avatar==null || !animator.avatar.isValid || !animator.avatar.isHuman)
+                    throw new Exception("[SKILL3-CROWN] KayKit Hunter humanoid avatar invalid.");
 
-            Renderer[] renderers=hunter.GetComponentsInChildren<Renderer>(true);
-            if(renderers.Length==0) throw new Exception("[SKILL3-CROWN] KayKit Hunter has no renderers.");
+                Renderer[] renderers=hunter.GetComponentsInChildren<Renderer>(true);
+                if(renderers.Length==0) throw new Exception("[SKILL3-CROWN] KayKit Hunter has no renderers.");
 
-            if(animator.GetBoneTransform(HumanBodyBones.RightHand)==null ||
-               animator.GetBoneTransform(HumanBodyBones.LeftHand)==null)
-                throw new Exception("[SKILL3-CROWN] KayKit Hunter missing hand bones.");
+                Transform right=animator.GetBoneTransform(HumanBodyBones.RightHand);
+                Transform left=animator.GetBoneTransform(HumanBodyBones.LeftHand);
+                if(right==null || left==null)
+                    throw new Exception("[SKILL3-CROWN] KayKit Hunter missing humanoid hand bones.");
 
-            Debug.Log("[SKILL3-CROWN] KAYKIT_HUNTER_GATE_OK renderers="+renderers.Length);
+                Debug.Log("[SKILL3-CROWN] KAYKIT_HUNTER_GATE_OK renderers="+renderers.Length+
+                          " right="+right.name+" left="+left.name);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(hunter);
+            }
         }
 
         private static void ValidateSidekick126()
