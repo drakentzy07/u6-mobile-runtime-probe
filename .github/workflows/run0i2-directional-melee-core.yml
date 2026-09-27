@@ -3,7 +3,7 @@ name: HIGHFLY Run0I.3 Single Hunter Guard Core
 on:
   workflow_dispatch:
   push:
-    branches: [highfly/run0i3-single-hunter-guard-core]
+    branches: [highfly/run0i3-single-hunter-guard-core, highfly/skill3-sidekick126-fix]
     paths:
       - "ci/**"
 
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build Run0I.3 • Single Hunter Guard Core • Unity 6000.6.2
+    name: Build SKILL3 • Sidekick 1.2.6 Material Fix • Unity 6000.6.2
     runs-on: ubuntu-latest
     timeout-minutes: 180
 
@@ -150,6 +150,25 @@ jobs:
           grep -q "HighflyLoadoutProfile" "$P/Assets/HIGHFLY/Core/Combat/HighflyDirectionalMeleeCore.cs"
           echo "RUN0I3_SINGLE_HUNTER_GUARD_INSTALLED=1"
 
+      - name: Install official Sidekick 1.2.6 runtime subset
+        shell: bash
+        run: |
+          set -euxo pipefail
+          P="LucidHost/3D_game"
+          URL="https://github.com/SyntyStudios/SidekicksToolRelease/releases/download/1.2.6/Sidekicks.unitypackage"
+          curl -L --fail --retry 5 "$URL" -o /tmp/Sidekicks.unitypackage
+          echo "248fb193e2fe3f8f9fe48d63564de6ff9e59aaaebeb2168aee9de231d842a6e0  /tmp/Sidekicks.unitypackage" | sha256sum -c -
+
+          python3 ci/sidekick/extract_sidekick126_subset.py \
+            --package /tmp/Sidekicks.unitypackage \
+            --project "$P"
+
+          test -f "$P/Assets/Resources/HIGHFLY/Run0I/Sidekick126.prefab"
+          test -f "$P/Assets/Synty/SidekickCharacters/Resources/Shaders/Sidekick_ShaderGraph.shadergraph"
+          grep -q "db628544640279b41a4a7aa5d75c0322" \
+            "$P/Assets/Synty/SidekickCharacters/Resources/Shaders/Sidekick_ShaderGraph.shadergraph.meta"
+          echo "SKILL3_SIDEKICK126_RUNTIME_INSTALLED=1"
+
       - name: Reset Unity transient cache
         shell: bash
         run: |
@@ -187,7 +206,7 @@ jobs:
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.wasm' -size +0c -print -quit)"
           test -n "$(find "$OUT/Build" -maxdepth 1 -type f -name '*.framework.js' -size +0c -print -quit)"
           test -z "$(find "$OUT/Build" -maxdepth 1 -type f \( -name '*.gz' -o -name '*.br' \) -print -quit)"
-          grep -q "SINGLE HUNTER GUARD CORE" "$OUT/RUN0I3_BUILD.txt"
+          grep -q "SIDEKICK 1.2.6 MATERIAL FIX" "$OUT/RUN0I3_BUILD.txt"
 
       - name: Upload Run0I WebGL
         uses: actions/upload-artifact@v4
