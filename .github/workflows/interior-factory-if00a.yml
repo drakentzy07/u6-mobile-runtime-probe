@@ -30,45 +30,39 @@ jobs:
           }
           console.log('Semantic layout match: PASS');
           NODE
-      - name: Syntax-check Interior Editor v19
-        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v19.html
-      - name: Guard v19 supreme forge design
+      - name: Syntax-check Interior Editor v20
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v20.html
+      - name: Guard v20 layout
         shell: bash
         run: |
           node --input-type=module - <<'NODE'
           import fs from 'node:fs';
-          const s=fs.readFileSync('interior_factory/web/interior-editor-v19.html','utf8');
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v20.html','utf8');
           for(const token of [
-            'const DEFAULT_LAYOUT_V19=',
-            'HIGHFLY_FORJA_WORKSPACE_STABLE_2',
-            'Escalón 1 PREMIUM ESPADAS',
-            'Escalón 3 PREMIUM ESPADAS',
-            'Espada G',
-            'Hacha D',
-            'Daga C',
-            'Escudo D',
-            'Lanza B',
-            'Armero decorado',
-            'Piedra de afilar manual',
-            'Hierro · pila grande',
+            'const DEFAULT_LAYOUT_V20=',
+            'HIGHFLY_FORJA_WORKSPACE_STABLE_3',
+            'supportY',
+            'Pedestal 1 PREMIUM ESPADAS',
+            'Panel armero ESPADAS',
+            'Panel armero HACHAS',
+            'Banco de inspección / afilado',
+            'Espada en revisión',
             'Cobre · pila grande',
+            'Hierro · pila grande',
             'Plata · pila grande',
-            'Oro · pila grande',
-            'Yunque principal'
+            'Oro · pila grande'
           ]){
-            if(!s.includes(token)){console.error('Missing V19 invariant:',token);process.exit(1)}
+            if(!s.includes(token)){console.error('Missing V20 invariant:',token);process.exit(1)}
           }
-          const m=s.match(/const DEFAULT_LAYOUT_V19=(\{.*?\});\s*async function init/s);
-          if(!m){console.error('DEFAULT_LAYOUT_V19 not parseable');process.exit(1)}
+          const m=s.match(/const DEFAULT_LAYOUT_V20=(\{.*?\});\s*async function init/s);
+          if(!m){console.error('DEFAULT_LAYOUT_V20 not parseable');process.exit(1)}
           const d=JSON.parse(m[1]);
-          const upperMaterials=(d.objects||[]).filter(o=>o.category==='Materiales'&&o.pos&&o.pos[1]>-1&&o.name!=='Piedra de afilar manual');
-          if(upperMaterials.length){
-            console.error('Upper floor still contains forge materials:',upperMaterials.map(x=>x.name));
-            process.exit(1);
-          }
-          const seededStaff=(d.objects||[]).filter(o=>/Staff/i.test(o.name||''));
-          if(seededStaff.length){console.error('Staff seeded in forge:',seededStaff.map(x=>x.name));process.exit(1)}
-          const ingots=(d.objects||[]).filter(o=>o.category==='Materiales'&&o.pos&&o.pos[1]<-1&&/pila/i.test(o.name||''));
-          if(ingots.length<10){console.error('Not enough organized ingot stacks:',ingots.length);process.exit(1)}
-          console.log('V19 supreme forge guards: PASS');
+          const ingots=(d.objects||[]).filter(o=>/^(Cobre|Hierro|Plata|Oro) · pila/.test(o.name||''));
+          if(ingots.length<12){console.error('Expected 12 ingot stacks, got',ingots.length);process.exit(1)}
+          if(ingots.some(o=>o.pos[2]>16)){console.error('Ingot wall is not on opposite/front wall');process.exit(1)}
+          const stairBlockers=(d.objects||[]).filter(o=>o.pos&&o.pos[1]<-1&&o.pos[0]>10.8&&o.pos[2]>20.7&&['Materiales','Almacenamiento'].includes(o.category));
+          if(stairBlockers.length){console.error('Basement stair landing blocked:',stairBlockers.map(x=>x.name));process.exit(1)}
+          const floatingRoom2=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>=14.4&&o.pos[2]<=23.5&&!/mural taller/.test(o.name||'')&&!Number.isFinite(o.supportY));
+          if(floatingRoom2.length){console.error('Room2 weapon missing supportY:',floatingRoom2.map(x=>x.name));process.exit(1)}
+          console.log('V20 forge guards: PASS');
           NODE
