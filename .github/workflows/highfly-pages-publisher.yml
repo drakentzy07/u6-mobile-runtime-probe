@@ -56,14 +56,18 @@ jobs:
 
           SKILLS_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/run0i3-single-hunter-guard-core&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
           LOOT_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/loot-monster-lab-run0a&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="Build + Publish HIGHFLY Loot Monster Lab Run0A") | .id' | head -n1)"
+          SIDEKICK3_RUN="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=highfly/skill3-sidekick126-fix&status=success&per_page=50"             --jq '.workflow_runs[] | select(.name=="HIGHFLY Run0I.3 Single Hunter Guard Core") | .id' | head -n1)"
 
           test -n "$SKILLS_RUN"
           test -n "$LOOT_RUN"
+          test -n "$SIDEKICK3_RUN"
 
           echo "skills_run=$SKILLS_RUN" >> "$GITHUB_OUTPUT"
           echo "loot_run=$LOOT_RUN" >> "$GITHUB_OUTPUT"
+          echo "sidekick3_run=$SIDEKICK3_RUN" >> "$GITHUB_OUTPUT"
           echo "Skills source run: $SKILLS_RUN"
           echo "Loot source run: $LOOT_RUN"
+          echo "Skill3 Sidekick source run: $SIDEKICK3_RUN"
 
       - name: Download canonical Skills artifact
         uses: actions/download-artifact@v4
@@ -72,6 +76,14 @@ jobs:
           path: incoming/skills
           github-token: ${{ secrets.GITHUB_TOKEN }}
           run-id: ${{ steps.runs.outputs.skills_run }}
+
+      - name: Download SKILL3 Sidekick 1.2.6 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: highfly-run0i3-webgl
+          path: incoming/skill3-sidekick126
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ steps.runs.outputs.sidekick3_run }}
 
       - name: Download canonical Loot artifact
         uses: actions/download-artifact@v4
@@ -128,7 +140,7 @@ jobs:
         run: |
           set -euxo pipefail
           rm -rf site
-          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2 site/melee-fusion2b
+          mkdir -p site/loot-monster-lab-run0a site/melee-fusion site/melee-fusion2 site/melee-fusion2b site/skill3-sidekick126
 
           test -f incoming/skills/index.html
           test -f incoming/skills/RUN0I3_BUILD.txt
@@ -138,11 +150,17 @@ jobs:
           test -f incoming/loot/RUN0A_BUILD.txt
           test -d incoming/loot/Build
 
+          test -f incoming/skill3-sidekick126/index.html
+          test -f incoming/skill3-sidekick126/RUN0I3_BUILD.txt
+          test -d incoming/skill3-sidekick126/Build
+          grep -q "SIDEKICK 1.2.6 MATERIAL FIX" incoming/skill3-sidekick126/RUN0I3_BUILD.txt
+
           cp -a incoming/skills/. site/
           cp -a incoming/loot/. site/loot-monster-lab-run0a/
           cp -a incoming/melee-fusion/. site/melee-fusion/
           cp -a incoming/melee-fusion2/. site/melee-fusion2/
           cp -a incoming/melee-fusion2b/. site/melee-fusion2b/
+          cp -a incoming/skill3-sidekick126/. site/skill3-sidekick126/
           touch site/.nojekyll
 
       - name: Validate publisher invariants
@@ -176,9 +194,15 @@ jobs:
           grep -q "MELEE FUSION 2B" site/melee-fusion2b/RUN0I3_BUILD.txt
           test -d site/melee-fusion2b/Build
 
+          test -f site/skill3-sidekick126/index.html
+          test -f site/skill3-sidekick126/RUN0I3_BUILD.txt
+          grep -q "SIDEKICK 1.2.6 MATERIAL FIX" site/skill3-sidekick126/RUN0I3_BUILD.txt
+          test -d site/skill3-sidekick126/Build
+
           echo "HIGHFLY_PUBLISHER_OK=1" > site/PUBLISHER.txt
           echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
           echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
+          echo "SKILL3_SIDEKICK126_RUN=${{ steps.runs.outputs.sidekick3_run }}" >> site/PUBLISHER.txt
           echo "MELEE_FUSION_RUN=36262118568" >> site/PUBLISHER.txt
           echo "MELEE_FUSION2_RUN=36267369905" >> site/PUBLISHER.txt
           echo "MELEE_FUSION2B_RUN=36272250830" >> site/PUBLISHER.txt
