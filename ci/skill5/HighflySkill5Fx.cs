@@ -100,6 +100,124 @@ namespace Highfly.Skill5
             SpawnTexturedScar("HF_SKILL5_SHIELD_ARC_B", center - right * 0.38f * sign + Vector3.up * 0.18f, forward, -58f * sign, 1.52f, 0.12f, 0.21f, Color.white);
         }
 
+        public static void SpawnVerticalScar(
+            int index,
+            Vector3 center,
+            Vector3 forward,
+            Vector3 right)
+        {
+            Color cyan = new Color(0.20f, 0.80f, 1f, 0.94f);
+            Vector3 position = center;
+            float roll;
+            float length = 1.95f;
+
+            switch (index)
+            {
+                case 0:
+                    position += right * 0.34f;
+                    roll = 90f;
+                    break;
+                case 1:
+                    position -= right * 0.34f;
+                    roll = -90f;
+                    break;
+                case 2:
+                    position -= right * 0.12f;
+                    position += Vector3.up * 0.08f;
+                    roll = -90f;
+                    break;
+                default:
+                    position += right * 0.12f;
+                    roll = 90f;
+                    break;
+            }
+
+            SpawnTexturedScar(
+                "HF_SKILL5_VERTICAL_" + (index + 1),
+                position,
+                forward,
+                roll,
+                length,
+                index == 3 ? 0.18f : 0.13f,
+                index == 3 ? 0.27f : 0.22f,
+                index == 3 ? Color.white : cyan);
+        }
+
+        public static void SpawnSavageScar(
+            int index,
+            Vector3 center,
+            Vector3 forward,
+            Vector3 right)
+        {
+            Color gold = new Color(1f, 0.72f, 0.18f, 0.96f);
+            if (index == 0)
+            {
+                SpawnTexturedScar(
+                    "HF_SKILL5_FULCRUM_H",
+                    center,
+                    forward,
+                    0f,
+                    2.45f,
+                    0.18f,
+                    0.24f,
+                    gold);
+            }
+            else if (index == 1)
+            {
+                SpawnTexturedScar(
+                    "HF_SKILL5_FULCRUM_UP",
+                    center + right * 0.15f,
+                    forward,
+                    -88f,
+                    2.25f,
+                    0.17f,
+                    0.24f,
+                    gold);
+            }
+            else
+            {
+                SpawnTexturedScar(
+                    "HF_SKILL5_FULCRUM_DOWN",
+                    center - right * 0.12f,
+                    forward,
+                    88f,
+                    2.65f,
+                    0.22f,
+                    0.28f,
+                    Color.white);
+                SpawnImpactCross(
+                    center + forward.normalized * 0.04f,
+                    forward,
+                    gold,
+                    2.30f);
+            }
+        }
+
+        public static void SpawnVorpalThrust(Vector3 position, Vector3 forward)
+        {
+            Color blue = new Color(0.22f, 0.70f, 1f, 0.98f);
+
+            // Narrow layered streak: keeps the contact readable without a fake AoE.
+            SpawnTexturedScar(
+                "HF_SKILL5_VORPAL_STREAK_OUTER",
+                position,
+                forward,
+                0f,
+                3.10f,
+                0.12f,
+                0.20f,
+                blue);
+            SpawnTexturedScar(
+                "HF_SKILL5_VORPAL_STREAK_CORE",
+                position + forward.normalized * 0.025f,
+                forward,
+                0f,
+                2.65f,
+                0.055f,
+                0.16f,
+                Color.white);
+        }
+
         public static void SpawnImpactCross(Vector3 position, Vector3 forward, Color color, float size)
         {
             SpawnTexturedScar("HF_SKILL5_IMPACT_X_A", position, forward, 45f, size, 0.17f, 0.17f, color);
