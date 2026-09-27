@@ -445,11 +445,25 @@ namespace Highfly.Skill5
         }
     }
 
-    public sealed class HighflySkill5ActionProxy : MonoBehaviour, IPointerDownHandler
+    public sealed class HighflySkill5ActionProxy :
+        MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
     {
         private HighflySkill5Runtime _runtime;
         private HighflyLucidCombatBridge _foundation;
         private HighflyCombatAction _action;
+        private int _pointerId = int.MinValue;
+        private RectTransform _rect;
+        private Image _image;
+        private Vector3 _restScale = Vector3.one;
+        private Color _restColor;
+
+        private void Awake()
+        {
+            _rect = transform as RectTransform;
+            _image = GetComponent<Image>();
+            if (_rect != null) _restScale = _rect.localScale;
+            if (_image != null) _restColor = _image.color;
+        }
 
         public void Configure(
             HighflySkill5Runtime runtime,
@@ -463,9 +477,53 @@ namespace Highfly.Skill5
 
         public void OnPointerDown(PointerEventData eventData)
         {
+            if (_pointerId != int.MinValue) return;
+            if (!HighflyTouchOwnership.TryClaim(eventData.pointerId, HighflyTouchOwner.Combat)) return;
+            _pointerId = eventData.pointerId;
+
+            if (_rect != null) _rect.localScale = _restScale * 0.92f;
+            if (_image != null)
+            {
+                Color x = _restColor;
+                _image.color = new Color(
+                    Mathf.Min(1f, x.r + 0.10f),
+                    Mathf.Min(1f, x.g + 0.16f),
+                    Mathf.Min(1f, x.b + 0.22f),
+                    Mathf.Min(1f, x.a + 0.16f));
+            }
+
             bool consumed = _runtime != null && _runtime.RouteAction(_action);
             if (!consumed && _foundation != null)
                 _foundation.Request(_action);
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            if (eventData.pointerId != _pointerId) return;
+            HighflyTouchOwnership.Release(_pointerId);
+            _pointerId = int.MinValue;
+            RestoreVisual();
+        }
+
+        public void OnPointerExit(PointerEventData eventData)
+        {
+            RestoreVisual();
+        }
+
+        private void OnDisable()
+        {
+            if (_pointerId != int.MinValue)
+            {
+                HighflyTouchOwnership.Release(_pointerId);
+                _pointerId = int.MinValue;
+            }
+            RestoreVisual();
+        }
+
+        private void RestoreVisual()
+        {
+            if (_rect != null) _rect.localScale = _restScale;
+            if (_image != null) _image.color = _restColor;
         }
     }
 }
