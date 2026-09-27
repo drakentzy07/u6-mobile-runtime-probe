@@ -12,6 +12,7 @@ namespace Highfly.Run0I.Editor
     {
         public static void Build()
         {
+            ValidateSidekick126();
             PrepareAnimations();
 
             string[] scenes=EditorBuildSettings.scenes.Where(s=>s.enabled).Select(s=>s.path).ToArray();
@@ -36,8 +37,57 @@ namespace Highfly.Run0I.Editor
                 throw new Exception("[RUN0I] WebGL failed: "+report.summary.result);
 
             File.WriteAllText(Path.Combine(output,"RUN0I3_BUILD.txt"),
-                "HIGHFLY RUN0I.3 LITE | SINGLE HUNTER GUARD CORE | 9 LOADOUTS | HAND-AWARE TRACE | CROSS GUARD | UNITY 6000.6.2");
+                "HIGHFLY SKILL3 | SIDEKICK 1.2.6 MATERIAL FIX | SINGLE HUNTER | 9 LOADOUTS | UNITY 6000.6.2");
             File.WriteAllText(Path.Combine(output,".nojekyll"),string.Empty);
+        }
+
+        private static void ValidateSidekick126()
+        {
+            const string prefabPath = "Assets/Resources/HIGHFLY/Run0I/Sidekick126.prefab";
+            const string shaderGuid = "db628544640279b41a4a7aa5d75c0322";
+
+            string shaderPath = AssetDatabase.GUIDToAssetPath(shaderGuid);
+            if (string.IsNullOrWhiteSpace(shaderPath))
+                throw new Exception("[SKILL3] Sidekick shader GUID is missing: " + shaderGuid);
+
+            Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderPath);
+            if (shader == null)
+                throw new Exception("[SKILL3] Sidekick shader could not be imported: " + shaderPath);
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+            if (prefab == null)
+                throw new Exception("[SKILL3] Sidekick 1.2.6 runtime prefab missing: " + prefabPath);
+
+            Animator animator = prefab.GetComponent<Animator>();
+            if (animator == null || animator.avatar == null || !animator.avatar.isValid || !animator.avatar.isHuman)
+                throw new Exception("[SKILL3] Sidekick prefab does not have a valid Humanoid Avatar.");
+
+            Renderer[] renderers = prefab.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0)
+                throw new Exception("[SKILL3] Sidekick prefab has no renderers.");
+
+            int materialCount = 0;
+            foreach (Renderer renderer in renderers)
+            {
+                if (renderer == null) continue;
+                foreach (Material material in renderer.sharedMaterials)
+                {
+                    if (material == null)
+                        throw new Exception("[SKILL3] Sidekick prefab contains a null material.");
+                    if (material.shader == null ||
+                        material.shader.name == "Hidden/InternalErrorShader")
+                        throw new Exception("[SKILL3] Broken Sidekick material: " + material.name);
+                    materialCount++;
+                }
+            }
+
+            if (materialCount == 0)
+                throw new Exception("[SKILL3] Sidekick prefab resolved zero materials.");
+
+            Debug.Log("[SKILL3] SIDEKICK126_GATE_OK prefab=" + prefab.name +
+                      " renderers=" + renderers.Length +
+                      " materials=" + materialCount +
+                      " shader=" + shader.name);
         }
 
         private static void PrepareAnimations()
