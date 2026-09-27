@@ -193,7 +193,7 @@ jobs:
             --package /tmp/POLYGON_Pride_Weapons.unitypackage \
             --project "$P"
 
-          find "$P/Assets" -type f | grep -i pride | head -n 40
+          find "$P/Assets" -type f -ipath '*pride*' -print | sed -n '1,40p'
           test -n "$(find "$P/Assets" -type f \( -iname '*sword*.fbx' -o -iname '*sword*.prefab' \) -ipath '*pride*' -print -quit)"
           test -n "$(find "$P/Assets" -type f \( -iname '*spear*.fbx' -o -iname '*spear*.prefab' \) -ipath '*pride*' -print -quit)"
           echo "SKILL3_AUDITED_WEAPON_DONORS_INSTALLED=1"
