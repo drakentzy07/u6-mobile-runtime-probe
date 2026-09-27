@@ -10,18 +10,39 @@ using Highfly.Run0I2;
 
 namespace Highfly.Skill5
 {
-    // HIGHFLY_SKILL5_HORIZONTAL_SQUARE_PREMIUM
+    public enum HighflySkill5Action
+    {
+        None,
+        SonicLeapReforged,
+        HorizontalSquare,
+        DoubleCircular,
+        Apocalypse,
+        SpinningShield
+    }
+
+    // HIGHFLY_SKILL5_PREMIUM_FIVE
     // SKILL4 is an immutable dependency. This runtime owns only SKILL5 execution.
     [DisallowMultipleComponent]
     public sealed class HighflySkill5Runtime : MonoBehaviour
     {
-        public const string BuildMarker = "HIGHFLY_SKILL5_HORIZONTAL_SQUARE_PREMIUM";
+        public const string BuildMarker = "HIGHFLY_SKILL5_PREMIUM_FIVE";
+
+        public const float SonicCooldown = 6f;
+        public const float SonicVolition = 14f;
         public const float HorizontalSquareCooldown = 7f;
         public const float HorizontalSquareVolition = 18f;
-        private const float Duration = 1.28f;
-        private const float CancelOpen = 1.00f;
-        private const float LinkOpen = 1.02f;
-        private const float LinkClose = 1.20f;
+        public const float DoubleCircularCooldown = 6f;
+        public const float DoubleCircularVolition = 12f;
+        public const float ApocalypseCooldown = 16f;
+        public const float ApocalypseVolition = 28f;
+        public const float SpinningShieldCooldown = 12f;
+        public const float SpinningShieldVolition = 14f;
+
+        private const float SonicDuration = 0.940f;
+        private const float SquareDuration = 1.220f;
+        private const float DoubleDuration = 0.930f;
+        private const float ApocalypseDuration = 0.820f;
+        private const float ShieldDuration = 1.200f;
 
         public static HighflySkill5Runtime Instance { get; private set; }
 
@@ -36,25 +57,32 @@ namespace Highfly.Skill5
         private AudioClip _hit;
         private GameObject _sparksPrefab;
 
-        private bool _busy;
+        private HighflySkill5Action _action = HighflySkill5Action.None;
         private float _elapsed;
-        private float _readyAt;
         private float _hitstopRemaining;
+        private float _readySonic;
+        private float _readySquare;
+        private float _readyDouble;
+        private float _readyApocalypse;
+        private float _readyShield;
+
         private int _phase = -1;
         private int _window = -1;
         private bool _active;
+        private bool _shieldSecondGuard;
+        private bool _shieldMidPose;
         private Vector3 _facing;
-        private float _previousForward;
-        private Vector3 _previousTip;
-        private bool _hasPreviousTip;
+        private Vector3 _previousMotionOffset;
+        private Vector3 _previousPrimaryTip;
+        private Vector3 _previousSecondaryTip;
+        private bool _hasPreviousPrimaryTip;
+        private bool _hasPreviousSecondaryTip;
         private readonly HashSet<CharacterStats> _hitThisWindow = new HashSet<CharacterStats>();
         private readonly Collider[] _overlap = new Collider[64];
 
-        public bool ActionBusy => _busy;
-        public float CooldownRemaining => Mathf.Max(0f, _readyAt - Time.unscaledTime);
-        public float NormalizedTime => _busy ? Mathf.Clamp01(_elapsed / Duration) : 0f;
-        public bool CancelWindowOpen => _busy && _elapsed >= CancelOpen;
-        public bool LinkWindowOpen => _busy && _elapsed >= LinkOpen && _elapsed <= LinkClose;
+        public bool ActionBusy => _action != HighflySkill5Action.None;
+        public HighflySkill5Action CurrentAction => _action;
+        public float ActionElapsed => _elapsed;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Boot()
@@ -73,6 +101,7 @@ namespace Highfly.Skill5
             _stats = GetComponent<PlayerStats>();
             _controller = GetComponent<CharacterController>();
             _foundation = GetComponent<HighflyLucidCombatBridge>();
+
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
             _audio.spatialBlend = 0f;
@@ -80,9 +109,11 @@ namespace Highfly.Skill5
             _longSwing = Resources.Load<AudioClip>("HIGHFLY/Run0I/longSwing");
             _hit = Resources.Load<AudioClip>("HIGHFLY/Run0I/hit");
             _sparksPrefab = Resources.Load<GameObject>("HIGHFLY/Run0I/SparksEffect");
+
             if (GetComponent<HighflySkill5InputAdapter>() == null)
                 gameObject.AddComponent<HighflySkill5InputAdapter>();
-            Debug.Log("[SKILL5] Runtime online • SKILL4 foundation untouched • Horizontal Square armed");
+
+            Debug.Log("[SKILL5] PREMIUM FIVE runtime online • SKILL4 foundation untouched");
         }
 
         private void OnDestroy()
@@ -92,10 +123,9 @@ namespace Highfly.Skill5
 
         private void Update()
         {
-            if (Keyboard.current != null && Keyboard.current.digit2Key.wasPressedThisFrame)
-                RequestHorizontalSquare();
+            HandleDesktopPreviewKeys();
 
-            if (!_busy) return;
+            if (!ActionBusy) return;
 
             float dt = Time.unscaledDeltaTime;
             if (_hitstopRemaining > 0f)
@@ -105,171 +135,577 @@ namespace Highfly.Skill5
             }
 
             _elapsed += dt;
-            UpdateHorizontalSquare(_elapsed);
-            if (_busy && _elapsed >= Duration) FinishSkill5Action();
+
+            switch (_action)
+            {
+                case HighflySkill5Action.SonicLeapReforged:
+                    UpdateSonicLeap(_elapsed);
+                    if (_elapsed >= SonicDuration) FinishSkill5Action();
+                    break;
+                case HighflySkill5Action.HorizontalSquare:
+                    UpdateHorizontalSquare(_elapsed);
+                    if (_elapsed >= SquareDuration) FinishSkill5Action();
+                    break;
+                case HighflySkill5Action.DoubleCircular:
+                    UpdateDoubleCircular(_elapsed);
+                    if (_elapsed >= DoubleDuration) FinishSkill5Action();
+                    break;
+                case HighflySkill5Action.Apocalypse:
+                    UpdateApocalypse(_elapsed);
+                    if (_elapsed >= ApocalypseDuration) FinishSkill5Action();
+                    break;
+                case HighflySkill5Action.SpinningShield:
+                    UpdateSpinningShield(_elapsed);
+                    if (_elapsed >= ShieldDuration) FinishSkill5Action();
+                    break;
+            }
+        }
+
+        private void HandleDesktopPreviewKeys()
+        {
+            Keyboard k = Keyboard.current;
+            if (k == null) return;
+
+            if (k.digit1Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill1);
+            else if (k.digit2Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill2);
+            else if (k.digit3Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill3);
+            else if (k.digit4Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Skill4);
+            else if (k.digit5Key.wasPressedThisFrame) StartMapped(HighflyCombatAction.Ultimate);
+        }
+
+        public float GetCooldownRemaining(HighflyCombatAction action)
+        {
+            float now = Time.unscaledTime;
+            switch (action)
+            {
+                case HighflyCombatAction.Skill1: return Mathf.Max(0f, _readySonic - now);
+                case HighflyCombatAction.Skill2: return Mathf.Max(0f, _readySquare - now);
+                case HighflyCombatAction.Skill3: return Mathf.Max(0f, _readyDouble - now);
+                case HighflyCombatAction.Skill4: return Mathf.Max(0f, _readyShield - now);
+                case HighflyCombatAction.Ultimate: return Mathf.Max(0f, _readyApocalypse - now);
+                default: return 0f;
+            }
         }
 
         public bool RouteAction(HighflyCombatAction action)
         {
-            if (_busy)
+            if (ActionBusy)
             {
                 if ((action == HighflyCombatAction.Dodge || action == HighflyCombatAction.Parry) &&
-                    CancelWindowOpen)
+                    DefensiveCancelOpen())
                 {
-                    Debug.Log("[SKILL5] Horizontal Square recovery cancel -> " + action);
+                    Debug.Log("[SKILL5] " + _action + " recovery cancel -> " + action);
                     FinishSkill5Action();
                     return false;
                 }
 
-                if ((action == HighflyCombatAction.Light || action == HighflyCombatAction.Skill1) &&
-                    LinkWindowOpen)
+                if (LinkWindowOpen() && CanLinkTo(action))
                 {
-                    Debug.Log("[SKILL5] Horizontal Square link -> " + action);
+                    HighflySkill5Action from = _action;
+                    Debug.Log("[SKILL5] LINK " + from + " -> " + action);
                     FinishSkill5Action();
+
+                    if (IsPremiumInput(action))
+                    {
+                        StartMapped(action);
+                        return true;
+                    }
+
                     return false;
                 }
 
                 return true;
             }
 
-            if (action != HighflyCombatAction.Skill2) return false;
-            RequestHorizontalSquare();
+            if (!IsPremiumInput(action)) return false;
+            StartMapped(action);
             return true;
         }
 
-        public void RequestHorizontalSquare()
+        private static bool IsPremiumInput(HighflyCombatAction action)
         {
-            if (_busy) return;
+            return action == HighflyCombatAction.Skill1 ||
+                   action == HighflyCombatAction.Skill2 ||
+                   action == HighflyCombatAction.Skill3 ||
+                   action == HighflyCombatAction.Skill4 ||
+                   action == HighflyCombatAction.Ultimate;
+        }
+
+        private void StartMapped(HighflyCombatAction action)
+        {
+            if (ActionBusy) return;
             if (_foundation != null && _foundation.ActionBusy) return;
 
-            _visual = HighflyRun0HCharacterVisual.Instance;
-            if (_player == null || _controller == null || _visual == null || !_visual.IsBound)
+            switch (action)
             {
-                Debug.LogWarning("[SKILL5] Horizontal Square waiting for Hunter foundation.");
+                case HighflyCombatAction.Skill1: StartSonicLeap(); break;
+                case HighflyCombatAction.Skill2: StartHorizontalSquare(); break;
+                case HighflyCombatAction.Skill3: StartDoubleCircular(); break;
+                case HighflyCombatAction.Skill4: StartSpinningShield(); break;
+                case HighflyCombatAction.Ultimate: StartApocalypse(); break;
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // S1 • SONIC LEAP REFORGED
+        // v2.1: 0.940s, CD 6, cost 14, ACTIVE 0.498-0.590.
+        // -----------------------------------------------------------------
+        private void StartSonicLeap()
+        {
+            if (!ReadyForNewSkill()) return;
+            if (_visual.CurrentLoadout != HighflyLoadoutProfile.Sword1H)
+            {
+                Debug.Log("[SKILL5] Sonic Leap requires ESPADA 1H.");
                 return;
             }
+            if (Time.unscaledTime < _readySonic) return;
+            if (!SpendVolition(SonicVolition, "Sonic Leap")) return;
 
+            _readySonic = Time.unscaledTime + SonicCooldown;
+            BeginAction(HighflySkill5Action.SonicLeapReforged, true);
+            UpdateSonicLeap(0f);
+            Debug.Log("[SKILL5] S1 SONIC LEAP REFORGED • CD6 • COST14 • 1 HIT");
+        }
+
+        private void UpdateSonicLeap(float now)
+        {
+            int phase = now < 0.380f ? 0 : now < 0.660f ? 1 : 2;
+            if (phase != _phase)
+            {
+                _phase = phase;
+                if (phase == 0) PlayClip("NinjaJump_Start", 1.15f, _swing);
+                else if (phase == 1) PlayClip("Sword_Heavy_Combo", 1.30f, _longSwing);
+            }
+
+            float z;
+            float y;
+            if (now <= 0.380f)
+            {
+                float t = EaseOut(Mathf.Clamp01(now / 0.380f));
+                z = 2.600f * t;
+                y = 1.250f * Mathf.Sin(t * Mathf.PI * 0.5f);
+            }
+            else if (now <= 0.660f)
+            {
+                float t = Mathf.Clamp01((now - 0.380f) / 0.280f);
+                z = 2.600f + 0.190f * t;
+                y = 1.250f * (1f - Mathf.SmoothStep(0f, 1f, t));
+            }
+            else
+            {
+                z = 2.790f;
+                y = 0f;
+            }
+            MoveToOffset(new Vector3(0f, y, z));
+
+            bool active = now >= 0.498f && now <= 0.590f;
+            bool opened = SetWindow(active, active ? 0 : -1);
+            if (opened)
+            {
+                Vector3 pos = transform.position + Vector3.up * 1.05f + _facing * 1.55f;
+                HighflySkill5Fx.SpawnSonicSlash(pos, _facing);
+            }
+            if (active)
+                TraceWeapon(false, 0.17f, 34f, 0.042f, true,
+                    new Color(0.20f, 0.78f, 1f, 1f), 2.05f, "SONIC");
+        }
+
+        // -----------------------------------------------------------------
+        // S2 • HORIZONTAL SQUARE
+        // v2.1 exact timeline: 1.220s, CD 7, cost 18, 4 hit windows.
+        // -----------------------------------------------------------------
+        private void StartHorizontalSquare()
+        {
+            if (!ReadyForNewSkill()) return;
             if (_visual.CurrentLoadout != HighflyLoadoutProfile.Sword1H)
             {
                 Debug.Log("[SKILL5] Horizontal Square requires ESPADA 1H.");
                 return;
             }
+            if (Time.unscaledTime < _readySquare) return;
+            if (!SpendVolition(HorizontalSquareVolition, "Horizontal Square")) return;
 
-            if (Time.unscaledTime < _readyAt) return;
-            if (_stats != null && !_stats.UseVolition(HorizontalSquareVolition))
-            {
-                Debug.Log("[SKILL5] Horizontal Square blocked: Volition < 18.");
-                return;
-            }
-
-            _readyAt = Time.unscaledTime + HorizontalSquareCooldown;
-            _busy = true;
-            _elapsed = 0f;
-            _hitstopRemaining = 0f;
-            _phase = -1;
-            _window = -1;
-            _active = false;
-            _previousForward = 0f;
-            _hasPreviousTip = false;
-            _hitThisWindow.Clear();
-            _facing = ResolveCombatForward(_player.HighflyMobileMoveInput);
-            _player.currentState = PlayerState.Skill;
-            _visual.SetActionFacing(_facing);
-            _visual.SetWeaponTrail(false);
-            SetPhase(0);
-            Debug.Log("[SKILL5] HORIZONTAL SQUARE START • CD 7s • COST 18 • 4 REAL HIT WINDOWS");
+            _readySquare = Time.unscaledTime + HorizontalSquareCooldown;
+            BeginAction(HighflySkill5Action.HorizontalSquare, true);
+            UpdateHorizontalSquare(0f);
+            Debug.Log("[SKILL5] S2 HORIZONTAL SQUARE • CD7 • COST18 • 4 REAL HIT WINDOWS");
         }
 
         private void UpdateHorizontalSquare(float now)
         {
-            int nextPhase = now < 0.25f ? 0 : now < 0.50f ? 1 : now < 0.77f ? 2 : now < 1.03f ? 3 : 4;
-            if (nextPhase < 4 && nextPhase != _phase) SetPhase(nextPhase);
+            int phase = now < 0.240f ? 0 : now < 0.470f ? 1 : now < 0.710f ? 2 : now < 0.940f ? 3 : 4;
+            if (phase < 4 && phase != _phase)
+            {
+                _phase = phase;
+                if (phase == 0) PlayClip("Sword_Regular_A", 1.28f, _swing);
+                else if (phase == 1) PlayClip("Sword_Regular_B", 1.28f, _swing);
+                else if (phase == 2) PlayClip("Sword_Regular_C", 1.22f, _swing);
+                else PlayClip("Warrior_B", 1.18f, _longSwing);
+            }
 
-            float travelT = Mathf.Clamp01(now / 0.98f);
-            MoveForward(1.15f * Mathf.SmoothStep(0f, 1f, travelT));
+            float z;
+            if (now < 0.240f)
+                z = 0.160f * Mathf.Clamp01(now / 0.240f);
+            else if (now < 0.470f)
+                z = 0.160f + 0.150f * Mathf.Clamp01((now - 0.240f) / 0.230f);
+            else if (now < 0.710f)
+                z = 0.310f + 0.120f * Mathf.Clamp01((now - 0.470f) / 0.240f);
+            else if (now < 0.940f)
+                z = 0.430f + 0.150f * Mathf.Clamp01((now - 0.710f) / 0.230f);
+            else
+                z = 0.580f;
+            MoveToOffset(new Vector3(0f, 0f, z));
 
             bool active = false;
             int window = -1;
-            if (now >= 0.12f && now <= 0.20f) { active = true; window = 0; }
-            else if (now >= 0.36f && now <= 0.44f) { active = true; window = 1; }
-            else if (now >= 0.62f && now <= 0.70f) { active = true; window = 2; }
-            else if (now >= 0.89f && now <= 0.98f) { active = true; window = 3; }
+            if (now >= 0.096f && now <= 0.173f) { active = true; window = 0; }
+            else if (now >= 0.327f && now <= 0.401f) { active = true; window = 1; }
+            else if (now >= 0.537f && now <= 0.657f) { active = true; window = 2; }
+            else if (now >= 0.797f && now <= 0.871f) { active = true; window = 3; }
 
-            float damage = window == 3 ? 30f : 19f;
-            float hitstop = window == 3 ? 0.060f : 0.030f;
-            SetActiveWindow(active, window, damage, hitstop);
-        }
-
-        private void SetPhase(int phase)
-        {
-            _phase = phase;
-            string clip;
-            float speed;
-            switch (phase)
+            bool opened = SetWindow(active, window);
+            if (opened)
             {
-                case 0: clip = "Sword_Regular_A"; speed = 1.35f; break;
-                case 1: clip = "Sword_Regular_B"; speed = 1.35f; break;
-                case 2: clip = "Sword_Regular_C"; speed = 1.30f; break;
-                default: clip = "Warrior_B"; speed = 1.24f; break;
-            }
-
-            _visual.PlayActionClip(clip, speed);
-            PlayOneShot(phase == 3 ? _longSwing : _swing);
-        }
-
-        private void SetActiveWindow(bool active, int window, float damage, float hitstop)
-        {
-            if (active && (!_active || _window != window))
-            {
-                _window = window;
-                _hitThisWindow.Clear();
-                _hasPreviousTip = false;
-                _visual.SetWeaponTrail(true);
-
                 Vector3 right = Vector3.Cross(Vector3.up, _facing).normalized;
                 Vector3 center = transform.position + Vector3.up * 1.06f + _facing * 1.42f;
                 HighflySkill5Fx.SpawnSquareScar(window, center, _facing, right);
             }
 
+            if (active)
+            {
+                float damage = window == 3 ? 30f : 19f;
+                float hitstop = window == 3 ? 0.060f : 0.028f;
+                TraceWeapon(false, 0.16f, damage, hitstop, window == 3,
+                    new Color(0.28f, 0.82f, 1f, 1f), 1.82f, "SQUARE-" + (window + 1));
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // S3 • DOUBLE CIRCULAR
+        // v2.1: 0.930s, CD 6, cost 12, 1.56m total entry, 2 traces.
+        // -----------------------------------------------------------------
+        private void StartDoubleCircular()
+        {
+            if (!ReadyForNewSkill()) return;
+            if (!IsDualLoadout(_visual.CurrentLoadout))
+            {
+                Debug.Log("[SKILL5] Double Circular requires DUAL SWORD / DUAL DAGGERS / DUAL AXE.");
+                return;
+            }
+            if (Time.unscaledTime < _readyDouble) return;
+            if (!SpendVolition(DoubleCircularVolition, "Double Circular")) return;
+
+            _readyDouble = Time.unscaledTime + DoubleCircularCooldown;
+            BeginAction(HighflySkill5Action.DoubleCircular, true);
+            UpdateDoubleCircular(0f);
+            Debug.Log("[SKILL5] S3 DOUBLE CIRCULAR • CD6 • COST12 • 2 SEPARATE TRACES");
+        }
+
+        private void UpdateDoubleCircular(float now)
+        {
+            int phase = now < 0.180f ? 0 : now < 0.420f ? 1 : now < 0.650f ? 2 : 3;
+            if (phase < 3 && phase != _phase)
+            {
+                _phase = phase;
+                if (phase == 0) PlayClip("Sword_Dash", 1.35f, null);
+                else if (phase == 1) PlayClip(DualClip(0), 1.28f, _swing);
+                else PlayClip(DualClip(1), 1.28f, _longSwing);
+            }
+
+            float z;
+            if (now < 0.180f)
+                z = 1.250f * EaseOut(Mathf.Clamp01(now / 0.180f));
+            else if (now < 0.420f)
+                z = 1.250f + 0.160f * Mathf.Clamp01((now - 0.180f) / 0.240f);
+            else if (now < 0.650f)
+                z = 1.410f + 0.150f * Mathf.Clamp01((now - 0.420f) / 0.230f);
+            else
+                z = 1.560f;
+            MoveToOffset(new Vector3(0f, 0f, z));
+
+            bool active = false;
+            int window = -1;
+            bool secondary = false;
+            if (now >= 0.276f && now <= 0.353f) { active = true; window = 0; secondary = false; }
+            else if (now >= 0.507f && now <= 0.581f) { active = true; window = 1; secondary = true; }
+
+            bool opened = SetWindow(active, window);
+            if (opened)
+            {
+                Vector3 right = Vector3.Cross(Vector3.up, _facing).normalized;
+                Vector3 pos = transform.position + Vector3.up * 1.02f + _facing * 1.42f;
+                HighflySkill5Fx.SpawnDualSlash(window, pos, _facing, right);
+            }
+
+            if (active)
+            {
+                TraceWeapon(secondary, 0.16f, window == 0 ? 24f : 26f,
+                    window == 0 ? 0.042f : 0.065f,
+                    window == 1,
+                    new Color(0.66f, 0.30f, 1f, 1f),
+                    2.15f,
+                    window == 0 ? "DOUBLE-R" : "DOUBLE-L");
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // ULT • APOCALYPSE
+        // v2.1: 0.820s, CD 16, cost 28, ACTIVE 0.204-0.290.
+        // -----------------------------------------------------------------
+        private void StartApocalypse()
+        {
+            if (!ReadyForNewSkill()) return;
+            if (_visual.CurrentLoadout != HighflyLoadoutProfile.Sword1H)
+            {
+                Debug.Log("[SKILL5] Apocalypse currently binds to ESPADA 1H donor.");
+                return;
+            }
+            if (Time.unscaledTime < _readyApocalypse) return;
+            if (!SpendVolition(ApocalypseVolition, "Apocalypse")) return;
+
+            _readyApocalypse = Time.unscaledTime + ApocalypseCooldown;
+            BeginAction(HighflySkill5Action.Apocalypse, true);
+            _visual.PlayActionPose("Sword_Block", 0.26f);
+            UpdateApocalypse(0f);
+            Debug.Log("[SKILL5] ULT APOCALYPSE • CD16 • COST28 • CRIMSON HEAVY");
+        }
+
+        private void UpdateApocalypse(float now)
+        {
+            int phase = now < 0.100f ? 0 : now < 0.360f ? 1 : 2;
+            if (phase != _phase)
+            {
+                _phase = phase;
+                if (phase == 1) PlayClip("Sword_Heavy_Combo", 0.90f, _longSwing);
+            }
+
+            float z = 0f;
+            if (now > 0.100f && now < 0.360f)
+                z = 0.170f * Mathf.Clamp01((now - 0.100f) / 0.260f);
+            else if (now >= 0.360f)
+                z = 0.170f;
+            MoveToOffset(new Vector3(0f, 0f, z));
+
+            bool active = now >= 0.204f && now <= 0.290f;
+            bool opened = SetWindow(active, active ? 0 : -1);
+            if (opened)
+            {
+                Vector3 pos = transform.position + Vector3.up * 1.12f + _facing * 1.62f;
+                HighflySkill5Fx.SpawnApocalypseSlash(pos, _facing);
+            }
+            if (active)
+                TraceWeapon(false, 0.19f, 52f, 0.070f, true,
+                    new Color(1f, 0.14f, 0.06f, 1f), 3.20f, "APOCALYPSE");
+        }
+
+        // -----------------------------------------------------------------
+        // S4 • SPINNING SHIELD / HIGHFLY SHIELD SKILL
+        // Uses two real frozen Repel windows instead of patching PlayerStats.
+        // SKILL5 adds offensive shield traces + spiral presentation around them.
+        // -----------------------------------------------------------------
+        private void StartSpinningShield()
+        {
+            if (!ReadyForNewSkill()) return;
+            if (!IsShieldLoadout(_visual.CurrentLoadout))
+            {
+                Debug.Log("[SKILL5] Spinning Shield requires SWORD+SHIELD or AXE+SHIELD.");
+                return;
+            }
+            if (Time.unscaledTime < _readyShield) return;
+            if (!SpendVolition(SpinningShieldVolition, "Spinning Shield")) return;
+
+            _readyShield = Time.unscaledTime + SpinningShieldCooldown;
+            _shieldSecondGuard = false;
+            _shieldMidPose = false;
+            BeginAction(HighflySkill5Action.SpinningShield, false);
+
+            // First real defensive window comes from frozen SKILL4 Repel.
+            _foundation?.Request(HighflyCombatAction.Parry);
+            UpdateSpinningShield(0f);
+            Debug.Log("[SKILL5] S4 SPINNING SHIELD • CD12 • COST14 • FOUNDATION-BACKED BLOCK + IMPACT");
+        }
+
+        private void UpdateSpinningShield(float now)
+        {
+            // Keep motion ownership inside the action between the two frozen Repel pulses.
+            if (_foundation != null && !_foundation.ActionBusy &&
+                _player != null && _player.currentState == PlayerState.Locomotion &&
+                now < ShieldDuration)
+            {
+                _player.currentState = PlayerState.Skill;
+            }
+
+            if (!_shieldMidPose && now >= 0.390f)
+            {
+                _shieldMidPose = true;
+                _visual.PlayActionClip("Shield_Block", 1.15f);
+            }
+
+            // Frozen Repel has a 0.75s cooldown. Re-arm it once for the second
+            // circular guard pulse; no reflection/damage hook is patched.
+            if (!_shieldSecondGuard && now >= 0.760f &&
+                _foundation != null && !_foundation.ActionBusy)
+            {
+                _shieldSecondGuard = true;
+                _foundation.Request(HighflyCombatAction.Parry);
+            }
+
+            bool active = false;
+            int window = -1;
+            if (now >= 0.068f && now <= 0.334f) { active = true; window = 0; }
+            else if (now >= 0.808f && now <= 1.074f) { active = true; window = 1; }
+
+            bool opened = SetWindow(active, window);
+            if (opened)
+            {
+                Vector3 right = Vector3.Cross(Vector3.up, _facing).normalized;
+                Vector3 center = transform.position + Vector3.up * 1.08f + _facing * 1.05f;
+                HighflySkill5Fx.SpawnShieldSpiral(center, _facing, right, window);
+            }
+
+            if (active)
+            {
+                TraceWeapon(true, 0.24f, window == 0 ? 14f : 18f, 0f, window == 1,
+                    new Color(0.24f, 0.88f, 1f, 1f), 1.72f,
+                    window == 0 ? "SHIELD-SPIN-1" : "SHIELD-SPIN-2");
+            }
+        }
+
+        // -----------------------------------------------------------------
+        // Common action / hit / link infrastructure.
+        // -----------------------------------------------------------------
+        private bool ReadyForNewSkill()
+        {
+            _visual = HighflyRun0HCharacterVisual.Instance;
+            if (_player == null || _controller == null || _visual == null || !_visual.IsBound)
+            {
+                Debug.LogWarning("[SKILL5] Hunter foundation not ready.");
+                return false;
+            }
+            if (_foundation != null && _foundation.ActionBusy) return false;
+            return true;
+        }
+
+        private bool SpendVolition(float cost, string label)
+        {
+            if (_stats == null) return true;
+            if (_stats.UseVolition(cost)) return true;
+            Debug.Log("[SKILL5] " + label + " blocked: Volition < " + cost.ToString("0") + ".");
+            return false;
+        }
+
+        private void BeginAction(HighflySkill5Action action, bool ownPlayerState)
+        {
+            _action = action;
+            _elapsed = 0f;
+            _hitstopRemaining = 0f;
+            _phase = -1;
+            _window = -1;
+            _active = false;
+            _previousMotionOffset = Vector3.zero;
+            _hasPreviousPrimaryTip = false;
+            _hasPreviousSecondaryTip = false;
+            _hitThisWindow.Clear();
+            _facing = ResolveCombatForward(_player.HighflyMobileMoveInput);
+
+            if (ownPlayerState)
+                _player.currentState = PlayerState.Skill;
+
+            _visual.SetActionFacing(_facing);
+            _visual.SetWeaponTrail(false);
+        }
+
+        private bool SetWindow(bool active, int window)
+        {
+            bool opened = false;
+
+            if (active && (!_active || _window != window))
+            {
+                _window = window;
+                _hitThisWindow.Clear();
+                _hasPreviousPrimaryTip = false;
+                _hasPreviousSecondaryTip = false;
+                _visual.SetWeaponTrail(true);
+                opened = true;
+            }
+
             if (!active && _active)
             {
                 _visual.SetWeaponTrail(false);
-                _hasPreviousTip = false;
+                _hasPreviousPrimaryTip = false;
+                _hasPreviousSecondaryTip = false;
             }
 
             _active = active;
-            if (!active) return;
-            TracePrimaryWeapon(damage, hitstop);
+            if (!active) _window = -1;
+            return opened;
         }
 
-        private void TracePrimaryWeapon(float damage, float hitstop)
+        private void TraceWeapon(
+            bool secondary,
+            float radius,
+            float damage,
+            float hitstop,
+            bool finalImpact,
+            Color impactColor,
+            float impactSize,
+            string source)
         {
-            Transform weaponBase = _visual.PrimaryBase;
-            Transform weaponTip = _visual.PrimaryTip;
+            Transform weaponBase = secondary ? _visual.SecondaryBase : _visual.PrimaryBase;
+            Transform weaponTip = secondary ? _visual.SecondaryTip : _visual.PrimaryTip;
             if (weaponBase == null || weaponTip == null) return;
 
             Vector3 a = weaponBase.position;
             Vector3 b = weaponTip.position;
-            int count = Physics.OverlapCapsuleNonAlloc(a, b, 0.16f, _overlap, ~0, QueryTriggerInteraction.Collide);
-            for (int i = 0; i < count; i++) ResolveHit(_overlap[i], damage, hitstop);
+            int count = Physics.OverlapCapsuleNonAlloc(
+                a, b, radius, _overlap, ~0, QueryTriggerInteraction.Collide);
 
-            if (_hasPreviousTip)
+            for (int i = 0; i < count; i++)
+                ResolveHit(_overlap[i], weaponTip, damage, hitstop, finalImpact, impactColor, impactSize, source);
+
+            Vector3 previous = secondary ? _previousSecondaryTip : _previousPrimaryTip;
+            bool hasPrevious = secondary ? _hasPreviousSecondaryTip : _hasPreviousPrimaryTip;
+
+            if (hasPrevious)
             {
-                Vector3 delta = b - _previousTip;
+                Vector3 delta = b - previous;
                 float distance = delta.magnitude;
                 if (distance > 0.001f)
                 {
                     RaycastHit[] sweep = Physics.SphereCastAll(
-                        _previousTip, 0.13f, delta / distance, distance, ~0, QueryTriggerInteraction.Collide);
-                    for (int i = 0; i < sweep.Length; i++) ResolveHit(sweep[i].collider, damage, hitstop);
+                        previous,
+                        Mathf.Max(0.10f, radius * 0.82f),
+                        delta / distance,
+                        distance,
+                        ~0,
+                        QueryTriggerInteraction.Collide);
+
+                    for (int i = 0; i < sweep.Length; i++)
+                        ResolveHit(sweep[i].collider, weaponTip, damage, hitstop, finalImpact, impactColor, impactSize, source);
                 }
             }
 
-            _previousTip = b;
-            _hasPreviousTip = true;
+            if (secondary)
+            {
+                _previousSecondaryTip = b;
+                _hasPreviousSecondaryTip = true;
+            }
+            else
+            {
+                _previousPrimaryTip = b;
+                _hasPreviousPrimaryTip = true;
+            }
         }
 
-        private void ResolveHit(Collider collider, float damage, float hitstop)
+        private void ResolveHit(
+            Collider collider,
+            Transform weaponTip,
+            float damage,
+            float hitstop,
+            bool finalImpact,
+            Color impactColor,
+            float impactSize,
+            string source)
         {
             if (collider == null) return;
             if (collider.transform == transform || collider.transform.IsChildOf(transform)) return;
@@ -278,33 +714,119 @@ namespace Highfly.Skill5
             if (target == null || target == _stats) return;
             if (!_hitThisWindow.Add(target)) return;
 
-            Vector3 contact = collider.ClosestPoint(
-                _visual.PrimaryTip != null ? _visual.PrimaryTip.position : transform.position + _facing);
+            Vector3 probe = weaponTip != null
+                ? weaponTip.position
+                : transform.position + _facing;
+            Vector3 contact = collider.ClosestPoint(probe);
 
-            target.TakeDamage(damage, _window == 3 ? 34f : 20f, transform);
+            target.TakeDamage(damage, finalImpact ? 34f : 20f, transform);
             PlayOneShot(_hit);
             SpawnSparks(contact);
             _hitstopRemaining = Mathf.Max(_hitstopRemaining, hitstop);
 
-            if (_window == 3)
-                HighflySkill5Fx.SpawnFinalCross(contact + Vector3.up * 0.05f, _facing);
+            if (finalImpact)
+                HighflySkill5Fx.SpawnImpactCross(
+                    contact + Vector3.up * 0.04f,
+                    _facing,
+                    impactColor,
+                    impactSize);
 
-            Debug.Log("[SKILL5] HS HIT " + (_window + 1) + "/4 • " + target.name + " • " + damage.ToString("0") + " dmg");
+            Debug.Log("[SKILL5] HIT " + source + " • " + target.name + " • " + damage.ToString("0") + " dmg");
         }
 
-        private void SpawnSparks(Vector3 position)
+        private void MoveToOffset(Vector3 desiredLocal)
         {
-            if (_sparksPrefab == null) return;
-            GameObject fx = Instantiate(_sparksPrefab, position, Quaternion.identity);
-            Destroy(fx, 2f);
+            Vector3 right = Vector3.Cross(Vector3.up, _facing).normalized;
+            Vector3 desiredWorld =
+                right * desiredLocal.x +
+                Vector3.up * desiredLocal.y +
+                _facing * desiredLocal.z;
+
+            Vector3 previousWorld =
+                right * _previousMotionOffset.x +
+                Vector3.up * _previousMotionOffset.y +
+                _facing * _previousMotionOffset.z;
+
+            Vector3 delta = desiredWorld - previousWorld;
+            if (delta.sqrMagnitude > 0.0000001f)
+                _controller.Move(delta);
+
+            _previousMotionOffset = desiredLocal;
         }
 
-        private void MoveForward(float desiredDistance)
+        private bool DefensiveCancelOpen()
         {
-            float delta = desiredDistance - _previousForward;
-            if (Mathf.Abs(delta) > 0.00001f)
-                _controller.Move(_facing * delta);
-            _previousForward = desiredDistance;
+            switch (_action)
+            {
+                case HighflySkill5Action.SonicLeapReforged: return _elapsed >= 0.660f;
+                case HighflySkill5Action.HorizontalSquare: return _elapsed >= 0.916f;
+                case HighflySkill5Action.DoubleCircular: return _elapsed >= 0.626f;
+                case HighflySkill5Action.Apocalypse: return _elapsed >= 0.335f;
+                case HighflySkill5Action.SpinningShield: return _elapsed >= 1.090f;
+                default: return false;
+            }
+        }
+
+        private bool LinkWindowOpen()
+        {
+            switch (_action)
+            {
+                case HighflySkill5Action.SonicLeapReforged:
+                    return _elapsed >= 0.830f && _elapsed <= SonicDuration;
+                case HighflySkill5Action.HorizontalSquare:
+                    return _elapsed >= 1.110f && _elapsed <= SquareDuration;
+                case HighflySkill5Action.DoubleCircular:
+                    return _elapsed >= 0.820f && _elapsed <= DoubleDuration;
+                case HighflySkill5Action.Apocalypse:
+                    return _elapsed >= 0.790f && _elapsed <= ApocalypseDuration;
+                case HighflySkill5Action.SpinningShield:
+                    return _elapsed >= 1.090f && _elapsed <= ShieldDuration;
+                default:
+                    return false;
+            }
+        }
+
+        private bool CanLinkTo(HighflyCombatAction next)
+        {
+            if (next == HighflyCombatAction.Light) return true;
+
+            switch (_action)
+            {
+                case HighflySkill5Action.SonicLeapReforged:
+                    return next == HighflyCombatAction.Skill2;
+                case HighflySkill5Action.HorizontalSquare:
+                    return next == HighflyCombatAction.Skill1;
+                case HighflySkill5Action.DoubleCircular:
+                    return next == HighflyCombatAction.Skill1;
+                default:
+                    return false;
+            }
+        }
+
+        private string DualClip(int index)
+        {
+            switch (_visual.CurrentLoadout)
+            {
+                case HighflyLoadoutProfile.DualDaggers:
+                    return index == 0 ? "Dagger_A" : "Dagger_B";
+                case HighflyLoadoutProfile.DualAxe:
+                    return index == 0 ? "DualAxe_A" : "DualAxe_B";
+                default:
+                    return index == 0 ? "DualSword_A" : "DualSword_B";
+            }
+        }
+
+        private static bool IsDualLoadout(HighflyLoadoutProfile profile)
+        {
+            return profile == HighflyLoadoutProfile.DualSword ||
+                   profile == HighflyLoadoutProfile.DualDaggers ||
+                   profile == HighflyLoadoutProfile.DualAxe;
+        }
+
+        private static bool IsShieldLoadout(HighflyLoadoutProfile profile)
+        {
+            return profile == HighflyLoadoutProfile.SwordShield ||
+                   profile == HighflyLoadoutProfile.AxeShield;
         }
 
         private Vector3 ResolveCombatForward(Vector2 stick)
@@ -318,8 +840,14 @@ namespace Highfly.Skill5
 
             if (stick.sqrMagnitude > 0.0225f && _player.cameraTransform != null)
             {
-                Vector3 f = _player.cameraTransform.forward; f.y = 0f; f.Normalize();
-                Vector3 r = _player.cameraTransform.right; r.y = 0f; r.Normalize();
+                Vector3 f = _player.cameraTransform.forward;
+                f.y = 0f;
+                if (f.sqrMagnitude > 0.0001f) f.Normalize();
+
+                Vector3 r = _player.cameraTransform.right;
+                r.y = 0f;
+                if (r.sqrMagnitude > 0.0001f) r.Normalize();
+
                 Vector3 dir = f * stick.y + r * stick.x;
                 if (dir.sqrMagnitude > 0.01f) return dir.normalized;
             }
@@ -329,28 +857,61 @@ namespace Highfly.Skill5
             return fallback.sqrMagnitude > 0.01f ? fallback.normalized : Vector3.forward;
         }
 
-        private void FinishSkill5Action()
+        private void PlayClip(string clip, float speed, AudioClip sound)
         {
-            if (!_busy) return;
-            _busy = false;
-            _active = false;
-            _window = -1;
-            _phase = -1;
-            _hitThisWindow.Clear();
-            _hasPreviousTip = false;
-            _visual?.SetWeaponTrail(false);
-            _visual?.StopActionClip();
-            _visual?.ClearActionFacing();
+            if (_visual != null) _visual.PlayActionClip(clip, speed);
+            PlayOneShot(sound);
+        }
 
-            if (_player != null && _player.currentState == PlayerState.Skill)
-                _player.currentState = PlayerState.Locomotion;
-
-            Debug.Log("[SKILL5] HORIZONTAL SQUARE FINISH");
+        private void SpawnSparks(Vector3 position)
+        {
+            if (_sparksPrefab == null) return;
+            GameObject fx = Instantiate(_sparksPrefab, position, Quaternion.identity);
+            Destroy(fx, 2f);
         }
 
         private void PlayOneShot(AudioClip clip)
         {
             if (_audio != null && clip != null) _audio.PlayOneShot(clip);
+        }
+
+        private static float EaseOut(float t)
+        {
+            t = Mathf.Clamp01(t);
+            return 1f - (1f - t) * (1f - t);
+        }
+
+        private void FinishSkill5Action()
+        {
+            if (!ActionBusy) return;
+            HighflySkill5Action finished = _action;
+
+            _action = HighflySkill5Action.None;
+            _active = false;
+            _window = -1;
+            _phase = -1;
+            _hitThisWindow.Clear();
+            _hasPreviousPrimaryTip = false;
+            _hasPreviousSecondaryTip = false;
+            _previousMotionOffset = Vector3.zero;
+
+            _visual?.SetWeaponTrail(false);
+
+            bool foundationBusy = _foundation != null && _foundation.ActionBusy;
+            if (!foundationBusy)
+            {
+                _visual?.StopActionClip();
+                _visual?.ClearActionFacing();
+
+                if (_player != null &&
+                    (_player.currentState == PlayerState.Skill ||
+                     _player.currentState == PlayerState.Parry))
+                {
+                    _player.currentState = PlayerState.Locomotion;
+                }
+            }
+
+            Debug.Log("[SKILL5] FINISH " + finished);
         }
     }
 
@@ -371,13 +932,15 @@ namespace Highfly.Skill5
 
             HighflyLucidCombatBridge bridge = Object.FindFirstObjectByType<HighflyLucidCombatBridge>();
             if (bridge == null) return;
+
             if (bridge.GetComponent<HighflySkill5Runtime>() == null)
                 bridge.gameObject.AddComponent<HighflySkill5Runtime>();
+
             Destroy(gameObject);
         }
     }
 
-    // Runtime adapter: replaces only input delivery. All SKILL4 components/files stay byte-identical.
+    // Runtime-only input adapter. Frozen SKILL4 UI code is not patched.
     [DisallowMultipleComponent]
     public sealed class HighflySkill5InputAdapter : MonoBehaviour
     {
@@ -394,7 +957,7 @@ namespace Highfly.Skill5
         private void Update()
         {
             if (Time.unscaledTime < _nextScan) return;
-            _nextScan = Time.unscaledTime + 0.35f;
+            _nextScan = Time.unscaledTime + 0.15f;
             InstallProxies();
         }
 
@@ -411,23 +974,32 @@ namespace Highfly.Skill5
                 HighflySkill5ActionProxy proxy = button.GetComponent<HighflySkill5ActionProxy>();
                 if (proxy == null) proxy = button.gameObject.AddComponent<HighflySkill5ActionProxy>();
                 proxy.Configure(_runtime, _foundation, action);
-                button.enabled = false;
 
-                if (action == HighflyCombatAction.Skill2)
-                    UpdateSkill2Label(button.gameObject);
+                button.enabled = false;
+                UpdatePremiumLabel(button.gameObject, action);
             }
         }
 
-        private void UpdateSkill2Label(GameObject button)
+        private void UpdatePremiumLabel(GameObject button, HighflyCombatAction action)
         {
             Text[] texts = button.GetComponentsInChildren<Text>(true);
             if (texts.Length == 0) return;
 
-            Text label = texts[0];
-            float remaining = _runtime != null ? _runtime.CooldownRemaining : 0f;
-            label.text = remaining > 0.05f
-                ? "S2\\nH.SQUARE\\n" + remaining.ToString("0.0") + "s"
-                : "S2\\nH.SQUARE";
+            string label;
+            switch (action)
+            {
+                case HighflyCombatAction.Skill1: label = "S1\\nSONIC"; break;
+                case HighflyCombatAction.Skill2: label = "S2\\nH.SQUARE"; break;
+                case HighflyCombatAction.Skill3: label = "S3\\nDOUBLE"; break;
+                case HighflyCombatAction.Skill4: label = "S4\\nSHIELD"; break;
+                case HighflyCombatAction.Ultimate: label = "ULT\\nAPOC"; break;
+                default: return;
+            }
+
+            float remaining = _runtime != null ? _runtime.GetCooldownRemaining(action) : 0f;
+            texts[0].text = remaining > 0.05f
+                ? label + "\\n" + remaining.ToString("0.0") + "s"
+                : label;
         }
 
         private static bool TryMap(string name, out HighflyCombatAction action)
