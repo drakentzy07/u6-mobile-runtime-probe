@@ -57,9 +57,16 @@ namespace Highfly.Run0I.Editor
             SaveRuntimePrefab(swordPath,"Assets/Resources/HIGHFLY/Run0I/PrideSword.prefab");
             SaveRuntimePrefab(spearPath,"Assets/Resources/HIGHFLY/Run0I/PrideSpear.prefab");
 
+            string sidekickAxePath=AssetDatabase.GetAllAssetPaths()
+                .FirstOrDefault(p=>p.EndsWith("SK_Axe.fbx",StringComparison.OrdinalIgnoreCase) &&
+                                   p.IndexOf("Goblin_Axe",StringComparison.OrdinalIgnoreCase)>=0);
+            if(string.IsNullOrWhiteSpace(sidekickAxePath))
+                throw new Exception("[SKILL3-ARSENAL] Official Sidekick SK_Axe.fbx not found.");
+            SaveRuntimePrefab(sidekickAxePath,"Assets/Resources/HIGHFLY/Run0I/SidekickAxe.prefab");
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("[SKILL3-ARSENAL] PRIDE_READY sword="+swordPath+" spear="+spearPath);
+            Debug.Log("[SKILL3-ARSENAL] DONORS_READY prideSword="+swordPath+" prideSpear="+spearPath+" sidekickAxe="+sidekickAxePath);
         }
 
         private static string FindPrideGameObjectPath(string token)
@@ -111,6 +118,7 @@ namespace Highfly.Run0I.Editor
             string[] resources={
                 "HIGHFLY/Run0I/PrideSword",
                 "HIGHFLY/Run0I/PrideSpear",
+                "HIGHFLY/Run0I/SidekickAxe",
                 "HIGHFLY/Run0I/QSwordGolden",
                 "HIGHFLY/Run0I/QDagger2",
                 "HIGHFLY/Run0I/QAxeDouble",
@@ -127,7 +135,7 @@ namespace Highfly.Run0I.Editor
                     throw new Exception("[SKILL3-ARSENAL] Weapon has no renderable mesh: "+resource);
             }
 
-            Debug.Log("[SKILL3-ARSENAL] ARSENAL_GATE_OK • Pride sword/spear • Quaternius sword/dagger/axe/shield • Sidekick prop sockets");
+            Debug.Log("[SKILL3-ARSENAL] ARSENAL_GATE_OK • Pride sword/spear • Sidekick axe • Quaternius backups • Sidekick prop sockets");
         }
 
         private static Transform FindDescendant(Transform root,string exact)
