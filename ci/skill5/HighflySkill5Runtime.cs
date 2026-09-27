@@ -69,6 +69,7 @@ namespace Highfly.Skill5
         private float _readySavage;
         private float _readyVorpal;
         private HighflySkill5BlendPlayer _blendPlayer;
+        private HighflySkill5BodyAnchor _bodyAnchor;
 
         private int _phase = -1;
         private int _window = -1;
@@ -106,6 +107,8 @@ namespace Highfly.Skill5
             _foundation = GetComponent<HighflyLucidCombatBridge>();
             _blendPlayer = GetComponent<HighflySkill5BlendPlayer>();
             if (_blendPlayer == null) _blendPlayer = gameObject.AddComponent<HighflySkill5BlendPlayer>();
+            _bodyAnchor = GetComponent<HighflySkill5BodyAnchor>();
+            if (_bodyAnchor == null) _bodyAnchor = gameObject.AddComponent<HighflySkill5BodyAnchor>();
 
             _audio = gameObject.AddComponent<AudioSource>();
             _audio.playOnAwake = false;
@@ -138,10 +141,14 @@ namespace Highfly.Skill5
             float dt = Time.unscaledDeltaTime;
             if (_hitstopRemaining > 0f)
             {
+                _blendPlayer?.SetHitstop(true);
                 _hitstopRemaining -= dt;
+                if (_hitstopRemaining <= 0f)
+                    _blendPlayer?.SetHitstop(false);
                 return;
             }
 
+            _blendPlayer?.SetHitstop(false);
             _elapsed += dt;
 
             switch (_action)
@@ -662,6 +669,7 @@ namespace Highfly.Skill5
 
             _visual.SetActionFacing(_facing);
             _visual.SetWeaponTrail(false);
+            _bodyAnchor?.Begin(_visual);
         }
 
         private bool SetWindow(bool active, int window)
@@ -979,7 +987,9 @@ namespace Highfly.Skill5
             _previousMotionOffset = Vector3.zero;
 
             _visual?.SetWeaponTrail(false);
+            _blendPlayer?.SetHitstop(false);
             _blendPlayer?.Stop();
+            _bodyAnchor?.End();
 
             bool foundationBusy = _foundation != null && _foundation.ActionBusy;
             if (!foundationBusy)
@@ -1012,6 +1022,7 @@ namespace Highfly.Skill5
         private float _blendStarted;
         private float _blendDuration;
         private bool _blending;
+        private bool _hitstop;
 
         public bool Play(
             HighflyRun0HCharacterVisual visual,
@@ -1076,6 +1087,14 @@ namespace Highfly.Skill5
             return true;
         }
 
+        public void SetHitstop(bool active)
+        {
+            if (_hitstop == active) return;
+            _hitstop = active;
+            if (_graph.IsValid() && _mixer.IsValid())
+                _mixer.SetSpeed(active ? 0f : 1f);
+        }
+
         private void Update()
         {
             if (!_blending || !_graph.IsValid() || _incoming < 0) return;
@@ -1118,6 +1137,7 @@ namespace Highfly.Skill5
             _blending = false;
             _incoming = -1;
             _current = -1;
+            _hitstop = false;
             if (_graph.IsValid())
             {
                 try { _graph.Destroy(); } catch { }
@@ -1129,6 +1149,78 @@ namespace Highfly.Skill5
 
         private void OnDisable() => Stop();
         private void OnDestroy() => Stop();
+    }
+
+    [DisallowMultipleComponent]
+    public sealed class HighflySkill5BodyAnchor : MonoBehaviour
+    {
+        private Animator _animator;
+        private HumanPoseHandler _handler;
+        private HumanPose _pose;
+        private Vector3 _baselineBodyPosition;
+        private bool _active;
+
+        public void Begin(HighflyRun0HCharacterVisual visual)
+        {
+            End();
+
+            Animator animator = visual != null ? visual.VisualAnimator : null;
+            if (animator == null || animator.avatar == null ||
+                !animator.avatar.isValid || !animator.avatar.isHuman)
+                return;
+
+            try
+            {
+                _animator = animator;
+                _handler = new HumanPoseHandler(animator.avatar, animator.transform);
+                _pose = new HumanPose();
+                _handler.GetHumanPose(ref _pose);
+                _baselineBodyPosition = _pose.bodyPosition;
+                _active = true;
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning("[SKILL5] BodyAnchor unavailable: " + ex.Message);
+                End();
+            }
+        }
+
+        private void LateUpdate()
+        {
+            if (!_active || _handler == null || _animator == null) return;
+
+            try
+            {
+                _handler.GetHumanPose(ref _pose);
+
+                // HIGHFLY owns real travel through CharacterController.Move.
+                // KayKit clips are allowed to animate vertical body motion,
+                // but must not visually pull the Hunter backwards or sideways
+                // against the authored skill trajectory.
+                _pose.bodyPosition = new Vector3(
+                    Mathf.Lerp(_pose.bodyPosition.x, _baselineBodyPosition.x, 0.88f),
+                    _pose.bodyPosition.y,
+                    _baselineBodyPosition.z);
+
+                _handler.SetHumanPose(ref _pose);
+            }
+            catch
+            {
+                End();
+            }
+        }
+
+        public void End()
+        {
+            _active = false;
+            _handler = null;
+            _animator = null;
+            _pose = default;
+            _baselineBodyPosition = Vector3.zero;
+        }
+
+        private void OnDisable() => End();
+        private void OnDestroy() => End();
     }
 
     public sealed class HighflySkill5Bootstrap : MonoBehaviour
