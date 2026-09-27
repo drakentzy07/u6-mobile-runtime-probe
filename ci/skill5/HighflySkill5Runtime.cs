@@ -373,7 +373,7 @@ namespace Highfly.Skill5
             int window = -1;
             if (now >= 0.096f && now <= 0.173f) { active = true; window = 0; }
             else if (now >= 0.327f && now <= 0.401f) { active = true; window = 1; }
-            else if (now >= 0.537f && now <= 0.657f) { active = true; window = 2; }
+            else if (now >= 0.551f && now <= 0.641f) { active = true; window = 2; }
             else if (now >= 0.797f && now <= 0.871f) { active = true; window = 3; }
 
             bool opened = SetWindow(active, window);
