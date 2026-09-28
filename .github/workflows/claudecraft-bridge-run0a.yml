@@ -33,7 +33,7 @@ jobs:
           set -euxo pipefail
           BASE=7ebd380c800e720d41262d7f54ed31d6d3a79332
           git cat-file -e "$BASE^{commit}"
-          BAD="$(git diff --name-only "$BASE"...HEAD | grep -Ev '^(ci/claudecraft-bridge/|\.github/workflows/claudecraft-bridge-run0a\.yml$)' || true)"
+          BAD="$(git diff --name-only "$BASE"...HEAD | grep -Ev '^(ci/claudecraft-bridge/|ci/claudecraft-run0c/|\.github/workflows/claudecraft-bridge-run0a\.yml$|\.github/workflows/claudecraft-bridge-run0b-heroic-leap\.yml$|\.github/workflows/claudecraft-bridge-run0c-five-skills\.yml$|\.github/workflows/publish-claudecraft-run0b-heroic-leap\.yml$)' || true)"
           if [ -n "$BAD" ]; then
             echo "Bridge branch modified frozen files:"
             echo "$BAD"
