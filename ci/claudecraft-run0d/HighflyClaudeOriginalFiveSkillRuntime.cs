@@ -255,30 +255,26 @@ namespace Highfly.ClaudeBridge.Run0D
         {
             if (target == null || _player == null) return;
 
+            float weaponDamage = _self != null ? Mathf.Max(0f, _self.attackPower) : 0f;
+
             switch (skill)
             {
                 case Skill.Ambush:
-                    // Claude: weaponStrike bonus 28, 2.5x, behind+stealth gate.
-                    target.TakeDamage(Random.Range(31, 39), 12f, _player.transform);
+                    // Claude rank-1: 250% weapon damage + 28.
+                    target.TakeDamage(weaponDamage * 2.5f + 28f, 0f, _player.transform);
                     break;
                 case Skill.Backstab:
-                    // Claude: weaponStrike bonus 11, 1.5x, behind gate.
-                    target.TakeDamage(Random.Range(20, 27), 9f, _player.transform);
+                    // Claude rank-1: 150% weapon damage + 11.
+                    target.TakeDamage(weaponDamage * 1.5f + 11f, 0f, _player.transform);
                     break;
                 case Skill.Eviscerate:
-                    // Claude: combo spender. LAB feeds a five-combo visual context.
-                    target.TakeDamage(Random.Range(35, 45), 15f, _player.transform);
+                    // Claude rank-1 finisher: base 4 + 7 per combo, variance 4.
+                    // RUN0D feeds exactly five combo points for isolated visual testing.
+                    target.TakeDamage(4f + 7f * 5f + Random.Range(-4, 5), 0f, _player.transform);
                     break;
                 case Skill.Pummel:
-                    // Original effect is interrupt/lockout, not a weaponStrike.
-                    HighflyRun0IAttackDummy dummy =
-                        target.GetComponentInParent<HighflyRun0IAttackDummy>();
-                    if (dummy != null)
-                    {
-                        Vector3 repel = target.transform.position - _player.transform.position;
-                        repel.y = 0f;
-                        dummy.ReceiveRepel(repel, 0.20f);
-                    }
+                    // Claude effect is interrupt only: 4s school lockout and +10 rage
+                    // when a cast is actually stopped. No fake damage/knockback here.
                     break;
             }
         }
