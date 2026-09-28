@@ -25,6 +25,7 @@ namespace Highfly.ClaudeBridge.Run0C
 
         private PlayerController _player;
         private PlayerStats _self;
+        private CharacterController _controller;
         private global::Highfly.ClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime _heroic;
         private AudioSource _audio;
         private AudioClip _swingSfx;
@@ -34,7 +35,6 @@ namespace Highfly.ClaudeBridge.Run0C
         private GameObject _smokeFx;
         private GameObject _sparksFx;
         private GameObject _electricFx;
-        private GameObject _plasmaFx;
 
         private bool _busy;
         private float _pummelReadyAt;
@@ -70,7 +70,6 @@ namespace Highfly.ClaudeBridge.Run0C
             _smokeFx = Resources.Load<GameObject>("HIGHFLY/ClaudeBridge/SmokeEffect");
             _sparksFx = Resources.Load<GameObject>("HIGHFLY/ClaudeBridge/SparksEffect");
             _electricFx = Resources.Load<GameObject>("HIGHFLY/ClaudeBridge/ElectricalSparksEffect");
-            _plasmaFx = Resources.Load<GameObject>("HIGHFLY/ClaudeBridge/PlasmaExplosionEffect");
         }
 
         private void Update()
@@ -95,8 +94,15 @@ namespace Highfly.ClaudeBridge.Run0C
             if (_player == null)
             {
                 _player = FindAnyObjectByType<PlayerController>();
-                if (_player != null) _self = _player.GetComponent<PlayerStats>();
+                if (_player != null)
+                {
+                    _self = _player.GetComponent<PlayerStats>();
+                    _controller = _player.GetComponent<CharacterController>();
+                }
             }
+            if (_player != null && _controller == null)
+                _controller = _player.GetComponent<CharacterController>();
+
             if (_heroic == null)
                 _heroic = FindAnyObjectByType<global::Highfly.ClaudeBridge.Run0B.HighflyClaudeHeroicLeapRuntime>();
         }
@@ -224,89 +230,132 @@ namespace Highfly.ClaudeBridge.Run0C
         private IEnumerator CastBackstab(CharacterStats target, Vector3 point)
         {
             HighflyRun0HCharacterVisual visual = BeginSkill(
-                "Claude_Rogue_Backstab", target, "BACKSTAB • detrás simulado en LAB");
+                "Claude_Rogue_Backstab", target,
+                "BACKSTAB • entrada real a melee • thrust");
 
             Vector3 fallback = DirectionTo(point);
-            yield return HoldFacing(0.15f, visual, target, fallback, false);
+
+            // Video pass 01 showed the thrust landing from several metres away.
+            // Close that gap during the donor windup so contact and damage coincide.
+            yield return HoldFacing(0.12f, visual, target, fallback, false);
             if (visual != null) visual.SetWeaponTrail(true);
             PlaySfx(_swingSfx);
-            yield return HoldFacing(0.20f, visual, target, fallback, true);
+            yield return MoveIntoMelee(target, fallback, 0.95f, 0.20f, visual, true);
 
             Vector3 hitPoint = TargetPoint(target, point);
-            SpawnFx(_sparksFx, hitPoint, FacingRotation(target, fallback), ShadowRim, 0.75f, 1.2f);
+            Quaternion hitRot = FacingRotation(target, fallback);
+            SpawnFx(_electricFx, hitPoint, hitRot, ShadowRim, 0.28f, 0.45f);
+            SpawnFx(_sparksFx, hitPoint, hitRot, ShadowRim, 0.42f, 0.55f);
             DealDamage(target, Random.Range(24, 31), 10f);
             PlaySfx(_hitSfx);
 
             if (visual != null) visual.SetWeaponTrail(false);
-            yield return HoldFacing(0.27f, visual, target, fallback, false);
-            EndSkill(visual, "BACKSTAB • impacto limpio");
+            yield return HoldFacing(0.30f, visual, target, fallback, false);
+            EndSkill(visual, "BACKSTAB • contacto cuerpo/impacto sincronizado");
         }
 
         private IEnumerator CastAmbush(CharacterStats target, Vector3 point)
         {
             HighflyRun0HCharacterVisual visual = BeginSkill(
                 "Claude_Rogue_Ambush", target,
-                "AMBUSH • stealth+detrás simulados • windup shadow");
+                "AMBUSH • phase detrás • doble golpe");
 
             Vector3 fallback = DirectionTo(point);
-            Vector3 windupPoint = TargetPoint(target, point);
-            SpawnFx(_smokeFx, windupPoint, FacingRotation(target, fallback), Shadow, 1.15f, 0.75f);
 
-            // Claude clip holds the crouched guard until 0.40, then coils into two strikes.
-            yield return HoldFacing(0.52f, visual, target, fallback, false);
+            // The first video exposed a giant smoke cloud covering the complete action.
+            // Keep two compact puffs instead: departure and reappearance.
+            SpawnFx(
+                _smokeFx,
+                _player.transform.position + Vector3.up * 0.45f,
+                Quaternion.LookRotation(fallback, Vector3.up),
+                Shadow,
+                0.22f,
+                0.40f);
+
+            // Preserve the crouched/stealth read, then actually reposition to the far side.
+            yield return HoldFacing(0.18f, visual, target, fallback, false);
+
+            if (target != null)
+            {
+                Vector3 behind = ResolveFarSideSeat(target, 0.95f, fallback);
+                PhaseTo(behind);
+                fallback = DirectionTo(TargetPoint(target, point));
+                LockFacing(visual, fallback);
+            }
+
+            SpawnFx(
+                _smokeFx,
+                _player.transform.position + Vector3.up * 0.45f,
+                Quaternion.LookRotation(fallback, Vector3.up),
+                Shadow,
+                0.18f,
+                0.32f);
+
+            yield return HoldFacing(0.40f, visual, target, fallback, false);
+
             if (visual != null) visual.SetWeaponTrail(true);
             PlaySfx(_swingSfx);
 
-            yield return HoldFacing(0.22f, visual, target, fallback, true);
+            yield return HoldFacing(0.12f, visual, target, fallback, true);
             Vector3 hitA = TargetPoint(target, point);
-            SpawnFx(_sparksFx, hitA, FacingRotation(target, fallback), ShadowRim, 0.9f, 1.2f);
+            Quaternion rotA = FacingRotation(target, fallback);
+            SpawnFx(_sparksFx, hitA, rotA, ShadowRim, 0.42f, 0.50f);
             DealDamage(target, Random.Range(17, 22), 8f);
 
-            yield return HoldFacing(0.11f, visual, target, fallback, true);
+            yield return HoldFacing(0.15f, visual, target, fallback, true);
             Vector3 hitB = TargetPoint(target, point);
-            SpawnFx(_plasmaFx, hitB, FacingRotation(target, fallback), Shadow, 0.72f, 1.4f);
-            SpawnFx(_sparksFx, hitB, FacingRotation(target, fallback), ShadowRim, 1.05f, 1.2f);
+            Quaternion rotB = FacingRotation(target, fallback);
+            SpawnFx(_electricFx, hitB, rotB, Shadow, 0.32f, 0.50f);
+            SpawnFx(_sparksFx, hitB, rotB, ShadowRim, 0.48f, 0.55f);
             DealDamage(target, Random.Range(19, 24), 12f);
             PlaySfx(_hitSfx);
 
             if (visual != null) visual.SetWeaponTrail(false);
-            yield return HoldFacing(0.30f, visual, target, fallback, false);
-            EndSkill(visual, "AMBUSH • doble impacto shadow");
+            yield return HoldFacing(0.28f, visual, target, fallback, false);
+            EndSkill(visual, "AMBUSH • phase + doble impacto legible");
         }
 
         private IEnumerator CastEviscerate(CharacterStats target, Vector3 point)
         {
             HighflyRun0HCharacterVisual visual = BeginSkill(
                 "Claude_Rogue_Finisher_Slash", target,
-                "EVISCERATE • finisher • 5 combo simulados en LAB");
+                "EVISCERATE • acercamiento + finisher 2 cortes");
 
             Vector3 fallback = DirectionTo(point);
-            yield return HoldFacing(0.42f, visual, target, fallback, false);
+
+            // The donor clip winds through 0.42s. Use that time to enter true melee range.
+            yield return MoveIntoMelee(target, fallback, 1.05f, 0.24f, visual, false);
+            yield return HoldFacing(0.18f, visual, target, fallback, false);
+
             if (visual != null) visual.SetWeaponTrail(true);
             PlaySfx(_longSwingSfx);
 
+            // First readable slash at the 0.65 donor pose.
             yield return HoldFacing(0.23f, visual, target, fallback, true);
             Vector3 hitA = TargetPoint(target, point);
-            SpawnFx(_sparksFx, hitA, FacingRotation(target, fallback), Blood, 1.0f, 1.3f);
+            Quaternion rotA = FacingRotation(target, fallback);
+            SpawnFx(_sparksFx, hitA, rotA, Blood, 0.46f, 0.50f);
             DealDamage(target, Random.Range(17, 22), 12f);
 
+            // Second slash at ~0.82: no giant plasma cloud; keep the body and weapon trail visible.
             yield return HoldFacing(0.17f, visual, target, fallback, true);
             Vector3 hitB = TargetPoint(target, point);
-            SpawnFx(_plasmaFx, hitB, FacingRotation(target, fallback), Blood, 0.82f, 1.5f);
-            SpawnFx(_sparksFx, hitB, FacingRotation(target, fallback), Blood, 1.35f, 1.3f);
+            Quaternion rotB = FacingRotation(target, fallback);
+            SpawnFx(_electricFx, hitB, rotB, Blood, 0.30f, 0.42f);
+            SpawnFx(_sparksFx, hitB, rotB, Blood, 0.58f, 0.55f);
             DealDamage(target, Random.Range(21, 27), 16f);
             PlaySfx(_hitSfx);
 
             if (visual != null) visual.SetWeaponTrail(false);
             yield return HoldFacing(0.33f, visual, target, fallback, false);
-            EndSkill(visual, "EVISCERATE • X finisher completado");
+            EndSkill(visual, "EVISCERATE • dos cortes visibles • sin nube");
         }
 
         private IEnumerator CastPummel(CharacterStats target, Vector3 point)
         {
             HighflyRun0HCharacterVisual visual = BeginSkill(
                 "Claude_Punch_A", target,
-                "PUMMEL • interrupt 4s • CD 10s");
+                "PUMMEL • entrada corta • uppercut • CD 10s");
 
             Vector3 fallback = DirectionTo(point);
             if (visual != null)
@@ -315,24 +364,33 @@ namespace Highfly.ClaudeBridge.Run0C
                 visual.SetWeaponsVisible(false);
             }
 
-            yield return HoldFacing(0.30f, visual, target, fallback, false);
+            // Video pass 01 showed the punch animating in empty space.
+            // Step into fist range during the authored 0.14 -> 0.32 windup.
+            yield return MoveIntoMelee(target, fallback, 0.82f, 0.20f, visual, false);
+            yield return HoldFacing(0.10f, visual, target, fallback, false);
 
             Vector3 hit = TargetPoint(target, point);
-            SpawnFx(_electricFx, hit, FacingRotation(target, fallback), Physical, 0.72f, 1.0f);
-            SpawnFx(_sparksFx, hit, FacingRotation(target, fallback), Physical, 0.65f, 1.0f);
-            DealDamage(target, Random.Range(8, 13), 5f);
+            Quaternion hitRot = FacingRotation(target, fallback);
+            SpawnFx(_electricFx, hit, hitRot, Physical, 0.34f, 0.42f);
+            SpawnFx(_sparksFx, hit, hitRot, Physical, 0.32f, 0.42f);
+            DealDamage(target, Random.Range(8, 13), 7f);
             PlaySfx(_hitSfx);
 
             if (target != null)
             {
                 HighflyRun0IAttackDummy dummy = target.GetComponentInParent<HighflyRun0IAttackDummy>();
-                if (dummy != null) dummy.ReceiveRepel(fallback, 0.35f);
+                if (dummy != null)
+                {
+                    Vector3 repel = target.transform.position - _player.transform.position;
+                    repel.y = 0f;
+                    dummy.ReceiveRepel(repel, 0.75f);
+                }
             }
 
             yield return HoldFacing(0.40f, visual, target, fallback, false);
 
             if (visual != null) visual.SetWeaponsVisible(true);
-            EndSkill(visual, "PUMMEL • interrupt marcado 4s");
+            EndSkill(visual, "PUMMEL • contacto + knockback legible");
         }
 
         private HighflyRun0HCharacterVisual BeginSkill(
@@ -397,6 +455,90 @@ namespace Highfly.ClaudeBridge.Run0C
             }
         }
 
+        private IEnumerator MoveIntoMelee(
+            CharacterStats target,
+            Vector3 fallback,
+            float standoff,
+            float seconds,
+            HighflyRun0HCharacterVisual visual,
+            bool trail)
+        {
+            Vector3 from = _player.transform.position;
+            Vector3 desired;
+
+            if (target != null)
+            {
+                Vector3 toTarget = target.transform.position - from;
+                toTarget.y = 0f;
+                if (toTarget.sqrMagnitude < 0.0001f) toTarget = fallback;
+                Vector3 dir = toTarget.normalized;
+                desired = GroundSeat(target.transform.position - dir * standoff, from.y);
+            }
+            else
+            {
+                desired = GroundSeat(from + fallback.normalized * 1.35f, from.y);
+            }
+
+            float t = 0f;
+            Vector3 previous = from;
+            while (t < seconds)
+            {
+                t += Time.unscaledDeltaTime;
+                float u = Mathf.Clamp01(t / Mathf.Max(0.01f, seconds));
+                float eased = 1f - Mathf.Pow(1f - u, 3f);
+                Vector3 next = Vector3.Lerp(from, desired, eased);
+                Vector3 delta = next - previous;
+
+                if (_controller != null && _controller.enabled)
+                    _controller.Move(delta);
+                else
+                    _player.transform.position = next;
+
+                previous = next;
+
+                Vector3 facing = target != null
+                    ? target.transform.position - _player.transform.position
+                    : fallback;
+                facing.y = 0f;
+                if (facing.sqrMagnitude < 0.0001f) facing = fallback;
+                LockFacing(visual, facing);
+                if (visual != null) visual.SetWeaponTrail(trail);
+                yield return null;
+            }
+        }
+
+        private Vector3 ResolveFarSideSeat(CharacterStats target, float distance, Vector3 fallback)
+        {
+            Vector3 toTarget = target.transform.position - _player.transform.position;
+            toTarget.y = 0f;
+            if (toTarget.sqrMagnitude < 0.0001f) toTarget = fallback;
+            Vector3 dir = toTarget.normalized;
+
+            // Continue through the target to the opposite side: readable "appear behind" motion.
+            return GroundSeat(target.transform.position + dir * distance, _player.transform.position.y);
+        }
+
+        private void PhaseTo(Vector3 point)
+        {
+            bool restoreController = _controller != null && _controller.enabled;
+            if (restoreController) _controller.enabled = false;
+
+            _player.transform.position = point;
+
+            if (restoreController) _controller.enabled = true;
+        }
+
+        private static Vector3 GroundSeat(Vector3 point, float fallbackY)
+        {
+            RaycastHit hit;
+            Vector3 origin = new Vector3(point.x, fallbackY + 6f, point.z);
+            if (Physics.Raycast(origin, Vector3.down, out hit, 12f, ~0, QueryTriggerInteraction.Ignore))
+                return hit.point + Vector3.up * 0.02f;
+
+            point.y = fallbackY;
+            return point;
+        }
+
         private void LockFacing(HighflyRun0HCharacterVisual visual, Vector3 forward)
         {
             forward.y = 0f;
@@ -457,13 +599,17 @@ namespace Highfly.ClaudeBridge.Run0C
             if (prefab == null) return;
 
             GameObject fx = Instantiate(prefab, position, rotation);
-            fx.transform.localScale = Vector3.one * Mathf.Max(0.1f, scale);
+            fx.transform.localScale = Vector3.one;
 
+            float visualScale = Mathf.Clamp(scale, 0.12f, 1.25f);
             ParticleSystem[] particles = fx.GetComponentsInChildren<ParticleSystem>(true);
             for (int i = 0; i < particles.Length; i++)
             {
                 ParticleSystem.MainModule main = particles[i].main;
                 main.startColor = new ParticleSystem.MinMaxGradient(tint);
+                main.startSizeMultiplier *= visualScale;
+                main.startSpeedMultiplier *= Mathf.Lerp(0.45f, 1f, visualScale);
+                main.startLifetimeMultiplier = Mathf.Min(main.startLifetimeMultiplier, Mathf.Max(0.20f, life));
             }
 
             Destroy(fx, life);
