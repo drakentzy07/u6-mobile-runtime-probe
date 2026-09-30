@@ -104,6 +104,9 @@ LAB_SCRIPT = r"""
     '#hf-skill-lab-panel{position:fixed;z-index:2147483000;top:8px;left:50%;transform:translateX(-50%);width:min(920px,94vw);background:rgba(7,9,16,.94);border:1px solid rgba(159,109,255,.75);border-radius:14px;box-shadow:0 10px 40px rgba(0,0,0,.55);color:#fff;font:600 13px/1.2 Arial,sans-serif;padding:10px;backdrop-filter:blur(10px);user-select:none}' +
     '#hf-skill-lab-panel .hf-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}' +
     '#hf-skill-lab-panel .hf-title{font-weight:900;letter-spacing:.08em;margin-right:7px;color:#c9a7ff}' +
+    '#hf-skill-lab-panel .hf-collapse{margin-left:auto;border-color:#6d5a91!important;background:#21182e!important;padding:6px 9px!important}' +
+    '#hf-skill-lab-panel.hf-collapsed{width:auto;left:8px;transform:none}' +
+    '#hf-skill-lab-panel.hf-collapsed .hf-class,#hf-skill-lab-panel.hf-collapsed .hf-skills,#hf-skill-lab-panel.hf-collapsed .hf-status{display:none}' +
     '#hf-skill-lab-panel button{border:1px solid #4b5064;background:#171a26;color:#e9ebf7;border-radius:9px;padding:8px 11px;font-weight:800;cursor:pointer;touch-action:manipulation}' +
     '#hf-skill-lab-panel button.hf-active{border-color:#a76cff;background:#392258;color:white}' +
     '#hf-skill-lab-panel button.hf-base{border-color:#4f9cff}' +
@@ -125,7 +128,8 @@ LAB_SCRIPT = r"""
   panel.innerHTML =
     '<div class="hf-row"><span class="hf-title">HIGHFLY SKILL LAB</span>' +
     classButtons +
-    '<span id="hf-lab-status" class="hf-status">CARGANDO...</span></div>' +
+    '<span id="hf-lab-status" class="hf-status">CARGANDO...</span>' +
+    '<button id="hf-lab-collapse" class="hf-collapse" aria-expanded="true" title="Minimizar panel">−</button></div>' +
     '<div class="hf-row hf-skills">' +
     '<button class="hf-base" id="hf-lab-base" data-ability="' + config.base[0] + '">BASE · ' + config.base[1] + '</button>' +
     '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
@@ -140,6 +144,14 @@ LAB_SCRIPT = r"""
     el.textContent = text;
     el.style.color = bad ? '#ff9a9a' : '#9af5b5';
   }
+
+  var collapse = document.getElementById('hf-lab-collapse');
+  collapse.addEventListener('click', function () {
+    var collapsed = panel.classList.toggle('hf-collapsed');
+    collapse.textContent = collapsed ? 'HIGHFLY SKILL LAB +' : '−';
+    collapse.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    collapse.setAttribute('title', collapsed ? 'Abrir panel' : 'Minimizar panel');
+  });
 
   document.querySelectorAll('#hf-skill-lab-panel .hf-class').forEach(function (button) {
     button.addEventListener('click', function () {
