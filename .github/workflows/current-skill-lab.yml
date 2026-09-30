@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/current-skill-lab.yml"
+      - "overlays/apply_current_skill_lab_pack01.py"
+      - "overlays/highfly_current_skill_lab_smoke.mjs"
   workflow_dispatch:
 
 permissions:
