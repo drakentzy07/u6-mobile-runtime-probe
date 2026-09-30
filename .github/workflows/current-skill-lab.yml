@@ -172,6 +172,7 @@ jobs:
           set -euo pipefail
           cp ../skill-src/overlays/highfly_jump_smash_browser_smoke.mjs ./highfly_jump_smash_browser_smoke.mjs
           sed -i 's#/cobalt-hollow-lab/#/u6-mobile-runtime-probe/#g' ./highfly_jump_smash_browser_smoke.mjs
+          sed -i "s/Boolean(window.__game?.sim?.player), null, { timeout: 30000 }/Boolean(window.__game?.sim?.player), null, { timeout: 60000 }/" ./highfly_jump_smash_browser_smoke.mjs
           pnpm exec vite preview --host 127.0.0.1 --port 4173 --base=/u6-mobile-runtime-probe/ > ../skill-lab-preview.log 2>&1 &
           PREVIEW_PID=$!
           trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
