@@ -140,14 +140,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat > ../tsconfig.skill-lab-src.json <<'EOF'
+          cat > tsconfig.skill-lab-src.json <<'EOF'
           {
-            "extends": "./upstream/tsconfig.json",
-            "include": ["./upstream/src/**/*.ts", "./upstream/src/**/*.tsx"],
-            "exclude": ["./upstream/tests/**"]
+            "extends": "./tsconfig.json",
+            "include": ["src/**/*.ts", "src/**/*.tsx"],
+            "exclude": ["tests/**"]
           }
           EOF
-          pnpm exec tsc --project ../tsconfig.skill-lab-src.json --noEmit --incremental false
+          pnpm exec tsc --project tsconfig.skill-lab-src.json --noEmit --incremental false
 
       - name: Build current Skill Lab
         working-directory: upstream
