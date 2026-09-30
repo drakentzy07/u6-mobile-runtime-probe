@@ -17,6 +17,20 @@ def rep(path: str, old: str, new: str) -> None:
         raise SystemExit(f"{path}: expected 1 anchor, found {n}: {old[:140]!r}")
     write(path, text.replace(old, new, 1))
 
+# LAB-ONLY reachability. Production Pack 01 intentionally keeps the new EVO ids
+# hidden until HIGHFLY progression swaps BASE -> EVO. The permanent Skill Lab
+# is the one place where testers must be able to cast both sides directly.
+classes = read("src/sim/content/classes.ts")
+lab_tail = """
+// HIGHFLY SKILL LAB ONLY: expose frozen Pack 01 endpoints for direct QA.
+for (const id of ['hf_hunter_prison_01', 'hf_phoenix_lance_01', 'hf_living_covenant_01']) {
+  if (ABILITIES[id]) ABILITIES[id].hiddenFromPlayer = false;
+}
+if (!CLASSES.druid.abilities.includes('moonlash')) CLASSES.druid.abilities.push('moonlash');
+"""
+if lab_tail.strip() not in classes:
+    write("src/sim/content/classes.ts", classes + lab_tail)
+
 rep(
     "src/main.ts",
     """const diagnosticsAutoOffline =
