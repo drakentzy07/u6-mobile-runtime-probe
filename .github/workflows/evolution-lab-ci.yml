@@ -85,6 +85,7 @@ jobs:
           python ../skill-src/overlays/apply_highfly_vertical_slice_tests.py
           python ../skill-src/overlays/apply_highfly_jump_smash_full.py
           python ../skill-src/overlays/apply_highfly_jump_smash_facing_fix.py
+          python ../overlays/highfly_evolution_lab_fast_switch.py
           git diff --check
 
       - name: Setup Node
@@ -124,4 +125,5 @@ jobs:
         env:
           VITE_COBALT_OFFLINE: "1"
           VITE_COBALT_BASE: "/u6-mobile-runtime-probe/"
+          VITE_HIGHFLY_EVOLUTION_LAB: "1"
         run: pnpm run build:bundle
