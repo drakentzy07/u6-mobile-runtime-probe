@@ -120,7 +120,6 @@ jobs:
           python ../skill-src/overlays/apply_highfly_production_pack01_run0b.py
           python ../skill-src/overlays/apply_highfly_production_pack01_run0c.py
           python ../skill-src/overlays/apply_highfly_production_pack01_run0d.py
-          python ../overlays/apply_current_skill_lab_pack01.py
           git diff --check
           git diff --stat
 
@@ -142,6 +141,14 @@ jobs:
         working-directory: upstream
         run: |
           pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts
+
+      - name: Apply Skill Lab playable harness
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ../overlays/apply_current_skill_lab_pack01.py
+          git diff --check
 
       - name: TypeScript source check
         working-directory: upstream
