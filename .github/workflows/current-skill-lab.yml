@@ -1,0 +1,207 @@
+name: HIGHFLY Current Skill Lab
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/current-skill-lab.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-current-skill-lab-pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Skill Lab host
+        uses: actions/checkout@v4
+
+      - name: Checkout current HIGHFLY movement foundation
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: b40a9b68d1bac946976878d788cf21771cc8c0d3
+          path: foundation-src
+
+      - name: Checkout current HIGHFLY skill adapter
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: cf1e8d5a3db00ebcb03128f4c9419a59a4ff4c90
+          path: skill-src
+
+      - name: Checkout frozen ClaudeCraft
+        uses: actions/checkout@v4
+        with:
+          repository: levy-street/world-of-claudecraft
+          ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
+          path: upstream
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /tests/
+            /electron/
+            /scripts/
+            /server/
+            /headless/
+            /bot/
+            /data/
+            /patches/
+            /private/
+            /public/
+            /package.json
+            /pnpm-lock.yaml
+            /vite.config.ts
+            /tsconfig.json
+            /tsconfig.admin.json
+            /tsconfig.bot.json
+            /svelte.config.js
+            /.browserslistrc
+            /.npmrc
+            /biome.json
+            /index.html
+            /admin.html
+            /guide.html
+            /editor.html
+            /play.html
+            /wallet-handoff.html
+
+      - name: Verify frozen ClaudeCraft
+        working-directory: upstream
+        run: test "$(git rev-parse HEAD)" = "9b57e49c9676d75962700f828cc00a50a9a988b5"
+
+      - name: Apply current HIGHFLY movement + camera
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply ../foundation-src/overlays/pages-media-base.patch
+          git apply ../foundation-src/overlays/cobalt-offline-gate.patch
+          python ../foundation-src/overlays/highfly_mobile_360.py
+          python ../foundation-src/overlays/highfly_mobile_analog.py
+          python ../foundation-src/overlays/verify_highfly_8way.py
+          python ../foundation-src/overlays/highfly_offline_save.py
+          python ../foundation-src/overlays/highfly_entry_es.py
+          python ../foundation-src/overlays/highfly_mobile_creator.py
+          python ../foundation-src/overlays/highfly_offline_resume_preview.py
+          python ../foundation-src/overlays/highfly_mobile_polish.py
+          python ../foundation-src/overlays/highfly_advanced_mobility.py
+          python ../foundation-src/overlays/highfly_run09_mobile_actions.py
+          python ../foundation-src/overlays/highfly_run091_ui_polish.py
+          python ../foundation-src/overlays/highfly_run092_hud_comfort.py
+          python ../foundation-src/overlays/highfly_run093_preview_hud.py
+          python ../foundation-src/overlays/highfly_run093_combat.py
+          cp ../foundation-src/overlays/rewrite_source_public_paths.py ../rewrite_source_public_paths_skill_lab.py
+          sed -i 's#/cobalt-hollow-lab#/u6-mobile-runtime-probe#g' ../rewrite_source_public_paths_skill_lab.py
+          python ../rewrite_source_public_paths_skill_lab.py
+          python -c "from pathlib import Path; p=Path('vite.config.ts'); s=p.read_text(); old=\"  base: '/',\"; new=\"  base: env(['VITE_COBALT_BASE']) ?? '/',\"; assert s.count(old)==1; p.write_text(s.replace(old,new))"
+
+      - name: Apply Jump Smash FULL skill adapter
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ../skill-src/overlays/apply_highfly_skill_adapter.py
+          python ../skill-src/overlays/apply_highfly_skill_adapter_fix1.py
+          python ../skill-src/overlays/apply_highfly_vertical_slice_tests.py
+          python ../skill-src/overlays/apply_highfly_jump_smash_full.py
+          git diff --check
+          git diff --stat
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+
+      - name: Install dependencies
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Skill Lab focused tests
+        working-directory: upstream
+        run: |
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts
+
+      - name: TypeScript source check
+        working-directory: upstream
+        run: pnpm exec tsc --noEmit --incremental false
+
+      - name: Build current Skill Lab
+        working-directory: upstream
+        env:
+          VITE_COBALT_OFFLINE: "1"
+          VITE_COBALT_BASE: "/u6-mobile-runtime-probe/"
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run build:bundle
+          node scripts/build_media_manifest.mjs prune
+          cp ../foundation-src/overlays/rewrite_pages_static.py ../rewrite_pages_static_skill_lab.py
+          sed -i 's#/cobalt-hollow-lab#/u6-mobile-runtime-probe#g' ../rewrite_pages_static_skill_lab.py
+          python ../rewrite_pages_static_skill_lab.py
+          touch dist/.nojekyll
+          du -sh dist
+
+      - name: Jump Smash browser smoke on Skill Lab base
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../skill-src/overlays/highfly_jump_smash_browser_smoke.mjs ./highfly_jump_smash_browser_smoke.mjs
+          sed -i 's#/cobalt-hollow-lab/#/u6-mobile-runtime-probe/#g' ./highfly_jump_smash_browser_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4173 --base=/u6-mobile-runtime-probe/ > ../skill-lab-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4173/u6-mobile-runtime-probe/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node ./highfly_jump_smash_browser_smoke.mjs
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload Skill Lab Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: upstream/dist
+
+      - name: Upload Skill Lab diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: current-skill-lab-diagnostics
+          path: |
+            jump-smash-browser-report.json
+            jump-smash-00-ready.png
+            jump-smash-01-airborne.png
+            jump-smash-02-impact.png
+            skill-lab-preview.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy current Skill Lab
+        id: deployment
+        uses: actions/deploy-pages@v4
