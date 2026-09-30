@@ -1,0 +1,127 @@
+name: HIGHFLY Evolution Lab CI
+
+on:
+  push:
+    branches:
+      - highfly/evolution-lab-v0.1
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: highfly-evolution-lab-v01
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Evolution Lab host
+        uses: actions/checkout@v4
+
+      - name: Checkout HIGHFLY movement foundation
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: b40a9b68d1bac946976878d788cf21771cc8c0d3
+          path: foundation-src
+
+      - name: Checkout HIGHFLY skill source
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: a66ef615bd201895338ce9578c0869e104b7614a
+          path: skill-src
+
+      - name: Checkout frozen ClaudeCraft
+        uses: actions/checkout@v4
+        with:
+          repository: levy-street/world-of-claudecraft
+          ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
+          path: upstream
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /tests/
+            /scripts/
+            /public/
+            /package.json
+            /pnpm-lock.yaml
+            /vite.config.ts
+            /tsconfig.json
+            /.npmrc
+
+      - name: Apply current HIGHFLY foundation
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply ../foundation-src/overlays/pages-media-base.patch
+          git apply ../foundation-src/overlays/cobalt-offline-gate.patch
+          python ../foundation-src/overlays/highfly_mobile_360.py
+          python ../foundation-src/overlays/highfly_mobile_analog.py
+          python ../foundation-src/overlays/verify_highfly_8way.py
+          python ../foundation-src/overlays/highfly_offline_save.py
+          python ../foundation-src/overlays/highfly_entry_es.py
+          python ../foundation-src/overlays/highfly_mobile_creator.py
+          python ../foundation-src/overlays/highfly_offline_resume_preview.py
+          python ../foundation-src/overlays/highfly_mobile_polish.py
+          python ../foundation-src/overlays/highfly_advanced_mobility.py
+          python ../foundation-src/overlays/highfly_run09_mobile_actions.py
+          python ../foundation-src/overlays/highfly_run091_ui_polish.py
+          python ../foundation-src/overlays/highfly_run092_hud_comfort.py
+          python ../foundation-src/overlays/highfly_run093_preview_hud.py
+          python ../foundation-src/overlays/highfly_run093_combat.py
+
+      - name: Apply current Skill Factory reference
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ../skill-src/overlays/apply_highfly_skill_adapter.py
+          python ../skill-src/overlays/apply_highfly_skill_adapter_fix1.py
+          python ../skill-src/overlays/apply_highfly_vertical_slice_tests.py
+          python ../skill-src/overlays/apply_highfly_jump_smash_full.py
+          python ../skill-src/overlays/apply_highfly_jump_smash_facing_fix.py
+          git diff --check
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+
+      - name: Install dependencies
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Evolution Lab contract tests
+        working-directory: upstream
+        run: |
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/heroic_leap.test.ts             tests/ground_target_cast.test.ts
+
+      - name: TypeScript source check
+        working-directory: upstream
+        shell: bash
+        run: |
+          cat > tsconfig.evolution-lab-src.json <<'EOF'
+          {
+            "extends": "./tsconfig.json",
+            "include": ["src/**/*.ts", "src/**/*.tsx"],
+            "exclude": ["tests/**"]
+          }
+          EOF
+          pnpm exec tsc --project tsconfig.evolution-lab-src.json --noEmit --incremental false
+
+      - name: Bundle proof
+        working-directory: upstream
+        env:
+          VITE_COBALT_OFFLINE: "1"
+          VITE_COBALT_BASE: "/u6-mobile-runtime-probe/"
+        run: pnpm run build:bundle
