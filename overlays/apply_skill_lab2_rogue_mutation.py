@@ -42,7 +42,7 @@ rep(
     id: 'hf_eclipse_mortal_01',
     name: 'Eclipse Mortal',
     class: 'rogue',
-    hiddenFromPlayer: false,
+    hiddenFromPlayer: true,
     learnLevel: 4,
     cost: 60,
     castTime: 0,
@@ -190,24 +190,6 @@ rep(
     """  if (abilityId === 'hf_shadow_hunt_01') return HF_SHADOW_HUNT_VFX_FULL_SPEC;""",
     """  if (abilityId === 'hf_shadow_hunt_01') return HF_SHADOW_HUNT_VFX_FULL_SPEC;
   if (abilityId === 'hf_eclipse_mortal_01') return HF_ECLIPSE_MORTAL_VFX_FULL_SPEC;""",
-)
-
-# Upgrade the permanent lab control only for Rogue; other classes remain BASE/EVO.
-rep(
-    "index.html",
-    """    '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +""",
-    """    '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
-    (activeClass === 'rogue' ? '<button class="hf-evo" id="hf-lab-mutation" data-ability="hf_eclipse_mortal_01">MUTACIÓN · Eclipse Mortal</button>' : '') +""",
-)
-
-rep(
-    "index.html",
-    """  document.getElementById('hf-lab-evo').addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
-  document.getElementById('hf-lab-reset').addEventListener('click', resetLab);""",
-    """  document.getElementById('hf-lab-evo').addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
-  var mutationButton = document.getElementById('hf-lab-mutation');
-  if (mutationButton) mutationButton.addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
-  document.getElementById('hf-lab-reset').addEventListener('click', resetLab);""",
 )
 
 write(
