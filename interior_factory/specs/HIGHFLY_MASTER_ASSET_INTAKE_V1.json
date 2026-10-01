@@ -1,0 +1,156 @@
+{
+  "id": "HIGHFLY_MASTER_ASSET_INTAKE_V1",
+  "status": "CANONICAL",
+  "theme": [
+    "medieval",
+    "viking",
+    "fantasy-rpg"
+  ],
+  "policy": {
+    "reuseFirst": true,
+    "modernProps": false,
+    "publicRedistributionRequiresVerifiedLicense": true
+  },
+  "pools": [
+    "ARMORY",
+    "BLACKSMITH",
+    "INN_TAVERN",
+    "GUILD",
+    "CITY",
+    "COMBAT"
+  ],
+  "packs": [
+    {
+      "name": "KayKit Fantasy Weapons Bits 1.0 FREE",
+      "priority": "P0",
+      "state": "WEB_READY",
+      "license": "CC0_VERIFIED",
+      "modelsAudited": 31,
+      "uses": [
+        "ARMORY",
+        "COMBAT",
+        "LOOT"
+      ]
+    },
+    {
+      "name": "Low Poly Medieval Weapons",
+      "priority": "P0",
+      "state": "LOCAL_STAGING",
+      "license": "UNVERIFIED_IN_ARCHIVE",
+      "modelsAudited": 62,
+      "uses": [
+        "ARMORY",
+        "COMBAT",
+        "LOOT",
+        "NPC"
+      ],
+      "publish": false
+    },
+    {
+      "name": "Weapons.zip",
+      "priority": "P0",
+      "state": "LOCAL_GLB_STAGING",
+      "license": "UNVERIFIED_IN_ARCHIVE",
+      "modelsAudited": 33,
+      "uses": [
+        "ARMORY",
+        "COMBAT",
+        "LOOT"
+      ],
+      "publish": false
+    },
+    {
+      "name": "Fantasy Armory",
+      "priority": "P0",
+      "state": "CONVERT_WEB",
+      "uses": [
+        "ARMORY",
+        "BLACKSMITH",
+        "GUILD"
+      ]
+    },
+    {
+      "name": "Quaternius Medieval Weapons",
+      "priority": "P0",
+      "state": "CONVERT_WEB_AND_VERIFY_SOURCE",
+      "modelsAudited": 24,
+      "uses": [
+        "ARMORY",
+        "COMBAT",
+        "LOOT"
+      ]
+    },
+    {
+      "name": "Quaternius Fantasy Props",
+      "priority": "P0",
+      "state": "WEB_READY",
+      "uses": [
+        "BLACKSMITH",
+        "INN_TAVERN",
+        "GUILD",
+        "ARMORY"
+      ]
+    },
+    {
+      "name": "Slavic World Free",
+      "priority": "P1",
+      "state": "CONVERT_WEB",
+      "license": "CC_BY_4_0_VERIFIED",
+      "uses": [
+        "BLACKSMITH",
+        "INN_TAVERN",
+        "GUILD",
+        "CITY"
+      ]
+    },
+    {
+      "name": "soiTavern",
+      "priority": "P1",
+      "state": "CONVERT_WEB_AND_VERIFY_SOURCE",
+      "uses": [
+        "INN_TAVERN"
+      ]
+    },
+    {
+      "name": "Stylized Medieval Village / RG Poly",
+      "priority": "P1",
+      "state": "CONVERT_WEB_AND_VERIFY_SOURCE",
+      "uses": [
+        "CITY",
+        "BLACKSMITH",
+        "INN_TAVERN",
+        "GUILD"
+      ]
+    },
+    {
+      "name": "KayKit Furniture/Resources/Restaurant/RPGTools/Prototype/Hexagon",
+      "priority": "P0",
+      "state": "WEB_READY_CURATED",
+      "uses": [
+        "BLACKSMITH",
+        "INN_TAVERN",
+        "GUILD",
+        "CITY"
+      ]
+    }
+  ],
+  "blacklist": [
+    "battery",
+    "computer",
+    "modern desk",
+    "fuel barrel modern",
+    "dynamite modern",
+    "sci-fi",
+    "neon",
+    "monitor",
+    "screen",
+    "industrial contemporary"
+  ],
+  "forgeContract": {
+    "showcaseFloorContact": true,
+    "wallRacksMustBePopulated": true,
+    "floorStandsMustBePopulated": true,
+    "doorOpeningMustRemainClear": true,
+    "targetVisibleGear": "44-48"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "run":"IF-00A",
+  "title":"Asset-grounded Smithy Seed",
+  "status":"PASS",
+  "branch":"highfly/ai-interior-factory-run0a",
+  "inputSpec":"specs/HF_SMITHY_01.json",
+  "catalog":"catalog/asset_catalog.seed.json",
+  "output":"runs/IF-00A-layout.json",
+  "verifiedFacts":{
+    "emaceArtPackageAssets":3505,
+    "blacksmithDonorMappedDependencies":37,
+    "storeReference":"EA_Room_Int_Store_Comp_7x7_01a_PRE.prefab",
+    "floors":2,
+    "generatedPlacements":9
+  },
+  "qaHistory":[
+    {"attempt":1,"status":"REJECT","reason":"forge/anvil distance 4.22m"},
+    {"attempt":2,"status":"PASS","errors":0,"warnings":0}
+  ]
+}

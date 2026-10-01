@@ -1,0 +1,158 @@
+{
+  "id": "HF_GUILD_01",
+  "version": 1,
+  "status": "PRE_DESIGN",
+  "style": [
+    "medieval",
+    "viking",
+    "fantasy-guild"
+  ],
+  "modernTech": false,
+  "footprint": {
+    "width": 34,
+    "depth": 26,
+    "floorHeight": 4.2,
+    "floors": 2
+  },
+  "groundFloor": {
+    "axis": "entrada sur -> alfombra roja central -> recepción norte",
+    "redCarpet": {
+      "width": 2.4,
+      "length": 20,
+      "material": "textil rojo oscuro con borde dorado"
+    },
+    "reception": {
+      "size": [
+        9,
+        3
+      ],
+      "features": [
+        "mostrador monumental de madera y piedra",
+        "NPC recepción/registro",
+        "emblema del gremio"
+      ]
+    },
+    "rearLibrary": {
+      "wall": "norte completa",
+      "height": "doble altura visual",
+      "features": [
+        "biblioteca gigante",
+        "libros de monstruos",
+        "crónicas",
+        "mapas",
+        "escalera de biblioteca/andamio de madera"
+      ]
+    },
+    "socialTables": {
+      "count": 8,
+      "distribution": "4 izquierda + 4 derecha de la alfombra",
+      "shape": "redondas",
+      "chairsPerTable": 5,
+      "chairPlacement": "radial orientado al centro",
+      "allFunctional": true
+    },
+    "questBoard": {
+      "wall": "lateral este",
+      "size": "muy grande",
+      "features": [
+        "misiones por rango",
+        "avisos",
+        "sellos",
+        "pergaminos"
+      ],
+      "interaction": "tomar/inspeccionar misión"
+    },
+    "banners": {
+      "placement": [
+        "columnas",
+        "laterales",
+        "sobre recepción"
+      ],
+      "style": "estandartes medievales del gremio"
+    },
+    "extra": [
+      "zona registro hunter",
+      "trofeos de monstruos",
+      "armas ceremoniales",
+      "braseros"
+    ]
+  },
+  "stairs": {
+    "position": "lateral noroeste",
+    "style": "madera/piedra con barandas",
+    "destination": "sala principal superior"
+  },
+  "upperFloor": {
+    "mainCouncilHall": {
+      "size": [
+        18,
+        12
+      ],
+      "table": {
+        "shape": "rectangular monumental",
+        "size": [
+          8,
+          2.6
+        ],
+        "chairs": 16
+      },
+      "features": [
+        "pizarrón táctico medieval",
+        "mapas clavados",
+        "estandartes",
+        "escudos",
+        "trofeos",
+        "mesa auxiliar de mapas"
+      ]
+    },
+    "archiveBalcony": {
+      "features": [
+        "vista parcial a biblioteca",
+        "más estanterías",
+        "documentos sellados"
+      ]
+    },
+    "interactions": [
+      "sentarse",
+      "reunión",
+      "inspeccionar mapa",
+      "inspeccionar pizarra",
+      "consultar archivo"
+    ]
+  },
+  "assetRules": {
+    "allowed": [
+      "madera oscura",
+      "piedra",
+      "hierro forjado",
+      "alfombras",
+      "pergaminos",
+      "libros",
+      "banderas",
+      "velas",
+      "braseros"
+    ],
+    "forbidden": [
+      "monitores",
+      "neón",
+      "pantallas",
+      "muebles modernos",
+      "tecnología contemporánea"
+    ]
+  },
+  "assetIntakeRef": "HIGHFLY_MASTER_ASSET_INTAKE_V1",
+  "assetThemeContract": {
+    "theme": [
+      "medieval",
+      "viking",
+      "fantasy-rpg"
+    ],
+    "modernTech": false,
+    "curatedOnly": true
+  },
+  "assetPools": [
+    "GUILD",
+    "ARMORY",
+    "CITY"
+  ]
+}
