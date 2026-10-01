@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "HF-SourcePackAudit/0.1",
+  "auditDate": "2026-09-26",
+  "sources": {
+    "KayKit Furniture Bits FREE": {"container":"zip","files":328,"smithyRelevantByName":126,"extensions":{".fbx":106,".bin":53,".gltf":53,".mtl":53,".obj":53,".png":7,".url":2,".txt":1}},
+    "KayKit Resource Bits FREE": {"container":"zip","files":466,"smithyRelevantByName":342,"extensions":{".fbx":152,".bin":76,".gltf":76,".mtl":76,".obj":76,".png":6,".url":3,".txt":1}},
+    "KayKit Restaurant Bits FREE": {"container":"zip","files":886,"smithyRelevantByName":372,"extensions":{".fbx":288,".mtl":150,".obj":150,".bin":144,".gltf":144,".png":7,".url":2,".txt":1}},
+    "KayKit RPG Tools Bits FREE": {"container":"zip","files":339,"smithyRelevantByName":40,"extensions":{".fbx":98,".mtl":59,".obj":59,".bin":49,".gltf":49,".png":21,".url":3,".txt":1}},
+    "Quaternius Fantasy Props Standard": {"container":"zip","files":517,"smithyRelevantByName":195,"extensions":{".fbx":94,".bin":94,".gltf":94,".mtl":94,".obj":94,".png":43,".jpg":3,".txt":1}},
+    "Quaternius Medieval Village Standard": {"container":"zip","files":936,"smithyRelevantByName":393,"extensions":{".fbx":176,".bin":176,".gltf":176,".mtl":176,".obj":176,".png":54,".txt":1,".jpg":1}},
+    "soiTavern": {"container":"zip","files":199,"smithyRelevantByName":89,"extensions":{".png":115,".fbx":84}},
+    "Daniel Mistage Fantasy Armory FREE": {"container":"rar","files":257,"fbx":256,"smithyRelevantByName":122},
+    "EmacEArt Slavic World PRO-named FREE distribution": {"container":"unitypackage","assets":3505,"smithyRelevantByName":1070,"extensions":{".prefab":1592,".fbx":1435,"":167,".terrainlayer":99,".png":90,".mat":33,".asset":26,".anim":25}},
+    "RG Poly Stylized Medieval Village FREE": {"container":"unitypackage","assets":512,"smithyRelevantByName":104,"extensions":{".prefab":207,".fbx":207,".mat":32,".png":24,"":23,".asset":9,".shadergraph":2,".shadersubgraph":2}}
+  }
+}

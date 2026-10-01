@@ -1,0 +1,63 @@
+name: Interior Factory IF-00A
+on:
+  pull_request:
+    paths:
+      - 'interior_factory/**'
+      - '.github/workflows/interior-factory-if00a.yml'
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Validate InteriorSpec
+        run: node interior_factory/src/validate-spec.mjs
+      - name: Regenerate approved layout
+        run: node interior_factory/src/generate-smithy.mjs > /tmp/IF-00A-layout.json
+      - name: Compare deterministic output semantically
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const approved=JSON.parse(fs.readFileSync('interior_factory/runs/IF-00A-layout.json','utf8'));
+          const generated=JSON.parse(fs.readFileSync('/tmp/IF-00A-layout.json','utf8'));
+          if(JSON.stringify(approved)!==JSON.stringify(generated)){console.error('Generated layout differs from approved semantic JSON');process.exit(1)}
+          console.log('Semantic layout match: PASS');
+          NODE
+      - name: Syntax-check Interior Editor v23
+        run: node interior_factory/src/check-html-module.mjs interior_factory/web/interior-editor-v23.html
+      - name: Guard v23 showroom
+        shell: bash
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          const s=fs.readFileSync('interior_factory/web/interior-editor-v23.html','utf8');
+          for(const token of [
+            'const DEFAULT_LAYOUT_V23=',
+            'HIGHFLY_FORJA_WORKSPACE_STABLE_6',
+            'function normalizedText',
+            'catalogBtn',
+            'Fondo vitrina ESPADAS SUPREMAS',
+            'Estante 4 MARTILLOS',
+            'Estante 4 ARCOS',
+            'Mostrador / escritorio grande decorado',
+            'Pared continua detrás de puerta',
+            'Puerta principal medieval'
+          ]){if(!s.includes(token)){console.error('Missing V23 invariant:',token);process.exit(1)}}
+          if(s.includes("out+=' '+out.replace")){console.error('Exponential normalizedText regression');process.exit(1)}
+          const m=s.match(/const DEFAULT_LAYOUT_V23=(\{.*?\});\s*async function init/s);
+          if(!m){console.error('DEFAULT_LAYOUT_V23 not parseable');process.exit(1)}
+          const d=JSON.parse(m[1]);
+          const shelves=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Estante [1-4] /.test(o.name||''));
+          if(shelves.length!==32){console.error('Expected 32 shelves, got',shelves.length);process.exit(1)}
+          const diagonal=(d.objects||[]).filter(o=>/Estante diagonal|Rampa|Tope rampa/.test(o.name||''));
+          if(diagonal.length){console.error('Old diagonal showcase parts survived',diagonal.map(x=>x.name));process.exit(1)}
+          const backs=(d.objects||[]).filter(o=>o.category==='Vitrinas'&&/^Fondo vitrina /.test(o.name||''));
+          if(backs.length!==8){console.error('Expected 8 armory backboards, got',backs.length);process.exit(1)}
+          const weapons=(d.objects||[]).filter(o=>o.category==='Armas'&&o.pos&&o.pos[2]>.25&&o.pos[2]<9.35&&(o.pos[0]<2.7||o.pos[0]>11.3));
+          if(weapons.length!==32){console.error('Expected exactly 32 showcase weapons, got',weapons.length);process.exit(1)}
+          console.log('V23 reference showroom guards: PASS');
+          NODE
