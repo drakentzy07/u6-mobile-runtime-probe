@@ -1,8 +1,8 @@
-name: HIGHFLY Skill Lab 2.0 RUN0 Audit
+name: HIGHFLY Skill Lab 2.0 RUN1B Rogue Premium
 
 on:
   push:
-    branches: [highfly/skill-lab-2.0-run1-rogue-eclipse]
+    branches: [highfly/skill-lab-2.0-run1b-rogue-eclipse-premium]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
@@ -143,7 +143,7 @@ jobs:
       - name: Skill Lab focused tests
         working-directory: upstream
         run: |
-          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts
 
       - name: Apply Skill Lab playable harness
         working-directory: upstream
