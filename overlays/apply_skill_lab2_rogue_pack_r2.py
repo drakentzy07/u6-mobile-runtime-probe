@@ -359,10 +359,10 @@ write(
 export const HF_ROGUE_R2_VFX_SPEC: Record<string, AbilityVfxSpec> = {
   hf_cruel_finish_01: { c:'#b62947', p:'blood', pw:1.58, sp:42, rg:1.1, vr:1, bl:1, sm:0, li:0.62, lg:1.0, wu:0.16, fin:1, a:'strike' },
   hf_last_whisper_01: { c:'#6d3bd1', p:'shadow', pw:1.82, sp:52, rg:1.2, vr:1, bl:1, sm:1, li:1.12, lg:1.2, wu:0.18, fin:1, a:'strike' },
-  hf_shadow_vanish_01: { c:'#75628f', p:'shadow', pw:1.08, sp:0, rg:1.1, vr:0, bl:0, sm:1, li:0.34, lg:1.8, wu:0, a:'buff' },
-  hf_absolute_void_01: { c:'#54219f', p:'shadow', pw:1.36, sp:4, rg:1.2, vr:0, bl:0, sm:1, li:0.72, lg:2.0, wu:0.08, a:'buff' },
-  hf_umbral_step_01: { c:'#755bb1', p:'shadow', pw:1.05, sp:12, rg:0, vr:0, bl:0, sm:1, li:0.82, lg:0.9, wu:0, a:'dash' },
-  hf_abyss_step_01: { c:'#5a24bb', p:'shadow', pw:1.34, sp:18, rg:0, vr:0, bl:0, sm:1, li:1.08, lg:1.1, wu:0.06, a:'dash' },
+  hf_shadow_vanish_01: { c:'#75628f', p:'shadow', pw:1.08, sp:0, rg:1.1, sm:1, li:0.34, lg:1.8, wu:0, a:'buff' },
+  hf_absolute_void_01: { c:'#54219f', p:'shadow', pw:1.36, sp:4, rg:1.2, sm:1, li:0.72, lg:2.0, wu:0.08, a:'buff' },
+  hf_umbral_step_01: { c:'#755bb1', p:'shadow', pw:1.05, sp:12, sm:1, li:0.82, lg:0.9, wu:0, a:'dash' },
+  hf_abyss_step_01: { c:'#5a24bb', p:'shadow', pw:1.34, sp:18, sm:1, li:1.08, lg:1.1, wu:0.06, a:'dash' },
 };
 
 export const HF_ROGUE_R2_VFX_FULL_SPEC: Record<string, AbilityVfxFullSpec> = {
