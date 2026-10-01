@@ -1,14 +1,16 @@
-name: HIGHFLY Skill Lab 2.0 RUN1B Rogue Premium
+name: HIGHFLY Skill Lab 2.0 RUN1C Rogue GOLD Hardening
 
 on:
   push:
-    branches: [highfly/skill-lab-2.0-run1b-rogue-eclipse-premium]
+    branches: [highfly/skill-lab-2.0-run1c-rogue-gold-hardening]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
       - "overlays/highfly_current_skill_lab_smoke.mjs"
       - "overlays/apply_skill_lab2_rogue_mutation.py"
       - "overlays/highfly_skill_lab2_rogue_smoke.mjs"
+      - "overlays/apply_skill_lab2_rogue_hardening.py"
+      - "overlays/highfly_skill_lab2_rogue_hardening_smoke.mjs"
   workflow_dispatch:
 
 permissions:
@@ -123,6 +125,7 @@ jobs:
           python ../skill-src/overlays/apply_highfly_production_pack01_run0d.py
           python ../skill-src/overlays/apply_highfly_production_pack02.py
           python ../overlays/apply_skill_lab2_rogue_mutation.py
+          python ../overlays/apply_skill_lab2_rogue_hardening.py
           git diff --check
           git diff --stat
 
@@ -143,7 +146,7 @@ jobs:
       - name: Skill Lab focused tests
         working-directory: upstream
         run: |
-          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts             tests/highfly_skill_lab2_rogue_hardening.test.ts
 
       - name: Apply Skill Lab playable harness
         working-directory: upstream
@@ -237,6 +240,23 @@ jobs:
           sed -i 's#127.0.0.1:4173#127.0.0.1:4174#g' ./highfly_skill_lab2_rogue_smoke.mjs
           node ./highfly_skill_lab2_rogue_smoke.mjs
 
+      - name: Skill Lab 2.0 Rogue GOLD hardening browser smoke
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/highfly_skill_lab2_rogue_hardening_smoke.mjs ./highfly_skill_lab2_rogue_hardening_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4175 --base=/u6-mobile-runtime-probe/ > ../skill-lab2-run1c-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4175/u6-mobile-runtime-probe/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node ./highfly_skill_lab2_rogue_hardening_smoke.mjs
+
       - name: Upload Skill Lab diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -262,6 +282,9 @@ jobs:
             skill-lab2-run1-rogue-eclipse.png
             skill-lab2-run1-rogue-report.json
             skill-lab2-run1-preview.log
+            skill-lab2-run1c-rogue-gold.png
+            skill-lab2-run1c-rogue-gold-report.json
+            skill-lab2-run1c-preview.log
           if-no-files-found: warn
           retention-days: 7
 
