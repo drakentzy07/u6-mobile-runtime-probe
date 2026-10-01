@@ -39,6 +39,12 @@ for (const id of [
   'hf_radiant_sanctuary_01',
   'hf_shadow_hunt_01',
   'hf_eclipse_mortal_01',
+  'hf_cruel_finish_01',
+  'hf_last_whisper_01',
+  'hf_shadow_vanish_01',
+  'hf_absolute_void_01',
+  'hf_umbral_step_01',
+  'hf_abyss_step_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -113,7 +119,7 @@ LAB_SCRIPT = r"""
     warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_jump_smash_01','Salto Demoledor'], spec: null, target: 'position', aim: '🎯 SUELO · manual' },
     paladin: { label: 'Paladin', base: ['consecration','Tierra Consagrada'], evo: ['hf_radiant_sanctuary_01','Santuario Radiante'], spec: 'protection', target: 'none', aim: 'SIN APUNTADO · alrededor tuyo' },
     hunter: { label: 'Hunter', base: ['frostjaw_trap','Trampa Colmillo Helado'], evo: ['hf_hunter_prison_01','Prisión del Cazador'], spec: null, target: 'enemy', aim: '🎯 TARGET OPCIONAL · enemigo o pies' },
-    rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], spec: 'subtlety', target: 'enemy', stealth: true, aim: '🎯 TARGET · melee/espalda' },
+    rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], mutation: ['hf_eclipse_mortal_01','Eclipse Mortal'], spec: 'subtlety', target: 'enemy', stealth: true, aim: '🎯 TARGET · melee/espalda' },
     priest: { label: 'Priest', base: ['power_word_shield','Salmo Protector'], evo: ['hf_living_covenant_01','Pacto Viviente'], spec: null, target: 'self', aim: '🎯 TARGET ALIADO · lab=self' },
     shaman: { label: 'Shaman', base: ['earthquake','Despertar de la Falla'], evo: ['hf_primordial_cataclysm_01','Cataclismo Primordial'], spec: 'elemental', target: 'position', aim: '🎯 SUELO · manual' },
     mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy', aim: '🎯 TARGET ENEMIGO' },
@@ -124,6 +130,18 @@ LAB_SCRIPT = r"""
   var requested = params.get('labclass') || 'warrior';
   var activeClass = Object.prototype.hasOwnProperty.call(CLASSES, requested) ? requested : 'warrior';
   var config = CLASSES[activeClass];
+
+  var ROGUE_LINES = {
+    ambush: { label:'Rogue', base:['ambush','Emboscada'], evo:['hf_shadow_hunt_01','Cacería Sombría'], mutation:['hf_eclipse_mortal_01','Eclipse Mortal'], spec:'subtlety', target:'enemy', stealth:true, aim:'🎯 TARGET · melee/espalda' },
+    eviscerate: { label:'Rogue', base:['eviscerate','Remate'], evo:['hf_cruel_finish_01','Remate Cruel'], mutation:['hf_last_whisper_01','Último Susurro'], spec:null, target:'enemy', combo:5, aim:'🎯 TARGET · finisher 5 combo' },
+    vanish: { label:'Rogue', base:['vanish','Desvanecer'], evo:['hf_shadow_vanish_01','Desvanecer Sombrío'], mutation:['hf_absolute_void_01','Vacío Absoluto'], spec:'subtlety', target:'none', aim:'SIN TARGET · combat stealth' },
+    shadowstep: { label:'Rogue', base:['shadowstep','Paso Sombrío'], evo:['hf_umbral_step_01','Paso Umbrío'], mutation:['hf_abyss_step_01','Paso del Abismo'], spec:'subtlety', target:'enemy', stealth:true, aim:'🎯 TARGET ANY · 24m' }
+  };
+  var activeLineage = params.get('lablineage') || 'ambush';
+  if (activeClass === 'rogue') {
+    if (!Object.prototype.hasOwnProperty.call(ROGUE_LINES, activeLineage)) activeLineage = 'ambush';
+    config = ROGUE_LINES[activeLineage];
+  }
 
   var style = document.createElement('style');
   style.textContent =
@@ -138,6 +156,8 @@ LAB_SCRIPT = r"""
     '#hf-skill-lab-panel button.hf-base{border-color:#4f9cff}' +
     '#hf-skill-lab-panel button.hf-evo{border-color:#b16cff;background:#271638}' +
     '#hf-skill-lab-panel .hf-skills{margin-top:8px}' +
+    '#hf-skill-lab-panel .hf-lineages{margin-top:7px}' +
+    '#hf-skill-lab-panel button.hf-lineage{border-color:#7653a5;background:#21182e}' +
     '#hf-skill-lab-panel .hf-status{margin-left:auto;color:#9af5b5;font-weight:700}' +
     '#hf-skill-lab-panel .hf-sub{opacity:.68;font-size:11px;font-weight:600}' +
     '#hf-skill-lab-panel .hf-aim{border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:6px 8px;color:#ffe98f;background:#23202d;font-weight:900}' +
@@ -149,6 +169,14 @@ LAB_SCRIPT = r"""
     return '<button class="hf-class ' + (id === activeClass ? 'hf-active' : '') + '" data-class="' + id + '">' + c.label + '</button>';
   }).join('');
 
+  var lineageButtons = '';
+  if (activeClass === 'rogue') {
+    lineageButtons = Object.keys(ROGUE_LINES).map(function (id) {
+      var labels = { ambush:'EMBOSCADA', eviscerate:'REMATE', vanish:'DESVANECER', shadowstep:'PASO SOMBRÍO' };
+      return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
+    }).join('');
+  }
+
   var panel = document.createElement('div');
   panel.id = 'hf-skill-lab-panel';
   panel.setAttribute('data-active-class', activeClass);
@@ -157,10 +185,11 @@ LAB_SCRIPT = r"""
     classButtons +
     '<span id="hf-lab-status" class="hf-status">CARGANDO...</span>' +
     '<button id="hf-lab-collapse" class="hf-collapse" aria-expanded="true" title="Minimizar panel">−</button></div>' +
+    (lineageButtons ? '<div class="hf-row hf-lineages"><span class="hf-sub">ROGUE PRIME:</span>' + lineageButtons + '</div>' : '') +
     '<div class="hf-row hf-skills">' +
     '<button class="hf-base" id="hf-lab-base" data-ability="' + config.base[0] + '">BASE · ' + config.base[1] + '</button>' +
     '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
-    (activeClass === 'rogue' ? '<button class="hf-evo" id="hf-lab-mutation" data-ability="hf_eclipse_mortal_01">MUTACIÓN · Eclipse Mortal</button>' : '') +
+    (config.mutation ? '<button class="hf-evo" id="hf-lab-mutation" data-ability="' + config.mutation[0] + '">MUTACIÓN · ' + config.mutation[1] + '</button>' : '') +
     '<button id="hf-lab-prev">◀ CLASE</button>' +
     '<button id="hf-lab-next">CLASE ▶</button>' +
     '<button id="hf-lab-reset">RESET</button>' +
@@ -196,6 +225,18 @@ LAB_SCRIPT = r"""
   document.querySelectorAll('#hf-skill-lab-panel .hf-class').forEach(function (button) {
     button.addEventListener('click', function () {
       switchClass(button.getAttribute('data-class'));
+    });
+  });
+
+  document.querySelectorAll('#hf-skill-lab-panel .hf-lineage').forEach(function (button) {
+    button.addEventListener('click', function () {
+      var nextLineage = button.getAttribute('data-lineage');
+      if (!nextLineage || nextLineage === activeLineage) return;
+      var next = new URL(location.href);
+      next.searchParams.set('skilllab', '1');
+      next.searchParams.set('labclass', 'rogue');
+      next.searchParams.set('lablineage', nextLineage);
+      location.replace(next.toString());
     });
   });
 
@@ -334,6 +375,7 @@ LAB_SCRIPT = r"""
     p.cooldowns.delete(abilityId);
     p.gcdRemaining = 0;
     p.resource = p.maxResource;
+    if (config.combo) p.comboPoints = config.combo;
     if (config.stealth && !p.auras.some(function (a) { return a.kind === 'stealth'; })) {
       p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
     }
@@ -371,7 +413,7 @@ LAB_SCRIPT = r"""
       clearInterval(boot);
       stageDummy();
       setStatus('LISTO · ' + config.label.toUpperCase(), false);
-      window.__highflySkillLab = { cast:cast, reset:resetLab, stageDummy:stageDummy, activeClass:activeClass };
+      window.__highflySkillLab = { cast:cast, reset:resetLab, stageDummy:stageDummy, activeClass:activeClass, activeLineage:activeLineage };
     } else if (tries > 240) {
       clearInterval(boot);
       setStatus('BOOT TIMEOUT', true);
