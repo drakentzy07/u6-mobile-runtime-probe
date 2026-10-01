@@ -22,8 +22,8 @@ def rep(path: str, old: str, new: str) -> None:
 # without introducing a fake hot-swap path that production never uses.
 rep(
     "src/main.ts",
-    "  void startGame(sim, sim, null, \`offline:\${playerClass}:\${name}\`, true);",
-    "  void startGame(sim, sim, null, \`offline:\${playerClass}:\${name}\`, !highflySkillLab);",
+    "  void startGame(sim, sim, null, `offline:${playerClass}:${name}`, true);",
+    "  void startGame(sim, sim, null, `offline:${playerClass}:${name}`, !highflySkillLab);",
 )
 
 # LAB-ONLY reachability. Production Pack 01 intentionally keeps the new EVO ids
