@@ -142,22 +142,26 @@ export const HF_ECLIPSE_MORTAL_VFX_SPEC: AbilityVfxSpec = {
 export const HF_ECLIPSE_MORTAL_VFX_FULL_SPEC: AbilityVfxFullSpec = {
   archetype: 'strike',
   palette: 'shadow',
-  power: 1.72,
-  windup: 0.2,
-  windupStyle: 'weapon',
+  power: 1.78,
+  chargeStreams: 2,
+  windup: 0.14,
+  windupStyle: 'vortex',
   motifs: ['chains', 'implosion'],
   motifAt: 'target',
+  motifR: 2.4,
   strike: { swings: 3, arc: 'sweep', bleed: true },
   impact: {
-    vRing: true,
-    sparks: 54,
+    ring: false,
+    vRing: 1.1,
+    sparks: 58,
     smoke: true,
-    light: 1.28,
+    light: 1.34,
     trail: 'x',
     flipbook: true,
+    focused: true,
   },
   decal: 'portal',
-  linger: 1.45,
+  linger: 1.35,
   rim: '#d8c7ff',
   tint: '#6030d6',
   accent: '#f7f0ff',
@@ -248,3 +252,124 @@ describe('HIGHFLY Skill Lab 2.0 RUN1 - Rogue Eclipse Mortal', () => {
 )
 
 print("HIGHFLY_SKILL_LAB2_RUN1_ROGUE_ECLIPSE=1")
+
+
+# RUN1B premium choreography: use Claude's existing pooled sequencer for
+# shadow-echo ribbons and staggered slash beats. No summoned entities and no
+# presentation-owned damage.
+rep(
+    "src/render/ability_vfx/sequencer.ts",
+    "    const caster = host.anchorOf(slot.casterId, 0.58);\n    if (caster) {\n      host.burstAt(",
+    "    const caster = host.anchorOf(slot.casterId, 0.58);\n    if (caster) {\n      if (slot.abilityId === 'hf_eclipse_mortal_01' && slot.tier === 0) {\n        const victim = host.anchorOf(slot.targetId, 0.55);\n        if (victim) {\n          const dx = victim.x - caster.x;\n          const dz = victim.z - caster.z;\n          const len = Math.hypot(dx, dz) || 1;\n          const rx = dz / len;\n          const rz = -dx / len;\n          for (const offset of [-0.58, 0, 0.58]) {\n            host.pathRibbon(slot.color, 0.34, 0.34, (pts) => {\n              for (let i = 0; i < 10; i++) {\n                const u = i / 9;\n                const sway = Math.sin(u * Math.PI) * offset;\n                pts[i].set(\n                  caster.x + dx * u + rx * sway,\n                  caster.y + (victim.y - caster.y) * u + Math.sin(u * Math.PI) * 0.12,\n                  caster.z + dz * u + rz * sway,\n                );\n              }\n              return 10;\n            });\n          }\n          host.burstAt(caster.x, caster.y, caster.z, slot.color, 14, 0.9, 'smoke');\n          host.countPrimitive(slot.abilityId, 4);\n        }\n      }\n      host.burstAt(",
+)
+
+rep(
+    "src/render/ability_vfx/sequencer.ts",
+    "type BeatKind = 'burst' | 'pillar' | 'orbital';",
+    "type BeatKind = 'burst' | 'pillar' | 'orbital' | 'slash';",
+)
+
+rep(
+    "src/render/ability_vfx/sequencer.ts",
+    """      case 'orbital':
+        // one orb slam (gallery orbitals): the strike arc plus its spark pop
+        host.boltPoints(""",
+    """      case 'slash': {
+        host.slashStyled(
+          { x: beat.x, y: beat.y, z: beat.z },
+          beat.color,
+          beat.a < 0.5 ? 'horizontal' : 'sweep',
+          beat.b,
+        );
+        host.burstAt(beat.x, beat.y, beat.z, beat.accent, 12, 0.9, 'sparks');
+        host.countPrimitive(beat.abilityId, 2);
+        break;
+      }
+      case 'orbital':
+        // one orb slam (gallery orbitals): the strike arc plus its spark pop
+        host.boltPoints(""",
+)
+
+rep(
+    "src/render/ability_vfx/sequencer.ts",
+    """          host.slashStyled(at, c, spec.strike?.arc ?? 'horizontal', SPECTACLE.strikeArc);
+          host.countPrimitive(slot.abilityId, 1);
+          if (spec.strike?.bleed) {""",
+    """          host.slashStyled(at, c, spec.strike?.arc ?? 'horizontal', SPECTACLE.strikeArc);
+          host.countPrimitive(slot.abilityId, 1);
+          if (slot.abilityId === 'hf_eclipse_mortal_01' && slot.tier === 0) {
+            this.scheduleBeat(
+              0.1,
+              'slash',
+              slot.abilityId,
+              at.x,
+              at.y,
+              at.z,
+              slot.color,
+              slot.accent,
+              0,
+              SPECTACLE.strikeArc * 0.92,
+            );
+            this.scheduleBeat(
+              0.2,
+              'slash',
+              slot.abilityId,
+              at.x,
+              at.y,
+              at.z,
+              slot.color,
+              slot.accent,
+              1,
+              SPECTACLE.strikeArc * 1.06,
+            );
+          }
+          if (spec.strike?.bleed) {""",
+)
+
+rep(
+    "src/render/ability_vfx/sequencer.ts",
+    """        if ((spec.strike?.swings ?? 1) > 1) {
+          slot.swing2At = slot.t + 0.22;
+          slot.swing2Done = false;""",
+    """        if ((spec.strike?.swings ?? 1) > 1 && slot.abilityId !== 'hf_eclipse_mortal_01') {
+          slot.swing2At = slot.t + 0.22;
+          slot.swing2Done = false;""",
+)
+
+write(
+    "tests/highfly_skill_lab2_rogue_premium.test.ts",
+    """import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { HF_ECLIPSE_MORTAL_VFX_FULL_SPEC } from '../src/highfly/skill_lab2_rogue_mutation_vfx';
+
+describe('HIGHFLY Skill Lab 2.0 RUN1B - Eclipse Mortal premium choreography', () => {
+  it('pins a focused three-cut shadow finisher without AoE-ring noise', () => {
+    expect(HF_ECLIPSE_MORTAL_VFX_FULL_SPEC).toMatchObject({
+      archetype: 'strike',
+      palette: 'shadow',
+      chargeStreams: 2,
+      windupStyle: 'vortex',
+      strike: { swings: 3, arc: 'sweep', bleed: true },
+      impact: { ring: false, trail: 'x', smoke: true, focused: true },
+      finisher: true,
+      screenFx: true,
+    });
+    expect(HF_ECLIPSE_MORTAL_VFX_FULL_SPEC.motifs).toEqual(
+      expect.arrayContaining(['chains', 'implosion']),
+    );
+  });
+
+  it('uses pooled ribbons and delayed slashes instead of shadow NPCs or damage colliders', () => {
+    const source = readFileSync('src/render/ability_vfx/sequencer.ts', 'utf8');
+    expect(source).toContain("slot.abilityId === 'hf_eclipse_mortal_01'");
+    expect(source).toContain("for (const offset of [-0.58, 0, 0.58])");
+    expect(source).toContain("host.pathRibbon(slot.color, 0.34, 0.34");
+    expect(source).toContain("'slash'");
+    expect(source).not.toContain('hf_eclipse_shadow_npc');
+    expect(source).not.toContain('hf_eclipse_damage_collider');
+  });
+});
+""",
+)
+
+print("HIGHFLY_SKILL_LAB2_RUN1B_ROGUE_PREMIUM=1")
