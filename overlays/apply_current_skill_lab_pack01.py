@@ -38,6 +38,7 @@ for (const id of [
   'hf_living_covenant_01',
   'hf_radiant_sanctuary_01',
   'hf_shadow_hunt_01',
+  'hf_eclipse_mortal_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -159,6 +160,7 @@ LAB_SCRIPT = r"""
     '<div class="hf-row hf-skills">' +
     '<button class="hf-base" id="hf-lab-base" data-ability="' + config.base[0] + '">BASE · ' + config.base[1] + '</button>' +
     '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
+    (activeClass === 'rogue' ? '<button class="hf-evo" id="hf-lab-mutation" data-ability="hf_eclipse_mortal_01">MUTACIÓN · Eclipse Mortal</button>' : '') +
     '<button id="hf-lab-prev">◀ CLASE</button>' +
     '<button id="hf-lab-next">CLASE ▶</button>' +
     '<button id="hf-lab-reset">RESET</button>' +
@@ -356,6 +358,8 @@ LAB_SCRIPT = r"""
 
   document.getElementById('hf-lab-base').addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
   document.getElementById('hf-lab-evo').addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
+  var mutationButton = document.getElementById('hf-lab-mutation');
+  if (mutationButton) mutationButton.addEventListener('click', function (e) { cast(e.currentTarget.getAttribute('data-ability')); });
   document.getElementById('hf-lab-reset').addEventListener('click', resetLab);
   document.getElementById('hf-lab-dummy').addEventListener('click', stageDummy);
 
