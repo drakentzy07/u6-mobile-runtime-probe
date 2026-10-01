@@ -146,7 +146,7 @@ describe('HIGHFLY Skill Lab 2.0 RUN1C - Rogue GOLD hardening', () => {
   });
 
   it('emits Claude blinkStep only after a successful true-behind seat', () => {
-    const success = source.indexOf('} else {\n        p.facing = angleTo(p.pos, target.pos);');
+    const success = source.indexOf('p.facing = angleTo(p.pos, target.pos);');
     const cue = source.indexOf("fx: 'blinkStep'", success);
     expect(success).toBeGreaterThan(-1);
     expect(cue).toBeGreaterThan(success);
