@@ -17,6 +17,15 @@ def rep(path: str, old: str, new: str) -> None:
         raise SystemExit(f"{path}: expected 1 anchor, found {n}: {old[:140]!r}")
     write(path, text.replace(old, new, 1))
 
+# HIGHFLY Skill Lab: skip the normal spawn cinematic while keeping the real
+# Sim/renderer rebuild for each class. This makes QA switching much faster
+# without introducing a fake hot-swap path that production never uses.
+rep(
+    "src/main.ts",
+    "  void startGame(sim, sim, null, \`offline:\${playerClass}:\${name}\`, true);",
+    "  void startGame(sim, sim, null, \`offline:\${playerClass}:\${name}\`, !highflySkillLab);",
+)
+
 # LAB-ONLY reachability. Production Pack 01 intentionally keeps the new EVO ids
 # hidden until HIGHFLY progression swaps BASE -> EVO. The permanent Skill Lab
 # is the one place where testers must be able to cast both sides directly.
@@ -100,15 +109,15 @@ LAB_SCRIPT = r"""
   if (params.get('skilllab') !== '1') return;
 
   var CLASSES = {
-    warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_jump_smash_01','Salto Demoledor'], spec: null, target: 'position' },
-    paladin: { label: 'Paladin', base: ['consecration','Tierra Consagrada'], evo: ['hf_radiant_sanctuary_01','Santuario Radiante'], spec: 'protection', target: 'none' },
-    hunter: { label: 'Hunter', base: ['frostjaw_trap','Trampa Colmillo Helado'], evo: ['hf_hunter_prison_01','Prisión del Cazador'], spec: null, target: 'enemy' },
-    rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], spec: 'subtlety', target: 'enemy', stealth: true },
-    priest: { label: 'Priest', base: ['power_word_shield','Salmo Protector'], evo: ['hf_living_covenant_01','Pacto Viviente'], spec: null, target: 'self' },
-    shaman: { label: 'Shaman', base: ['earthquake','Despertar de la Falla'], evo: ['hf_primordial_cataclysm_01','Cataclismo Primordial'], spec: 'elemental', target: 'position' },
-    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy' },
-    warlock: { label: 'Warlock', base: ['reaping_command','Mandato de Siega'], evo: ['hf_unholy_dominion_01','Dominio Profano'], spec: 'demonology', target: 'enemy', necromancy: true },
-    druid: { label: 'Druid', base: ['moonseed','Semilla Lunar'], evo: ['moonlash','Oleada Lunar'], spec: 'balance', target: 'enemy', moonkin: true }
+    warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_jump_smash_01','Salto Demoledor'], spec: null, target: 'position', aim: '🎯 SUELO · manual' },
+    paladin: { label: 'Paladin', base: ['consecration','Tierra Consagrada'], evo: ['hf_radiant_sanctuary_01','Santuario Radiante'], spec: 'protection', target: 'none', aim: 'SIN APUNTADO · alrededor tuyo' },
+    hunter: { label: 'Hunter', base: ['frostjaw_trap','Trampa Colmillo Helado'], evo: ['hf_hunter_prison_01','Prisión del Cazador'], spec: null, target: 'enemy', aim: '🎯 TARGET OPCIONAL · enemigo o pies' },
+    rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], spec: 'subtlety', target: 'enemy', stealth: true, aim: '🎯 TARGET · melee/espalda' },
+    priest: { label: 'Priest', base: ['power_word_shield','Salmo Protector'], evo: ['hf_living_covenant_01','Pacto Viviente'], spec: null, target: 'self', aim: '🎯 TARGET ALIADO · lab=self' },
+    shaman: { label: 'Shaman', base: ['earthquake','Despertar de la Falla'], evo: ['hf_primordial_cataclysm_01','Cataclismo Primordial'], spec: 'elemental', target: 'position', aim: '🎯 SUELO · manual' },
+    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy', aim: '🎯 TARGET ENEMIGO' },
+    warlock: { label: 'Warlock', base: ['reaping_command','Mandato de Siega'], evo: ['hf_unholy_dominion_01','Dominio Profano'], spec: 'demonology', target: 'enemy', necromancy: true, aim: '🎯 TARGET ENEMIGO' },
+    druid: { label: 'Druid', base: ['moonseed','Semilla Lunar'], evo: ['moonlash','Oleada Lunar'], spec: 'balance', target: 'enemy', moonkin: true, aim: '🎯 TARGET ENEMIGO' }
   };
 
   var requested = params.get('labclass') || 'warrior';
@@ -130,6 +139,7 @@ LAB_SCRIPT = r"""
     '#hf-skill-lab-panel .hf-skills{margin-top:8px}' +
     '#hf-skill-lab-panel .hf-status{margin-left:auto;color:#9af5b5;font-weight:700}' +
     '#hf-skill-lab-panel .hf-sub{opacity:.68;font-size:11px;font-weight:600}' +
+    '#hf-skill-lab-panel .hf-aim{border:1px solid rgba(255,255,255,.22);border-radius:8px;padding:6px 8px;color:#ffe98f;background:#23202d;font-weight:900}' +
     '@media(max-width:800px){#hf-skill-lab-panel{top:4px;padding:7px;width:96vw;font-size:11px}#hf-skill-lab-panel button{padding:7px 8px;font-size:11px}#hf-skill-lab-panel .hf-sub{display:none}}';
   document.head.appendChild(style);
 
@@ -149,9 +159,12 @@ LAB_SCRIPT = r"""
     '<div class="hf-row hf-skills">' +
     '<button class="hf-base" id="hf-lab-base" data-ability="' + config.base[0] + '">BASE · ' + config.base[1] + '</button>' +
     '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
+    '<button id="hf-lab-prev">◀ CLASE</button>' +
+    '<button id="hf-lab-next">CLASE ▶</button>' +
     '<button id="hf-lab-reset">RESET</button>' +
     '<button id="hf-lab-dummy">DUMMY DELANTE</button>' +
-    '<span class="hf-sub">Clase: ' + config.label + ' · Lv20 · recursos/cooldowns restaurables</span></div>';
+    '<span class="hf-aim">' + config.aim + '</span>' +
+    '<span class="hf-sub">Clase: ' + config.label + ' · Lv20 · recursos/cooldowns restaurables · cambio rápido sin cinemática</span></div>';
   document.body.appendChild(panel);
 
   function setStatus(text, bad) {
@@ -169,13 +182,29 @@ LAB_SCRIPT = r"""
     collapse.setAttribute('title', collapsed ? 'Abrir panel' : 'Minimizar panel');
   });
 
+  function switchClass(nextClass) {
+    if (!Object.prototype.hasOwnProperty.call(CLASSES, nextClass) || nextClass === activeClass) return;
+    setStatus('CAMBIANDO · ' + CLASSES[nextClass].label.toUpperCase(), false);
+    var next = new URL(location.href);
+    next.searchParams.set('skilllab', '1');
+    next.searchParams.set('labclass', nextClass);
+    location.replace(next.toString());
+  }
+
   document.querySelectorAll('#hf-skill-lab-panel .hf-class').forEach(function (button) {
     button.addEventListener('click', function () {
-      var next = new URL(location.href);
-      next.searchParams.set('skilllab', '1');
-      next.searchParams.set('labclass', button.getAttribute('data-class'));
-      location.replace(next.toString());
+      switchClass(button.getAttribute('data-class'));
     });
+  });
+
+  var classOrder = Object.keys(CLASSES);
+  document.getElementById('hf-lab-prev').addEventListener('click', function () {
+    var index = classOrder.indexOf(activeClass);
+    switchClass(classOrder[(index - 1 + classOrder.length) % classOrder.length]);
+  });
+  document.getElementById('hf-lab-next').addEventListener('click', function () {
+    var index = classOrder.indexOf(activeClass);
+    switchClass(classOrder[(index + 1) % classOrder.length]);
   });
 
   function game() {
