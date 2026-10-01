@@ -22,8 +22,16 @@ def rep(path: str, old: str, new: str) -> None:
 # is the one place where testers must be able to cast both sides directly.
 classes = read("src/sim/content/classes.ts")
 lab_tail = """
-// HIGHFLY SKILL LAB ONLY: expose frozen Pack 01 endpoints for direct QA.
-for (const id of ['hf_hunter_prison_01', 'hf_phoenix_lance_01', 'hf_living_covenant_01']) {
+// HIGHFLY SKILL LAB ONLY: expose frozen Pack 01+02 endpoints for direct QA.
+for (const id of [
+  'hf_hunter_prison_01',
+  'hf_phoenix_lance_01',
+  'hf_living_covenant_01',
+  'hf_radiant_sanctuary_01',
+  'hf_shadow_hunt_01',
+  'hf_primordial_cataclysm_01',
+  'hf_unholy_dominion_01',
+]) {
   if (ABILITIES[id]) ABILITIES[id].hiddenFromPlayer = false;
 }
 if (!CLASSES.druid.abilities.includes('moonlash')) CLASSES.druid.abilities.push('moonlash');
@@ -45,9 +53,13 @@ if (editorPlaytest) {""",
 const highflySkillLab = startupParams.get('skilllab') === '1';
 const HIGHFLY_SKILL_LAB_CLASSES: readonly PlayerClass[] = [
   'warrior',
+  'paladin',
   'hunter',
-  'mage',
+  'rogue',
   'priest',
+  'shaman',
+  'mage',
+  'warlock',
   'druid',
 ];
 const requestedSkillLabClass = startupParams.get('labclass') as PlayerClass | null;
@@ -89,9 +101,13 @@ LAB_SCRIPT = r"""
 
   var CLASSES = {
     warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_jump_smash_01','Salto Demoledor'], spec: null, target: 'position' },
+    paladin: { label: 'Paladin', base: ['consecration','Tierra Consagrada'], evo: ['hf_radiant_sanctuary_01','Santuario Radiante'], spec: 'protection', target: 'none' },
     hunter: { label: 'Hunter', base: ['frostjaw_trap','Trampa Colmillo Helado'], evo: ['hf_hunter_prison_01','Prisión del Cazador'], spec: null, target: 'enemy' },
-    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy' },
+    rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], spec: 'subtlety', target: 'enemy', stealth: true },
     priest: { label: 'Priest', base: ['power_word_shield','Salmo Protector'], evo: ['hf_living_covenant_01','Pacto Viviente'], spec: null, target: 'self' },
+    shaman: { label: 'Shaman', base: ['earthquake','Despertar de la Falla'], evo: ['hf_primordial_cataclysm_01','Cataclismo Primordial'], spec: 'elemental', target: 'position' },
+    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy' },
+    warlock: { label: 'Warlock', base: ['reaping_command','Mandato de Siega'], evo: ['hf_unholy_dominion_01','Dominio Profano'], spec: 'demonology', target: 'enemy', necromancy: true },
     druid: { label: 'Druid', base: ['moonseed','Semilla Lunar'], evo: ['moonlash','Oleada Lunar'], spec: 'balance', target: 'enemy', moonkin: true }
   };
 
@@ -193,6 +209,32 @@ LAB_SCRIPT = r"""
     if (config.moonkin && !p.auras.some(function (a) { return a.kind === 'form_moonkin'; })) {
       p.auras.push({ id:'hf_skill_lab_moonkin', name:'Moonkin Form', kind:'form_moonkin', value:0, remaining:3600, duration:3600, sourceId:p.id, school:'arcane' });
     }
+    if (config.stealth && !p.auras.some(function (a) { return a.kind === 'stealth'; })) {
+      p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
+    }
+    if (config.necromancy) {
+      var fragments = p.auras.find(function (a) { return a.kind === 'soul_fragments'; });
+      if (fragments) {
+        fragments.stacks = 5;
+        fragments.value = 5;
+        fragments.remaining = 3600;
+        fragments.duration = 3600;
+      } else {
+        p.auras.push({ id:'soul_fragments', name:'Soul Fragments', kind:'soul_fragments', value:5, stacks:5, remaining:3600, duration:3600, sourceId:p.id, school:'shadow' });
+      }
+      var undead = Array.from(sim.entities.values()).find(function (e) {
+        return e.kind === 'mob' && e.ownerId === p.id && !e.dead;
+      });
+      if (!undead) {
+        if (!p.castingAbility) {
+          p.cooldowns.delete('raise_graveguard');
+          p.gcdRemaining = 0;
+          p.resource = p.maxResource;
+          sim.castAbility('raise_graveguard', p.id);
+        }
+        return false;
+      }
+    }
     return true;
   }
 
@@ -217,6 +259,10 @@ LAB_SCRIPT = r"""
     target.pos.x = x;
     target.pos.y = p.pos.y;
     target.pos.z = z;
+    target.facing = p.facing;
+    target.aiState = 'idle';
+    target.aggroTargetId = null;
+    target.inCombat = false;
     if (target.prevPos) {
       target.prevPos.x = x;
       target.prevPos.y = p.pos.y;
@@ -235,8 +281,12 @@ LAB_SCRIPT = r"""
     p.gcdRemaining = 0;
     p.resource = p.maxResource;
     p.hp = p.maxHp;
-    p.castingAbility = null;
+    if (!config.necromancy) p.castingAbility = null;
     p.leap = null;
+    if (config.stealth) {
+      p.auras = p.auras.filter(function (a) { return a.kind !== 'stealth'; });
+      p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
+    }
     stageDummy();
     setStatus('RESET OK', false);
   }
@@ -252,12 +302,20 @@ LAB_SCRIPT = r"""
     p.cooldowns.delete(abilityId);
     p.gcdRemaining = 0;
     p.resource = p.maxResource;
+    if (config.stealth && !p.auras.some(function (a) { return a.kind === 'stealth'; })) {
+      p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
+    }
+    if (config.necromancy) {
+      var fragments = p.auras.find(function (a) { return a.kind === 'soul_fragments'; });
+      if (fragments) { fragments.stacks = 5; fragments.value = 5; }
+    }
     var target = config.target === 'enemy' ? stageDummy() : null;
     var x = p.pos.x + Math.sin(p.facing) * 8;
     var z = p.pos.z + Math.cos(p.facing) * 8;
     try {
       if (config.target === 'position') sim.castAbility(abilityId, p.id, { x:x, z:z });
       else if (config.target === 'self') sim.castAbility(abilityId, p.id, p.id);
+      else if (config.target === 'none') sim.castAbility(abilityId, p.id);
       else if (target) sim.castAbility(abilityId, p.id, target.id);
       else throw new Error('No hay target');
       setStatus('CAST · ' + abilityId, false);
@@ -298,4 +356,4 @@ rep(
 </body>""",
 )
 
-print("HIGHFLY_CURRENT_SKILL_LAB_PACK01=1")
+print("HIGHFLY_CURRENT_SKILL_LAB_9CLASS=1")
