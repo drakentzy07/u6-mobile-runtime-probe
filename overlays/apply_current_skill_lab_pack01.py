@@ -243,8 +243,9 @@ LAB_SCRIPT = r"""
     if (!g || !prepare()) return null;
     var sim = g.sim;
     var p = sim.player;
-    var x = p.pos.x + Math.sin(p.facing) * 7;
-    var z = p.pos.z + Math.cos(p.facing) * 7;
+    var dummyDistance = activeClass === 'rogue' ? 2.5 : 7;
+    var x = p.pos.x + Math.sin(p.facing) * dummyDistance;
+    var z = p.pos.z + Math.cos(p.facing) * dummyDistance;
     var target = Array.from(sim.entities.values()).find(function (e) {
       return e.id !== p.id && e.kind === 'mob' && !e.dead && e.ownerId == null;
     });
