@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: drakentzy07/cobalt-hollow-lab
-          ref: 901c4995f46743a209517ed92608bffd7aa66fdc
+          ref: 2d2458adc8c7df6edf766ea6fe0e34aaefd465f6
           path: skill-src
 
       - name: Checkout frozen ClaudeCraft
@@ -106,7 +106,7 @@ jobs:
           python ../rewrite_source_public_paths_skill_lab.py
           python -c "from pathlib import Path; p=Path('vite.config.ts'); s=p.read_text(); old=\"  base: '/',\"; new=\"  base: env(['VITE_COBALT_BASE']) ?? '/',\"; assert s.count(old)==1; p.write_text(s.replace(old,new))"
 
-      - name: Apply frozen Production Pack 01
+      - name: Apply frozen Production Pack 01 + Pack 02
         working-directory: upstream
         shell: bash
         run: |
@@ -120,6 +120,7 @@ jobs:
           python ../skill-src/overlays/apply_highfly_production_pack01_run0b.py
           python ../skill-src/overlays/apply_highfly_production_pack01_run0c.py
           python ../skill-src/overlays/apply_highfly_production_pack01_run0d.py
+          python ../skill-src/overlays/apply_highfly_production_pack02.py
           git diff --check
           git diff --stat
 
@@ -140,7 +141,7 @@ jobs:
       - name: Skill Lab focused tests
         working-directory: upstream
         run: |
-          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts
 
       - name: Apply Skill Lab playable harness
         working-directory: upstream
@@ -238,9 +239,13 @@ jobs:
             current-skill-lab-report.json
             current-skill-lab-preview.log
             skill-lab-warrior.png
+            skill-lab-paladin.png
             skill-lab-hunter.png
-            skill-lab-mage.png
+            skill-lab-rogue.png
             skill-lab-priest.png
+            skill-lab-shaman.png
+            skill-lab-mage.png
+            skill-lab-warlock.png
             skill-lab-druid.png
           if-no-files-found: warn
           retention-days: 7
