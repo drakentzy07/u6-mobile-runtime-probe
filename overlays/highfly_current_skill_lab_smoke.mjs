@@ -4,9 +4,13 @@ import { chromium } from 'playwright';
 const BASE = 'http://127.0.0.1:4173/u6-mobile-runtime-probe/';
 const CASES = [
   { cls: 'warrior', base: 'heroic_leap', evo: 'hf_jump_smash_01' },
+  { cls: 'paladin', base: 'consecration', evo: 'hf_radiant_sanctuary_01' },
   { cls: 'hunter', base: 'frostjaw_trap', evo: 'hf_hunter_prison_01' },
-  { cls: 'mage', base: 'pyroblast', evo: 'hf_phoenix_lance_01' },
+  { cls: 'rogue', base: 'ambush', evo: 'hf_shadow_hunt_01' },
   { cls: 'priest', base: 'power_word_shield', evo: 'hf_living_covenant_01' },
+  { cls: 'shaman', base: 'earthquake', evo: 'hf_primordial_cataclysm_01' },
+  { cls: 'mage', base: 'pyroblast', evo: 'hf_phoenix_lance_01' },
+  { cls: 'warlock', base: 'reaping_command', evo: 'hf_unholy_dominion_01' },
   { cls: 'druid', base: 'moonseed', evo: 'moonlash' },
 ];
 
@@ -36,7 +40,7 @@ for (const c of CASES) {
   await page.waitForFunction(
     () => document.querySelector('#hf-lab-status')?.textContent?.startsWith('LISTO'),
     null,
-    { timeout: 15000 },
+    { timeout: 20000 },
   );
 
   const ui = await page.evaluate(() => ({
@@ -47,6 +51,16 @@ for (const c of CASES) {
     status: document.querySelector('#hf-lab-status')?.textContent ?? '',
   }));
 
+  let collapsePassed = true;
+  if (c.cls === 'warrior') {
+    await page.click('#hf-lab-collapse');
+    collapsePassed = await page.evaluate(() =>
+      document.querySelector('#hf-skill-lab-panel')?.classList.contains('hf-collapsed') === true &&
+      document.querySelector('#hf-lab-collapse')?.getAttribute('aria-expanded') === 'false'
+    );
+    await page.click('#hf-lab-collapse');
+  }
+
   const before = await page.evaluate(() => {
     const sim = window.__game.sim;
     const p = sim.player;
@@ -56,11 +70,13 @@ for (const c of CASES) {
       maxResource: p.maxResource,
       targetId: p.targetId ?? null,
       targetHp: target?.hp ?? null,
+      groundAoEs: sim.groundAoEs?.length ?? 0,
+      ownedMobs: Array.from(sim.entities.values()).filter((e) => e.kind === 'mob' && e.ownerId === p.id && !e.dead).length,
     };
   });
 
   await page.click('#hf-lab-evo');
-  await page.waitForTimeout(c.cls === 'mage' ? 250 : 500);
+  await page.waitForTimeout(c.cls === 'mage' ? 250 : 650);
 
   const after = await page.evaluate((abilityId) => {
     const sim = window.__game.sim;
@@ -74,27 +90,34 @@ for (const c of CASES) {
       leap: Boolean(p.leap),
       targetId: p.targetId ?? null,
       targetHp: target?.hp ?? null,
+      groundAoEs: sim.groundAoEs?.length ?? 0,
+      ownedMobs: Array.from(sim.entities.values()).filter((e) => e.kind === 'mob' && e.ownerId === p.id && !e.dead).length,
       status: document.querySelector('#hf-lab-status')?.textContent ?? '',
     };
   }, c.evo);
 
   const castSignal =
     c.cls === 'warrior' ? after.leap || after.cooldown > 0 :
+    c.cls === 'paladin' ? after.cooldown > 0 || after.groundAoEs > before.groundAoEs :
     c.cls === 'hunter' ? after.cooldown > 0 :
-    c.cls === 'mage' ? after.castingAbility === c.evo :
+    c.cls === 'rogue' ? after.resource < after.maxResource || (before.targetHp != null && after.targetHp != null && after.targetHp < before.targetHp) :
     c.cls === 'priest' ? after.cooldown > 0 :
+    c.cls === 'shaman' ? after.cooldown > 0 || after.groundAoEs > before.groundAoEs :
+    c.cls === 'mage' ? after.castingAbility === c.evo :
+    c.cls === 'warlock' ? after.cooldown > 0 && after.ownedMobs > 0 :
     after.resource < after.maxResource;
 
   const passed =
-    ui.classes === 5 &&
+    ui.classes === 9 &&
     ui.active === c.cls &&
     ui.base === c.base &&
     ui.evo === c.evo &&
     ui.status.startsWith('LISTO') &&
     after.status.startsWith('CAST') &&
-    castSignal;
+    castSignal &&
+    collapsePassed;
 
-  results.push({ cls: c.cls, ui, before, after, passed });
+  results.push({ cls: c.cls, ui, collapsePassed, before, after, passed });
   await page.screenshot({ path: '../skill-lab-' + c.cls + '.png', fullPage: true });
 }
 
