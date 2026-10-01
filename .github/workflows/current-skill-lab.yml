@@ -1,8 +1,8 @@
-name: HIGHFLY Current Skill Lab
+name: HIGHFLY Skill Lab 2.0 RUN0 Audit
 
 on:
   push:
-    branches: [main]
+    branches: [highfly/skill-lab-2.0-run0-audit]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
@@ -11,11 +11,10 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
+  actions: read
 
 concurrency:
-  group: highfly-current-skill-lab-pages
+  group: highfly-skill-lab-2-run0-audit
   cancel-in-progress: true
 
 jobs:
@@ -217,14 +216,6 @@ jobs:
           done
           node ./highfly_current_skill_lab_smoke.mjs
 
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload Skill Lab Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: upstream/dist
-
       - name: Upload Skill Lab diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -250,13 +241,3 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy current Skill Lab
-        id: deployment
-        uses: actions/deploy-pages@v4
