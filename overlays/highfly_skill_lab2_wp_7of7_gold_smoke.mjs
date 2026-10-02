@@ -115,10 +115,14 @@ for(const id of [executeIds.base,executeIds.evo,executeIds.mutation]) {
     if(target) target.hp=Math.max(1,Math.floor(target.maxHp*0.19));
   });
   const before=await commonSnapshot();
-  await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
+  const castStart=await page.evaluate((abilityId)=>{
+    const p=window.__game.sim.player;
+    window.__highflySkillLab.cast(abilityId);
+    return {maxResource:p.maxResource,resourceAfter:p.resource};
+  },id);
   await page.waitForTimeout(450);
   const after=await commonSnapshot();
-  execute.push({id,before,after});
+  execute.push({id,before,castStart,after});
 }
 await page.screenshot({path:'../skill-lab2-wp-7of7-execute.png',fullPage:true});
 
@@ -128,10 +132,14 @@ const ground=[];
 for(const id of [groundIds.base,groundIds.evo,groundIds.mutation]) {
   await hardReset();
   const before=await commonSnapshot();
-  await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
+  const castStart=await page.evaluate((abilityId)=>{
+    const p=window.__game.sim.player;
+    window.__highflySkillLab.cast(abilityId);
+    return {maxResource:p.maxResource,resourceAfter:p.resource};
+  },id);
   await page.waitForTimeout(1350);
   const after=await commonSnapshot();
-  ground.push({id,before,after});
+  ground.push({id,before,castStart,after});
 }
 await page.screenshot({path:'../skill-lab2-wp-7of7-ground.png',fullPage:true});
 
@@ -143,9 +151,8 @@ for(const id of [valkyrIds.base,valkyrIds.evo,valkyrIds.mutation]) {
   const before=await commonSnapshot();
   const castStart=await page.evaluate((abilityId)=>{
     const p=window.__game.sim.player;
-    const resourceBefore=p.resource;
     window.__highflySkillLab.cast(abilityId);
-    return {resourceBefore,resourceAfter:p.resource};
+    return {maxResource:p.maxResource,resourceAfter:p.resource};
   },id);
   await page.waitForFunction(
     ()=>Boolean(window.__game?.sim?.player?.valkyrsCalling),
@@ -174,9 +181,8 @@ for(const id of [aegisIds.base,aegisIds.evo,aegisIds.mutation]) {
   const before=await commonSnapshot();
   const castStart=await page.evaluate((abilityId)=>{
     const p=window.__game.sim.player;
-    const resourceBefore=p.resource;
     window.__highflySkillLab.cast(abilityId);
-    return {resourceBefore,resourceAfter:p.resource};
+    return {maxResource:p.maxResource,resourceAfter:p.resource};
   },id);
   await page.waitForFunction(
     ()=>Boolean(window.__game?.sim?.player?.channeling),
@@ -239,7 +245,8 @@ const executePassed=
   execute.every((r)=>
     r.before.target && r.after.target &&
     r.after.target.hp<r.before.target.hp &&
-    r.after.resource===r.before.resource-15 &&
+    r.castStart.resourceAfter===r.castStart.maxResource-15 &&
+    r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
 
@@ -252,7 +259,8 @@ const groundPassed=
     r.before.target && r.after.target &&
     r.after.target.hp<r.before.target.hp &&
     r.after.groundZones===1 &&
-    r.after.resource===r.before.resource-20 &&
+    r.castStart.resourceAfter===r.castStart.maxResource-20 &&
+    r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
 
@@ -267,8 +275,7 @@ const valkyrPassed=
     !r.after.valkyr &&
     !r.after.jumping &&
     r.after.onGround &&
-    r.castStart.resourceBefore===r.before.resource &&
-    r.castStart.resourceAfter===r.before.resource-35 &&
+    r.castStart.resourceAfter===r.castStart.maxResource-35 &&
     r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
@@ -286,8 +293,7 @@ const aegisPassed=
     !r.after.shieldWall &&
     r.after.speed &&
     r.after.hp>r.before.hp &&
-    r.castStart.resourceBefore===r.before.resource &&
-    r.castStart.resourceAfter===r.before.resource-60 &&
+    r.castStart.resourceAfter===r.castStart.maxResource-60 &&
     r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
