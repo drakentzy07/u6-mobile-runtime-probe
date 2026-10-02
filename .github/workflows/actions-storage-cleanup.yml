@@ -60,3 +60,5 @@ jobs:
               .addRaw(`Kept recent artifacts: ${kept}\n\n`)
               .addRaw(`Approx reclaimed: ${(reclaimed / 1024 / 1024).toFixed(1)} MB\n`)
               .write();
+
+# manual cleanup trigger 2026-10-02T15:55Z
