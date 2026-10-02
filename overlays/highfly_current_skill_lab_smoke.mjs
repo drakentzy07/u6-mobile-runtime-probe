@@ -9,7 +9,7 @@ const CASES = [
   { cls: 'rogue', base: 'ambush', evo: 'hf_shadow_hunt_01' },
   { cls: 'priest', base: 'power_word_shield', evo: 'hf_living_covenant_01' },
   { cls: 'shaman', base: 'earthquake', evo: 'hf_primordial_cataclysm_01' },
-  { cls: 'mage', base: 'pyroblast', evo: 'hf_phoenix_lance_01' },
+  { cls: 'mage', base: 'pyroblast', evo: 'hf_ms_crimson_pyrelance_01' },
   { cls: 'warlock', base: 'reaping_command', evo: 'hf_unholy_dominion_01' },
   { cls: 'druid', base: 'moonseed', evo: 'moonlash' },
 ];
