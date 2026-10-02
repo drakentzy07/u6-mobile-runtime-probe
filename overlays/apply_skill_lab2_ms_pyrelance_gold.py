@@ -102,8 +102,11 @@ def append_const_array_items(path: str, const_name: str, items: list[str]) -> No
     missing = [item for item in items if f"'{item}'" not in body]
     if not missing:
         return
+    clean = body.rstrip()
+    if clean and not clean.endswith(","):
+        clean += ","
     insertion = "".join(f"\n  '{item}'," for item in missing)
-    body = body.rstrip() + insertion + "\n"
+    body = clean + insertion + "\n"
     write(path, text[:array_start + 1] + body + text[array_end:])
 
 append_const_array_items(
