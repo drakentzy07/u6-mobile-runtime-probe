@@ -156,6 +156,17 @@ function makeWarrior(seed: number): Sim {
   sim.setPlayerLevel(20);
   sim.player.resource=sim.player.maxResource;
   sim.player.hitBonus=1;
+
+  // EVO/MUT remain hidden from normal player discovery. The isolated Skill Lab
+  // grants them explicitly so the cast path tests their real runtime contract
+  // without exposing them in production.
+  const meta=sim.meta(sim.playerId);
+  for(const id of ['hf_bloody_verdict_01','hf_kings_end_01']) {
+    if(meta && !meta.known.some((known)=>known.def.id===id)) {
+      meta.known.push({def:ABILITIES[id]!});
+    }
+  }
+
   return sim;
 }
 
