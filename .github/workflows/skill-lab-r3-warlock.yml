@@ -24,22 +24,6 @@ jobs:
           repository: levy-street/world-of-claudecraft
           ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
           path: upstream
-          filter: blob:none
-          sparse-checkout-cone-mode: false
-          sparse-checkout: |
-            /src/
-            /tests/
-            /scripts/
-            /public/
-            /patches/
-            /package.json
-            /pnpm-lock.yaml
-            /vite.config.ts
-            /tsconfig.json
-            /svelte.config.js
-            /.npmrc
-            /biome.json
-            /index.html
       - name: Verify frozen ClaudeCraft
         working-directory: upstream
         run: test "$(git rev-parse HEAD)" = "9b57e49c9676d75962700f828cc00a50a9a988b5"
