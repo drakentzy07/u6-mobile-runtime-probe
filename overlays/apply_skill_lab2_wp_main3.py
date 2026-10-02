@@ -17,6 +17,15 @@ def rep(path: Path, old: str, new: str) -> None:
         raise SystemExit(f'{path}: expected 1 anchor, found {n}: {old[:180]!r}')
     write(path,text.replace(old,new,1))
 
+def insert_roster_after(ability_id: str, additions: list[str]) -> None:
+    text=read(CLASSES)
+    anchor=f"      '{ability_id}',"
+    n=text.count(anchor)
+    if n!=1:
+        raise SystemExit(f'{CLASSES}: expected one roster entry for {ability_id}, found {n}')
+    block=anchor + ''.join(f"\n      '{item}'," for item in additions)
+    write(CLASSES,text.replace(anchor,block,1))
+
 # ---------------------------------------------------------------------------
 # HIGHFLY Skill Lab 2.0 — Warrior+Paladin MAIN3
 #
@@ -28,29 +37,9 @@ def rep(path: Path, old: str, new: str) -> None:
 # - BASE Claude abilities remain untouched.
 # ---------------------------------------------------------------------------
 
-rep(
-    CLASSES,
-    """      'faultline',
-      'heroic_leap',
-      'cleave',""",
-    """      'faultline',
-      'hf_seismic_fault_01',
-      'hf_world_fracture_01',
-      'heroic_leap',
-      'hf_demolishing_leap_01',
-      'hf_ascending_cataclysm_01',
-      'cleave',""",
-)
-
-rep(
-    CLASSES,
-    """      'whirlwind',
-      'faultline',""",
-    """      'whirlwind',
-      'hf_cutting_whirlwind_01',
-      'hf_colossus_tempest_01',
-      'faultline',""",
-)
+insert_roster_after('faultline', ['hf_seismic_fault_01','hf_world_fracture_01'])
+insert_roster_after('heroic_leap', ['hf_demolishing_leap_01','hf_ascending_cataclysm_01'])
+insert_roster_after('whirlwind', ['hf_cutting_whirlwind_01','hf_colossus_tempest_01'])
 
 rep(
     CLASSES,
