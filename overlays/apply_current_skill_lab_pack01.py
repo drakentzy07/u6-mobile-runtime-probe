@@ -71,6 +71,8 @@ for (const id of [
   'hf_wp_aegis_first_dawn_01',
   'hf_wp_dawn_aegis_01',
   'hf_wp_unbreakable_dawn_01',
+  'hf_ms_crimson_pyrelance_01',
+  'hf_ms_crimson_rain_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -148,7 +150,7 @@ LAB_SCRIPT = r"""
     rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], mutation: ['hf_eclipse_mortal_01','Eclipse Mortal'], spec: 'subtlety', target: 'enemy', stealth: true, aim: '🎯 TARGET · melee/espalda' },
     priest: { label: 'Priest', base: ['power_word_shield','Salmo Protector'], evo: ['hf_living_covenant_01','Pacto Viviente'], spec: null, target: 'self', aim: '🎯 TARGET ALIADO · lab=self' },
     shaman: { label: 'Shaman', base: ['earthquake','Despertar de la Falla'], evo: ['hf_primordial_cataclysm_01','Cataclismo Primordial'], spec: 'elemental', target: 'position', aim: '🎯 SUELO · manual' },
-    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_phoenix_lance_01','Lanza del Fénix'], spec: 'fire', target: 'enemy', aim: '🎯 TARGET ENEMIGO' },
+    mage: { label: 'Mage', base: ['pyroblast','Lanza Pírica'], evo: ['hf_ms_crimson_pyrelance_01','Lanza Pírica Carmesí'], mutation: ['hf_ms_crimson_rain_01','Lluvia Carmesí'], spec: 'fire', target: 'enemy', aim: '🎯 TARGET ENEMIGO · Pyrelance PRIME' },
     warlock: { label: 'Warlock', base: ['reaping_command','Mandato de Siega'], evo: ['hf_unholy_dominion_01','Dominio Profano'], spec: 'demonology', target: 'enemy', necromancy: true, aim: '🎯 TARGET ENEMIGO' },
     druid: { label: 'Druid', base: ['moonseed','Semilla Lunar'], evo: ['moonlash','Oleada Lunar'], spec: 'balance', target: 'enemy', moonkin: true, aim: '🎯 TARGET ENEMIGO' }
   };
@@ -176,7 +178,7 @@ LAB_SCRIPT = r"""
     valkyr: { label:'Warrior', base:['hf_wp_valkyrs_calling_01','Llamado de Valquiria'], evo:['hf_wp_valkyr_descent_01','Descenso de Valquiria'], mutation:['hf_wp_divine_descent_01','Descenso Divino'], spec:null, target:'enemy', dummyDistance:10, aim:'🎯 TARGET · vuelo + landing' },
     aegis: { label:'Warrior', base:['hf_wp_aegis_first_dawn_01','Égida del Primer Alba'], evo:['hf_wp_dawn_aegis_01','Égida del Alba'], mutation:['hf_wp_unbreakable_dawn_01','Amanecer Inquebrantable'], spec:null, target:'none', hurtSelf:true, aim:'SELF · channel 5s · DR/heal' }
   };
-  var activeLineage = params.get('lablineage') || (activeClass === 'warrior' ? 'heroic_leap' : 'ambush');
+  var activeLineage = params.get('lablineage') || (activeClass === 'warrior' ? 'heroic_leap' : activeClass === 'mage' ? 'pyrelance' : 'ambush');
   if (activeClass === 'warrior') {
     if (!Object.prototype.hasOwnProperty.call(WARRIOR_LINES, activeLineage)) activeLineage = 'heroic_leap';
     config = WARRIOR_LINES[activeLineage];
