@@ -197,9 +197,9 @@ export const HF_WP_7OF7_VFX_SPEC: Record<string, AbilityVfxSpec> = {
   hf_wp_valkyrs_calling_01:{c:'#e3c56a',p:'holy',pw:1.1,sp:20,rg:1.0,li:0.5,lg:1.0,a:'dash'},
   hf_wp_valkyr_descent_01:{c:'#f2d67b',p:'holy',pw:1.4,sp:30,rg:1.2,vr:1,li:0.82,lg:1.3,a:'dash'},
   hf_wp_divine_descent_01:{c:'#fff0ad',p:'holy',pw:1.75,sp:46,rg:1.45,vr:1,bl:1,li:1.18,lg:1.6,fin:1,a:'dash'},
-  hf_wp_aegis_first_dawn_01:{c:'#d9be63',p:'holy',pw:1.0,sp:12,rg:1.0,li:0.45,lg:1.0,a:'guard'},
-  hf_wp_dawn_aegis_01:{c:'#efd777',p:'holy',pw:1.3,sp:22,rg:1.25,vr:1,li:0.72,lg:1.35,a:'guard'},
-  hf_wp_unbreakable_dawn_01:{c:'#fff1a9',p:'holy',pw:1.6,sp:34,rg:1.5,vr:1,bl:1,li:1.05,lg:1.65,fin:1,a:'guard'},
+  hf_wp_aegis_first_dawn_01:{c:'#d9be63',p:'holy',pw:1.0,sp:12,rg:1.0,li:0.45,lg:1.0,a:'buff'},
+  hf_wp_dawn_aegis_01:{c:'#efd777',p:'holy',pw:1.3,sp:22,rg:1.25,vr:1,li:0.72,lg:1.35,a:'buff'},
+  hf_wp_unbreakable_dawn_01:{c:'#fff1a9',p:'holy',pw:1.6,sp:34,rg:1.5,vr:1,bl:1,li:1.05,lg:1.65,fin:1,a:'buff'},
 };
 
 export const HF_WP_7OF7_VFX_FULL_SPEC: Record<string, AbilityVfxFullSpec> = {
@@ -211,9 +211,9 @@ export const HF_WP_7OF7_VFX_FULL_SPEC: Record<string, AbilityVfxFullSpec> = {
   hf_wp_valkyrs_calling_01:{archetype:'dash',palette:'holy',power:1.1,motifs:['cross'],motifAt:'caster',motifR:1.2,impact:{ring:1,vRing:false,sparks:20,smoke:true,light:0.5},linger:1,rim:'#e9d28a'},
   hf_wp_valkyr_descent_01:{archetype:'dash',palette:'holy',power:1.4,chargeStreams:2,motifs:['cross','pillars'],motifAt:'caster',motifR:1.8,impact:{ring:1.2,vRing:0.8,sparks:30,smoke:true,light:0.82},shaft:true,decal:'rune',linger:1.3,rim:'#ffe99d',accent:'#ffffff'},
   hf_wp_divine_descent_01:{archetype:'dash',palette:'holy',power:1.75,chargeStreams:3,motifs:['cross','pillars'],motifAt:'caster',motifR:2.2,impact:{ring:1.4,vRing:1,sparks:46,smoke:true,light:1.18},shaft:true,decal:'rune',linger:1.6,rim:'#fff2bd',accent:'#ffffff',screenFx:true,finisher:true},
-  hf_wp_aegis_first_dawn_01:{archetype:'guard',palette:'holy',power:1.0,motifs:['cross'],motifAt:'caster',motifR:1.6,impact:{ring:1,vRing:false,sparks:12,light:0.45},linger:1,rim:'#e4ce83'},
-  hf_wp_dawn_aegis_01:{archetype:'guard',palette:'holy',power:1.3,chargeStreams:2,motifs:['cross','pillars'],motifAt:'caster',motifR:2,impact:{ring:1.2,vRing:0.7,sparks:22,light:0.72},shaft:true,linger:1.35,rim:'#ffe89a',accent:'#ffffff'},
-  hf_wp_unbreakable_dawn_01:{archetype:'guard',palette:'holy',power:1.6,chargeStreams:3,motifs:['cross','pillars'],motifAt:'caster',motifR:2.4,impact:{ring:1.4,vRing:1,sparks:34,light:1.05},shaft:true,decal:'rune',linger:1.65,rim:'#fff1b2',accent:'#ffffff',screenFx:true,finisher:true},
+  hf_wp_aegis_first_dawn_01:{archetype:'buff',palette:'holy',power:1.0,motifs:['cross'],motifAt:'caster',motifR:1.6,impact:{ring:1,vRing:false,sparks:12,light:0.45},linger:1,rim:'#e4ce83'},
+  hf_wp_dawn_aegis_01:{archetype:'buff',palette:'holy',power:1.3,chargeStreams:2,motifs:['cross','pillars'],motifAt:'caster',motifR:2,impact:{ring:1.2,vRing:0.7,sparks:22,light:0.72},shaft:true,linger:1.35,rim:'#ffe89a',accent:'#ffffff'},
+  hf_wp_unbreakable_dawn_01:{archetype:'buff',palette:'holy',power:1.6,chargeStreams:3,motifs:['cross','pillars'],motifAt:'caster',motifR:2.4,impact:{ring:1.4,vRing:1,sparks:34,light:1.05},shaft:true,decal:'rune',linger:1.65,rim:'#fff1b2',accent:'#ffffff',screenFx:true,finisher:true},
 };
 """
 )
