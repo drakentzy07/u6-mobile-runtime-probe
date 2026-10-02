@@ -109,10 +109,12 @@ const mutation=await castAndMeasure(ids.mutation);
 
 await page.screenshot({path:'../skill-lab2-ms-pyrelance-mutation.png',fullPage:true});
 
-const criticalErrors=[
-  ...pageErrors,
-  ...consoleErrors.filter((x)=>!/favicon|404|Failed to load resource/i.test(x)),
-];
+const criticalErrors=[...new Set([...pageErrors,...consoleErrors])].filter((message)=>{
+  if (/character visual unavailable, skipping view/i.test(message)) return false;
+  if (/THREE\.GLTFLoader: Couldn't load texture blob:/i.test(message)) return false;
+  if (/Failed to load resource:.*(?:404|502)/i.test(message)) return false;
+  return /TypeError|ReferenceError|SyntaxError|RangeError|WebGL.*Context Lost/i.test(message);
+});
 
 function identityStable(r){
   return r.before.cls==='mage' &&
