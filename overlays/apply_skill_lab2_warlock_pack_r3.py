@@ -2,7 +2,7 @@ from pathlib import Path
 ROOT=Path('.')
 CLASSES=ROOT/'src/sim/content/classes.ts'
 TEST=ROOT/'tests/highfly_skill_lab2_warlock_pack_r3.test.ts'
-LINEAGES=[('reaping_command','hf_unholy_dominion_01','Dominio Profano','hf_march_of_dead_01','Marcha de los Muertos'),('possess_evil_eye','hf_abyss_gaze_01','Mirada del Abismo','hf_eye_of_end_01','Ojo del Fin'),('umbral_anchor','hf_umbral_return_01','Retorno Umbrio','hf_point_no_return_01','Punto de No Retorno')]
+LINEAGES=[('reaping_command','hf_unholy_dominion_01','Dominio Profano','hf_march_of_dead_01','Marcha de los Muertos'),('evil_eye','hf_abyss_gaze_01','Mirada del Abismo','hf_eye_of_end_01','Ojo del Fin'),('umbral_anchor','hf_umbral_return_01','Retorno Umbrio','hf_point_no_return_01','Punto de No Retorno')]
 def matching_end(text,start):
  depth=0; quote=None; esc=False
  for i in range(start,len(text)):
