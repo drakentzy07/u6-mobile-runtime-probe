@@ -53,18 +53,50 @@ async function targetSnapshot() {
   });
 }
 
-async function castAndWait(id, waitMs=350) {
-  const before=await targetSnapshot();
-  await page.evaluate((abilityId)=>{
+async function resetAndSnapshot() {
+  await page.evaluate(()=>{
     const sim=window.__game.sim;
     const p=sim.player;
-    p.auras=p.auras.filter((a)=>a.kind!=='aoe_echo');
-    const target=sim.entities.get(p.targetId);
-    if(target) target.auras=target.auras.filter((a)=>a.kind!=='stun');
     window.__highflySkillLab.reset();
+    p.auras=p.auras.filter((a)=>a.kind!=='aoe_echo');
+    p.cooldowns.clear();
+    p.gcdRemaining=0;
+    p.resource=p.maxResource;
+    const target=sim.entities.get(p.targetId);
+    if(target) {
+      target.hp=target.maxHp;
+      target.auras=target.auras.filter((a)=>a.kind!=='stun');
+    }
+    sim.events=[];
+  });
+  return targetSnapshot();
+}
+
+async function castAndWait(id, mode='instant') {
+  const before=await resetAndSnapshot();
+  await page.evaluate((abilityId)=>{
     window.__highflySkillLab.cast(abilityId);
   },id);
-  await page.waitForTimeout(waitMs);
+
+  if(mode==='leap') {
+    await page.waitForFunction(
+      ()=>Boolean(window.__game?.sim?.player?.leap),
+      null,
+      {timeout:3000},
+    );
+    await page.waitForFunction(
+      ()=>{
+        const p=window.__game?.sim?.player;
+        return Boolean(p && !p.leap && p.onGround);
+      },
+      null,
+      {timeout:10000},
+    );
+    await page.waitForTimeout(150);
+  } else {
+    await page.waitForTimeout(450);
+  }
+
   const after=await targetSnapshot();
   return {id,before,after};
 }
@@ -73,7 +105,7 @@ await openLineage('heroic_leap');
 const leapIds=await ids();
 const leap=[];
 for(const id of [leapIds.base,leapIds.evo,leapIds.mutation]) {
-  leap.push(await castAndWait(id,1200));
+  leap.push(await castAndWait(id,'leap'));
 }
 await page.screenshot({path:'../skill-lab2-wp-main3-leap.png',fullPage:true});
 
@@ -81,7 +113,7 @@ await openLineage('whirlwind');
 const whirlIds=await ids();
 const whirlwind=[];
 for(const id of [whirlIds.base,whirlIds.evo,whirlIds.mutation]) {
-  whirlwind.push(await castAndWait(id,450));
+  whirlwind.push(await castAndWait(id,'instant'));
 }
 await page.screenshot({path:'../skill-lab2-wp-main3-whirlwind.png',fullPage:true});
 
@@ -89,7 +121,7 @@ await openLineage('faultline');
 const faultIds=await ids();
 const faultline=[];
 for(const id of [faultIds.base,faultIds.evo,faultIds.mutation]) {
-  faultline.push(await castAndWait(id,450));
+  faultline.push(await castAndWait(id,'instant'));
 }
 await page.screenshot({path:'../skill-lab2-wp-main3-faultline.png',fullPage:true});
 
