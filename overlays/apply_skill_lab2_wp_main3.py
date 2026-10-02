@@ -45,11 +45,11 @@ rep(
 rep(
     CLASSES,
     """      'whirlwind',
-      'berserker_rage',""",
+      'faultline',""",
     """      'whirlwind',
       'hf_cutting_whirlwind_01',
       'hf_colossus_tempest_01',
-      'berserker_rage',""",
+      'faultline',""",
 )
 
 rep(
