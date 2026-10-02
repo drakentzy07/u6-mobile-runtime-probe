@@ -30,14 +30,25 @@ def rep(path: Path, old: str, new: str) -> None:
 # - Death cleanup is reused from Claude's global clearAfflictionState teardown.
 # ---------------------------------------------------------------------------
 
-rep(
-    CLASSES,
-    """      'vanish',
+classes = read(CLASSES)
+if "      'hf_absolute_void_01',\n      'instant_poison'," in classes:
+    rep(
+        CLASSES,
+        """      'hf_absolute_void_01',
       'instant_poison',""",
-    """      'vanish',
+        """      'hf_absolute_void_01',
       'hf_rw_evil_eye_01',
       'instant_poison',""",
-)
+    )
+else:
+    rep(
+        CLASSES,
+        """      'vanish',
+      'instant_poison',""",
+        """      'vanish',
+      'hf_rw_evil_eye_01',
+      'instant_poison',""",
+    )
 
 rep(
     CLASSES,
