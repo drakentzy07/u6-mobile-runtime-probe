@@ -51,7 +51,6 @@ for (const id of [
   if (ABILITIES[id]) ABILITIES[id].hiddenFromPlayer = false;
 }
 if (!CLASSES.druid.abilities.includes('moonlash')) CLASSES.druid.abilities.push('moonlash');
-if (!CLASSES.rogue.abilities.includes('shadowstep')) CLASSES.rogue.abilities.push('shadowstep');
 """
 if lab_tail.strip() not in classes:
     write("src/sim/content/classes.ts", classes + lab_tail)
@@ -275,6 +274,12 @@ LAB_SCRIPT = r"""
     var p = sim.player;
     sim.setPlayerLevel(20);
     if (config.spec) sim.setSpec(config.spec);
+    if (activeClass === 'rogue' && activeLineage === 'shadowstep') {
+      var meta = sim.meta(p.id);
+      if (meta && !meta.known.some(function (known) { return known.def.id === 'shadowstep'; })) {
+        sim.selectTalentRow(5, 'rog_r5_shadeslip', p.id);
+      }
+    }
     p.hp = p.maxHp;
     p.resource = p.maxResource;
     p.gcdRemaining = 0;
