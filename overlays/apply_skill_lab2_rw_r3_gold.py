@@ -52,9 +52,12 @@ rep(
     school: 'shadow',
     requiresTarget: true,
     projectile: false,
-    effects: [{ type: 'reapingCommand' }],
+    effects: [
+      { type: 'reapingCommand' },
+      { type: 'commandUndead', duration: 6, dmgPct: 0.15, hastePct: 0.1 },
+    ],
     description:
-      'Evolucion Heritage de Mandato de Siega. Conserva command real de undead y Energy Rogue; refuerza sincronizacion y lectura de orden.',
+      'Evolucion Heritage de Mandato de Siega. Reutiliza Dominio Profano: golpe sincronizado y exaltacion real de undead 6 sec con Energy Rogue.',
   },
   hf_rw_march_of_dead_01: {
     id: 'hf_rw_march_of_dead_01',
@@ -69,9 +72,12 @@ rep(
     school: 'shadow',
     requiresTarget: true,
     projectile: false,
-    effects: [{ type: 'reapingCommand' }],
+    effects: [
+      { type: 'reapingCommand' },
+      { type: 'commandUndead', duration: 6, dmgPct: 0.15, hastePct: 0.1 },
+    ],
     description:
-      'Mutacion Heritage: oleadas visuales coordinadas sobre el mismo Reaping Command autoritativo. No crea hits decorativos.',
+      'Mutacion Heritage de Dominio Profano. Conserva exactamente su autoridad SIM; las oleadas y la marcha final son coreografia premium.',
   },
   hf_rw_abyss_gaze_01: {
     id: 'hf_rw_abyss_gaze_01',
@@ -376,13 +382,23 @@ function authority(id: string) {
 }
 
 describe('HIGHFLY Skill Lab 2.0 Rogue+Warlock R3 GOLD', () => {
-  it('keeps all Heritage endpoints on Rogue and preserves BASE SIM authority', () => {
+  it('keeps all Heritage endpoints on Rogue and preserves the intended SIM authority', () => {
     for (const [base,evo,mut] of LINES) {
       expect(CLASSES.rogue.abilities).toEqual(expect.arrayContaining([base,evo,mut]));
-      expect(authority(evo)).toEqual(authority(base));
-      expect(authority(mut)).toEqual(authority(base));
       expect(ABILITIES[evo]!.hiddenFromPlayer).toBe(true);
       expect(ABILITIES[mut]!.hiddenFromPlayer).toBe(true);
+    }
+
+    expect(ABILITIES.hf_rw_reaping_command_01!.effects).toEqual([{type:'reapingCommand'}]);
+    expect(ABILITIES.hf_rw_unholy_dominion_01!.effects).toEqual([
+      {type:'reapingCommand'},
+      {type:'commandUndead',duration:6,dmgPct:0.15,hastePct:0.1},
+    ]);
+    expect(authority('hf_rw_march_of_dead_01')).toEqual(authority('hf_rw_unholy_dominion_01'));
+
+    for (const [base,evo,mut] of LINES.slice(1)) {
+      expect(authority(evo)).toEqual(authority(base));
+      expect(authority(mut)).toEqual(authority(base));
     }
   });
 
