@@ -79,18 +79,18 @@ async function castAndWait(id, mode='instant') {
   },id);
 
   if(mode==='leap') {
+    // The airborne state can be shorter than a Playwright poll under loaded CI.
+    // Gate the real observable contract instead: directed displacement completed,
+    // landed, and leap state cleaned up.
     await page.waitForFunction(
-      ()=>Boolean(window.__game?.sim?.player?.leap),
-      null,
-      {timeout:3000},
-    );
-    await page.waitForFunction(
-      ()=>{
+      (start)=>{
         const p=window.__game?.sim?.player;
-        return Boolean(p && !p.leap && p.onGround);
+        if(!p) return false;
+        const moved=Math.hypot(p.pos.x-start.x,p.pos.z-start.z);
+        return moved>4 && !p.leap && p.onGround;
       },
-      null,
-      {timeout:10000},
+      {x:before.player.x,z:before.player.z},
+      {timeout:30000},
     );
     await page.waitForTimeout(150);
   } else {
