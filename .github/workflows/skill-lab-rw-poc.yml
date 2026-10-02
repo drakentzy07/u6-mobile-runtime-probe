@@ -1,0 +1,76 @@
+name: HIGHFLY Skill Lab 2.0 Rogue Warlock Evil Eye POC
+
+on:
+  push:
+    branches: [highfly/skill-lab-2.0-rw-poc-evil-eye]
+    paths:
+      - '.github/workflows/skill-lab-rw-poc.yml'
+      - 'overlays/apply_skill_lab2_warlock_pack_r3.py'
+      - 'overlays/apply_skill_lab2_rw_poc_evil_eye.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: highfly-skill-lab-2-rw-poc
+  cancel-in-progress: true
+
+jobs:
+  rogue-warlock-adapter-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Skill Lab host
+        uses: actions/checkout@v4
+
+      - name: Checkout frozen ClaudeCraft
+        uses: actions/checkout@v4
+        with:
+          repository: levy-street/world-of-claudecraft
+          ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
+          path: upstream
+
+      - name: Verify frozen ClaudeCraft
+        working-directory: upstream
+        run: test "$(git rev-parse HEAD)" = "9b57e49c9676d75962700f828cc00a50a9a988b5"
+
+      - name: Apply corrected Warlock R3 source pack
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          python ../overlays/apply_skill_lab2_warlock_pack_r3.py
+
+      - name: Apply Rogue Warlock Evil Eye adapter POC
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          python ../overlays/apply_skill_lab2_rw_poc_evil_eye.py
+          git diff --check
+          git diff --stat
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+
+      - name: Install dependencies
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Corrected R3 source authority regression gate
+        working-directory: upstream
+        run: pnpm exec vitest run tests/highfly_skill_lab2_warlock_pack_r3.test.ts
+
+      - name: Rogue Warlock Evil Eye POC gate
+        working-directory: upstream
+        run: pnpm exec vitest run tests/highfly_skill_lab2_rw_poc_evil_eye.test.ts
+
+      - name: TypeScript source check
+        working-directory: upstream
+        run: pnpm exec tsc --project tsconfig.json --noEmit --incremental false
