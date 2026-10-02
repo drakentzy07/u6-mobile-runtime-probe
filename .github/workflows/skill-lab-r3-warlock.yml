@@ -1,7 +1,7 @@
 name: HIGHFLY Skill Lab 2.0 Warlock Heritage R3
 on:
   push:
-    branches: [highfly/skill-lab-2.0-pack-r3-warlock-heritage]
+    branches: [highfly/skill-lab-2.0-pack-r3-warlock-heritage-corrected]
     paths:
       - '.github/workflows/skill-lab-r3-warlock.yml'
       - 'overlays/apply_skill_lab2_warlock_pack_r3.py'
