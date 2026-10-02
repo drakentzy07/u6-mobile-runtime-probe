@@ -141,7 +141,12 @@ const valkyr=[];
 for(const id of [valkyrIds.base,valkyrIds.evo,valkyrIds.mutation]) {
   await hardReset();
   const before=await commonSnapshot();
-  await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
+  const castStart=await page.evaluate((abilityId)=>{
+    const p=window.__game.sim.player;
+    const resourceBefore=p.resource;
+    window.__highflySkillLab.cast(abilityId);
+    return {resourceBefore,resourceAfter:p.resource};
+  },id);
   await page.waitForFunction(
     ()=>Boolean(window.__game?.sim?.player?.valkyrsCalling),
     null,
@@ -157,7 +162,7 @@ for(const id of [valkyrIds.base,valkyrIds.evo,valkyrIds.mutation]) {
   );
   await page.waitForTimeout(150);
   const after=await commonSnapshot();
-  valkyr.push({id,before,after});
+  valkyr.push({id,before,castStart,after});
 }
 await page.screenshot({path:'../skill-lab2-wp-7of7-valkyr.png',fullPage:true});
 
@@ -167,7 +172,12 @@ const aegis=[];
 for(const id of [aegisIds.base,aegisIds.evo,aegisIds.mutation]) {
   await hardReset({hurt:true});
   const before=await commonSnapshot();
-  await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
+  const castStart=await page.evaluate((abilityId)=>{
+    const p=window.__game.sim.player;
+    const resourceBefore=p.resource;
+    window.__highflySkillLab.cast(abilityId);
+    return {resourceBefore,resourceAfter:p.resource};
+  },id);
   await page.waitForFunction(
     ()=>Boolean(window.__game?.sim?.player?.channeling),
     null,
@@ -203,7 +213,7 @@ for(const id of [aegisIds.base,aegisIds.evo,aegisIds.mutation]) {
   );
   await page.waitForTimeout(150);
   const after=await commonSnapshot();
-  aegis.push({id,before,during,progressing,after});
+  aegis.push({id,before,castStart,during,progressing,after});
 }
 await page.screenshot({path:'../skill-lab2-wp-7of7-aegis.png',fullPage:true});
 
@@ -257,7 +267,9 @@ const valkyrPassed=
     !r.after.valkyr &&
     !r.after.jumping &&
     r.after.onGround &&
-    r.after.resource===r.before.resource-35 &&
+    r.castStart.resourceBefore===r.before.resource &&
+    r.castStart.resourceAfter===r.before.resource-35 &&
+    r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
 
@@ -274,7 +286,9 @@ const aegisPassed=
     !r.after.shieldWall &&
     r.after.speed &&
     r.after.hp>r.before.hp &&
-    r.after.resource===r.before.resource-60 &&
+    r.castStart.resourceBefore===r.before.resource &&
+    r.castStart.resourceAfter===r.before.resource-60 &&
+    r.after.resource<=r.castStart.resourceAfter &&
     identityStable(r)
   );
 
