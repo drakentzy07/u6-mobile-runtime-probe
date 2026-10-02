@@ -388,7 +388,10 @@ LAB_SCRIPT = r"""
     if (!g || !prepare()) return null;
     var sim = g.sim;
     var p = sim.player;
-    var dummyDistance = activeClass === 'rogue' ? 2.5 : 7;
+    var dummyDistance =
+      activeClass === 'rogue' ? 2.5 :
+      activeClass === 'warrior' && activeLineage === 'whirlwind' ? 3.5 :
+      7;
     var x = p.pos.x + Math.sin(p.facing) * dummyDistance;
     var z = p.pos.z + Math.cos(p.facing) * dummyDistance;
     var target = Array.from(sim.entities.values()).find(function (e) {
