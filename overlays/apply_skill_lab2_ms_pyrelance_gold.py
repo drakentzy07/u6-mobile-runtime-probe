@@ -86,24 +86,35 @@ rep(
 )
 
 # Preserve the real Fire Mage Hot Streak hooks for EVO and mutation.
-rep(
+# Earlier HIGHFLY overlays may already have extended these arrays, so this must
+# be additive/idempotent rather than anchored to Claude's original adjacency.
+def append_const_array_items(path: str, const_name: str, items: list[str]) -> None:
+    text = read(path)
+    marker = f"export const {const_name}: readonly string[] = "
+    start = text.find(marker)
+    if start < 0:
+        raise SystemExit(f"{path}: missing array constant {const_name}")
+    array_start = text.find("[", start)
+    array_end = text.find("];", array_start)
+    if array_start < 0 or array_end < 0:
+        raise SystemExit(f"{path}: malformed array constant {const_name}")
+    body = text[array_start + 1:array_end]
+    missing = [item for item in items if f"'{item}'" not in body]
+    if not missing:
+        return
+    insertion = "".join(f"\n  '{item}'," for item in missing)
+    body = body.rstrip() + insertion + "\n"
+    write(path, text[:array_start + 1] + body + text[array_end:])
+
+append_const_array_items(
     "src/sim/combat/fire_mage.ts",
-    """  'pyroblast',
-  'flamestrike',""",
-    """  'pyroblast',
-  'hf_ms_crimson_pyrelance_01',
-  'hf_ms_crimson_rain_01',
-  'flamestrike',""",
+    "HOT_STREAK_BUILDERS",
+    ["hf_ms_crimson_pyrelance_01", "hf_ms_crimson_rain_01"],
 )
-rep(
+append_const_array_items(
     "src/sim/combat/fire_mage.ts",
-    """export const HOT_STREAK_SPENDERS: readonly string[] = ['pyroblast', 'flamestrike'];""",
-    """export const HOT_STREAK_SPENDERS: readonly string[] = [
-  'pyroblast',
-  'hf_ms_crimson_pyrelance_01',
-  'hf_ms_crimson_rain_01',
-  'flamestrike',
-];""",
+    "HOT_STREAK_SPENDERS",
+    ["hf_ms_crimson_pyrelance_01", "hf_ms_crimson_rain_01"],
 )
 
 # Mage body/staff/casting always wins; Shaman contributes presentation DNA only.
