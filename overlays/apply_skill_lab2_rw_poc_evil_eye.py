@@ -129,7 +129,7 @@ describe('HIGHFLY Skill Lab 2.0 — Rogue+Warlock Evil Eye POC', () => {
     expect(sim.player.resourceType).toBe('energy');
     expect(sim.known.some((known) => known.def.id === ABILITY)).toBe(true);
 
-    const equipmentBefore = JSON.stringify(sim.player.equipment);
+    const equipmentBefore = JSON.stringify(sim.meta(sim.playerId)?.equipment);
     const hpBefore = target.hp;
     const energyBefore = sim.player.resource;
 
@@ -138,7 +138,7 @@ describe('HIGHFLY Skill Lab 2.0 — Rogue+Warlock Evil Eye POC', () => {
 
     expect(target.hp).toBe(hpBefore);
     expect(sim.player.resource).toBe(energyBefore - 15);
-    expect(JSON.stringify(sim.player.equipment)).toBe(equipmentBefore);
+    expect(JSON.stringify(sim.meta(sim.playerId)?.equipment)).toBe(equipmentBefore);
     expect(primaryEye(target, sim.player.id)).toBeTruthy();
   });
 
