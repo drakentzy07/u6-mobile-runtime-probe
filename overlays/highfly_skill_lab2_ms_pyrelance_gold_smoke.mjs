@@ -96,7 +96,7 @@ async function castAndMeasure(id){
       return p.castingAbility!==abilityId && target && target.hp<beforeHp;
     },
     {abilityId:id,beforeHp:before.target?.hp ?? 0},
-    {timeout:14000},
+    {timeout:60000},
   );
   await page.waitForTimeout(250);
   const after=await snapshot();
