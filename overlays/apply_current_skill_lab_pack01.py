@@ -54,6 +54,12 @@ for (const id of [
   'hf_rw_umbral_anchor_01',
   'hf_rw_umbral_return_01',
   'hf_rw_point_no_return_01',
+  'hf_demolishing_leap_01',
+  'hf_ascending_cataclysm_01',
+  'hf_cutting_whirlwind_01',
+  'hf_colossus_tempest_01',
+  'hf_seismic_fault_01',
+  'hf_world_fracture_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -125,7 +131,7 @@ LAB_SCRIPT = r"""
   if (params.get('skilllab') !== '1') return;
 
   var CLASSES = {
-    warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_jump_smash_01','Salto Demoledor'], spec: null, target: 'position', aim: '🎯 SUELO · manual' },
+    warrior: { label: 'Warrior', base: ['heroic_leap','Salto Heroico'], evo: ['hf_demolishing_leap_01','Salto Demoledor'], mutation: ['hf_ascending_cataclysm_01','Cataclismo Ascendente'], spec: null, target: 'position', aim: '🎯 SUELO · manual' },
     paladin: { label: 'Paladin', base: ['consecration','Tierra Consagrada'], evo: ['hf_radiant_sanctuary_01','Santuario Radiante'], spec: 'protection', target: 'none', aim: 'SIN APUNTADO · alrededor tuyo' },
     hunter: { label: 'Hunter', base: ['frostjaw_trap','Trampa Colmillo Helado'], evo: ['hf_hunter_prison_01','Prisión del Cazador'], spec: null, target: 'enemy', aim: '🎯 TARGET OPCIONAL · enemigo o pies' },
     rogue: { label: 'Rogue', base: ['ambush','Emboscada'], evo: ['hf_shadow_hunt_01','Cacería Sombría'], mutation: ['hf_eclipse_mortal_01','Eclipse Mortal'], spec: 'subtlety', target: 'enemy', stealth: true, aim: '🎯 TARGET · melee/espalda' },
@@ -149,8 +155,17 @@ LAB_SCRIPT = r"""
     evil_eye: { label:'Rogue', base:['hf_rw_evil_eye_01','Ojo Maldito'], evo:['hf_rw_abyss_gaze_01','Mirada del Abismo'], mutation:['hf_rw_eye_of_end_01','Ojo del Fin'], spec:null, target:'enemy', aim:'🎯 TARGET · mark 30m' },
     umbral_anchor: { label:'Rogue', base:['hf_rw_umbral_anchor_01','Ancla Umbral'], evo:['hf_rw_umbral_return_01','Retorno Umbrío'], mutation:['hf_rw_point_no_return_01','Punto de No Retorno'], spec:null, target:'none', aim:'SIN TARGET · place/recall ≤40m' }
   };
-  var activeLineage = params.get('lablineage') || 'ambush';
-  if (activeClass === 'rogue') {
+
+  var WARRIOR_LINES = {
+    heroic_leap: { label:'Warrior', base:['heroic_leap','Salto Heroico'], evo:['hf_demolishing_leap_01','Salto Demoledor'], mutation:['hf_ascending_cataclysm_01','Cataclismo Ascendente'], spec:null, target:'position', aim:'🎯 SUELO · salto dirigido' },
+    whirlwind: { label:'Warrior', base:['whirlwind','Torbellino'], evo:['hf_cutting_whirlwind_01','Torbellino Cortante'], mutation:['hf_colossus_tempest_01','Tempestad del Coloso'], spec:'fury', target:'enemy', aim:'AOE SELF · Bladed Echo x2' },
+    faultline: { label:'Warrior', base:['faultline','Falla'], evo:['hf_seismic_fault_01','Falla Sísmica'], mutation:['hf_world_fracture_01','Fractura del Mundo'], spec:'prot', target:'none', aim:'FRONTAL AOE · stun 3s' }
+  };
+  var activeLineage = params.get('lablineage') || (activeClass === 'warrior' ? 'heroic_leap' : 'ambush');
+  if (activeClass === 'warrior') {
+    if (!Object.prototype.hasOwnProperty.call(WARRIOR_LINES, activeLineage)) activeLineage = 'heroic_leap';
+    config = WARRIOR_LINES[activeLineage];
+  } else if (activeClass === 'rogue') {
     if (!Object.prototype.hasOwnProperty.call(ROGUE_LINES, activeLineage)) activeLineage = 'ambush';
     config = ROGUE_LINES[activeLineage];
   }
@@ -182,7 +197,15 @@ LAB_SCRIPT = r"""
   }).join('');
 
   var lineageButtons = '';
-  if (activeClass === 'rogue') {
+  var lineageLabel = '';
+  if (activeClass === 'warrior') {
+    lineageLabel = 'WARRIOR PRIME:';
+    lineageButtons = Object.keys(WARRIOR_LINES).map(function (id) {
+      var labels = { heroic_leap:'SALTO', whirlwind:'TORBELLINO', faultline:'FALLA' };
+      return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
+    }).join('');
+  } else if (activeClass === 'rogue') {
+    lineageLabel = 'ROGUE PRIME:';
     lineageButtons = Object.keys(ROGUE_LINES).map(function (id) {
       var labels = { ambush:'EMBOSCADA', eviscerate:'REMATE', vanish:'DESVANECER', shadowstep:'PASO SOMBRÍO', reaping:'MANDATO', evil_eye:'OJO MALDITO', umbral_anchor:'ANCLA' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
@@ -197,7 +220,7 @@ LAB_SCRIPT = r"""
     classButtons +
     '<span id="hf-lab-status" class="hf-status">CARGANDO...</span>' +
     '<button id="hf-lab-collapse" class="hf-collapse" aria-expanded="true" title="Minimizar panel">−</button></div>' +
-    (lineageButtons ? '<div class="hf-row hf-lineages"><span class="hf-sub">ROGUE PRIME:</span>' + lineageButtons + '</div>' : '') +
+    (lineageButtons ? '<div class="hf-row hf-lineages"><span class="hf-sub">' + lineageLabel + '</span>' + lineageButtons + '</div>' : '') +
     '<div class="hf-row hf-skills">' +
     '<button class="hf-base" id="hf-lab-base" data-ability="' + config.base[0] + '">BASE · ' + config.base[1] + '</button>' +
     '<button class="hf-evo" id="hf-lab-evo" data-ability="' + config.evo[0] + '">EVO · ' + config.evo[1] + '</button>' +
@@ -246,7 +269,7 @@ LAB_SCRIPT = r"""
       if (!nextLineage || nextLineage === activeLineage) return;
       var next = new URL(location.href);
       next.searchParams.set('skilllab', '1');
-      next.searchParams.set('labclass', 'rogue');
+      next.searchParams.set('labclass', activeClass);
       next.searchParams.set('lablineage', nextLineage);
       location.replace(next.toString());
     });
