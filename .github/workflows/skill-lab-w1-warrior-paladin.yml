@@ -1,0 +1,53 @@
+name: HIGHFLY Skill Lab 2.0 Warrior Paladin W1
+on:
+  push:
+    branches: [highfly/skill-lab-2.0-pack-w1-warrior-paladin-3lineages]
+    paths:
+      - '.github/workflows/skill-lab-w1-warrior-paladin.yml'
+      - 'overlays/apply_skill_lab2_warrior_paladin_pack_w1.py'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: highfly-skill-lab-2-w1-warrior-paladin
+  cancel-in-progress: true
+jobs:
+  sim-authority-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Skill Lab host
+        uses: actions/checkout@v4
+      - name: Checkout frozen ClaudeCraft
+        uses: actions/checkout@v4
+        with:
+          repository: levy-street/world-of-claudecraft
+          ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
+          path: upstream
+      - name: Verify frozen ClaudeCraft
+        working-directory: upstream
+        run: test "$(git rev-parse HEAD)" = "9b57e49c9676d75962700f828cc00a50a9a988b5"
+      - name: Apply isolated W1 overlay
+        working-directory: upstream
+        run: |
+          set -euo pipefail
+          python ../overlays/apply_skill_lab2_warrior_paladin_pack_w1.py
+          git diff --check
+          git diff --stat
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+      - name: Install dependencies
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      - name: W1 individual lineage plus integration gate
+        working-directory: upstream
+        run: pnpm exec vitest run tests/highfly_skill_lab2_warrior_paladin_pack_w1.test.ts
+      - name: TypeScript source check
+        working-directory: upstream
+        run: pnpm exec tsc --project tsconfig.json --noEmit --incremental false
