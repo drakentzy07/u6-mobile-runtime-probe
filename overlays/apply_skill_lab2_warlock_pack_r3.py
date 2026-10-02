@@ -3,12 +3,6 @@ ROOT=Path('.')
 CLASSES=ROOT/'src/sim/content/classes.ts'
 TEST=ROOT/'tests/highfly_skill_lab2_warlock_pack_r3.test.ts'
 
-LINEAGES=[
-  ('reaping_command','hf_unholy_dominion_01','Dominio Profano','hf_march_of_dead_01','Marcha de los Muertos','reuse_evo'),
-  ('evil_eye','hf_abyss_gaze_01','Mirada del Abismo','hf_eye_of_end_01','Ojo del Fin','clone_base'),
-  ('umbral_anchor','hf_umbral_return_01','Retorno Umbrio','hf_point_no_return_01','Punto de No Retorno','clone_base'),
-]
-
 def matching_end(text,start):
  depth=0; quote=None; esc=False
  for i in range(start,len(text)):
@@ -39,22 +33,65 @@ def clone_def(text,source,new_id,new_name):
  return text[:start]+block+',\n'+text[start:]
 
 s=CLASSES.read_text(encoding='utf-8')
-for base,evo,en,mut,mn,mode in LINEAGES:
- if mode=='reuse_evo':
-  # Dominio Profano is the frozen Production Pack02 EVO. REUSE FIRST:
-  # preserve its authoritative reapingCommand + commandUndead rider and only
-  # create the mutation endpoint from that proven EVO.
-  if f"  {evo}: {{" not in s: raise SystemExit(f'missing frozen Production Pack02 EVO: {evo}')
-  evo_roster=f"      '{evo}',"
-  if s.count(evo_roster)!=1: raise SystemExit(f'expected one Warlock EVO roster anchor for {evo}, found {s.count(evo_roster)}')
-  s=s.replace(evo_roster,evo_roster+f"\n      '{mut}',",1)
-  s=clone_def(s,evo,mut,mn)
- else:
-  roster=f"      '{base}',"
-  if s.count(roster)!=1: raise SystemExit(f'expected one Warlock roster anchor for {base}, found {s.count(roster)}')
-  s=s.replace(roster,roster+f"\n      '{evo}',\n      '{mut}',",1)
-  s=clone_def(s,base,evo,en)
-  s=clone_def(s,base,mut,mn)
+
+# REUSE FIRST: Dominio Profano already exists in frozen Production Pack02.
+# Create only its mutation explicitly so no dynamic-clone ambiguity can hide
+# the mutation endpoint from ABILITIES.
+roster="""      'hf_unholy_dominion_01',
+      'sacrifice_undead',"""
+if s.count(roster)!=1:
+ raise SystemExit(f'expected one Dominio Profano roster anchor, found {s.count(roster)}')
+s=s.replace(
+ roster,
+ """      'hf_unholy_dominion_01',
+      'hf_march_of_dead_01',
+      'sacrifice_undead',""",
+ 1,
+)
+
+anchor="""  sacrifice_undead: {
+    id: 'sacrifice_undead',"""
+if s.count(anchor)!=1:
+ raise SystemExit(f'expected one sacrifice_undead definition anchor, found {s.count(anchor)}')
+s=s.replace(
+ anchor,
+ """  hf_march_of_dead_01: {
+    id: 'hf_march_of_dead_01',
+    name: 'Marcha de los Muertos',
+    class: 'warlock',
+    specs: ['demonology'],
+    hiddenFromPlayer: true,
+    learnLevel: 14,
+    cost: 45,
+    soulFragmentCost: 2,
+    castTime: 0,
+    cooldown: 8,
+    range: 30,
+    school: 'shadow',
+    requiresTarget: true,
+    projectile: false,
+    effects: [
+      { type: 'reapingCommand' },
+      { type: 'commandUndead', duration: 6, dmgPct: 0.15, hastePct: 0.1 },
+    ],
+    description:
+      'Mutación de Dominio Profano: conserva el mismo golpe sincronizado y la exaltación real de no-muertos durante 6 sec; la marcha final es presentación premium.',
+  },
+  sacrifice_undead: {
+    id: 'sacrifice_undead',""",
+ 1,
+)
+
+# Evil Eye and Umbral Anchor still clone their exact Claude BASE contracts.
+for base,evo,en,mut,mn in [
+  ('evil_eye','hf_abyss_gaze_01','Mirada del Abismo','hf_eye_of_end_01','Ojo del Fin'),
+  ('umbral_anchor','hf_umbral_return_01','Retorno Umbrio','hf_point_no_return_01','Punto de No Retorno'),
+]:
+ roster=f"      '{base}',"
+ if s.count(roster)!=1: raise SystemExit(f'expected one Warlock roster anchor for {base}, found {s.count(roster)}')
+ s=s.replace(roster,roster+f"\n      '{evo}',\n      '{mut}',",1)
+ s=clone_def(s,base,evo,en)
+ s=clone_def(s,base,mut,mn)
 
 CLASSES.write_text(s,encoding='utf-8')
 
@@ -62,11 +99,12 @@ TEST.write_text("""import { describe, expect, it } from 'vitest';
 import { ABILITIES, CLASSES } from '../src/sim/data';
 
 function authorityShape(id: string) {
-  const d=ABILITIES[id]!;
+  const d=ABILITIES[id];
+  expect(d, `missing ability ${id}`).toBeTruthy();
   return {
-    class:d.class,learnLevel:d.learnLevel,cost:d.cost,castTime:d.castTime,
-    cooldown:d.cooldown,range:d.range,school:d.school,requiresTarget:d.requiresTarget,
-    targetType:d.targetType,effects:d.effects,ranks:d.ranks
+    class:d!.class,learnLevel:d!.learnLevel,cost:d!.cost,castTime:d!.castTime,
+    cooldown:d!.cooldown,range:d!.range,school:d!.school,requiresTarget:d!.requiresTarget,
+    targetType:d!.targetType,effects:d!.effects,ranks:d!.ranks
   };
 }
 
@@ -75,12 +113,15 @@ describe('HIGHFLY Skill Lab 2.0 Warlock Heritage R3',()=>{
     const base=ABILITIES.reaping_command!;
     const evo=ABILITIES.hf_unholy_dominion_01!;
     const mut=ABILITIES.hf_march_of_dead_01!;
+    expect(base).toBeTruthy();
+    expect(evo).toBeTruthy();
+    expect(mut).toBeTruthy();
     expect(base.effects).toEqual([{type:'reapingCommand'}]);
     expect(evo.effects).toEqual([
       {type:'reapingCommand'},
       {type:'commandUndead',duration:6,dmgPct:0.15,hastePct:0.1},
     ]);
-    expect(authorityShape(mut)).toEqual(authorityShape(evo));
+    expect(authorityShape('hf_march_of_dead_01')).toEqual(authorityShape('hf_unholy_dominion_01'));
     expect(evo.hiddenFromPlayer).toBe(true);
     expect(mut.hiddenFromPlayer).toBe(true);
   });
