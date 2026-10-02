@@ -73,6 +73,8 @@ for (const id of [
   'hf_wp_unbreakable_dawn_01',
   'hf_ms_crimson_pyrelance_01',
   'hf_ms_crimson_rain_01',
+  'hf_ms_fallen_star_01',
+  'hf_ms_celestial_extinction_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -169,6 +171,11 @@ LAB_SCRIPT = r"""
     umbral_anchor: { label:'Rogue', base:['hf_rw_umbral_anchor_01','Ancla Umbral'], evo:['hf_rw_umbral_return_01','Retorno Umbrío'], mutation:['hf_rw_point_no_return_01','Punto de No Retorno'], spec:null, target:'none', aim:'SIN TARGET · place/recall ≤40m' }
   };
 
+  var MAGE_LINES = {
+    pyrelance: { label:'Mage', base:['pyroblast','Lanza Pírica'], evo:['hf_ms_crimson_pyrelance_01','Lanza Pírica Carmesí'], mutation:['hf_ms_crimson_rain_01','Lluvia Carmesí'], spec:'fire', target:'enemy', aim:'🎯 TARGET ENEMIGO · Pyrelance PRIME' },
+    meteor: { label:'Mage', base:['meteor','Meteorito'], evo:['hf_ms_fallen_star_01','Estrella Caída'], mutation:['hf_ms_celestial_extinction_01','Extinción Celeste'], spec:'fire', target:'position', dummyDistance:8, aim:'🎯 SUELO · caída diferida 2s · radio 8' }
+  };
+
   var WARRIOR_LINES = {
     heroic_leap: { label:'Warrior', base:['heroic_leap','Salto Heroico'], evo:['hf_demolishing_leap_01','Salto Demoledor'], mutation:['hf_ascending_cataclysm_01','Cataclismo Ascendente'], spec:null, target:'position', aim:'🎯 SUELO · salto dirigido' },
     whirlwind: { label:'Warrior', base:['whirlwind','Torbellino'], evo:['hf_cutting_whirlwind_01','Torbellino Cortante'], mutation:['hf_colossus_tempest_01','Tempestad del Coloso'], spec:'fury', target:'enemy', aim:'AOE SELF · Bladed Echo x2' },
@@ -185,6 +192,9 @@ LAB_SCRIPT = r"""
   } else if (activeClass === 'rogue') {
     if (!Object.prototype.hasOwnProperty.call(ROGUE_LINES, activeLineage)) activeLineage = 'ambush';
     config = ROGUE_LINES[activeLineage];
+  } else if (activeClass === 'mage') {
+    if (!Object.prototype.hasOwnProperty.call(MAGE_LINES, activeLineage)) activeLineage = 'pyrelance';
+    config = MAGE_LINES[activeLineage];
   }
 
   var style = document.createElement('style');
@@ -225,6 +235,12 @@ LAB_SCRIPT = r"""
     lineageLabel = 'ROGUE PRIME:';
     lineageButtons = Object.keys(ROGUE_LINES).map(function (id) {
       var labels = { ambush:'EMBOSCADA', eviscerate:'REMATE', vanish:'DESVANECER', shadowstep:'PASO SOMBRÍO', reaping:'MANDATO', evil_eye:'OJO MALDITO', umbral_anchor:'ANCLA' };
+      return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
+    }).join('');
+  } else if (activeClass === 'mage') {
+    lineageLabel = 'MAGE PRIME:';
+    lineageButtons = Object.keys(MAGE_LINES).map(function (id) {
+      var labels = { pyrelance:'PYRELANCE', meteor:'METEORITO' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
     }).join('');
   }
