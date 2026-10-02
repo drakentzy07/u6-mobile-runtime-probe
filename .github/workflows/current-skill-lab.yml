@@ -1,8 +1,8 @@
-name: HIGHFLY Skill Lab 2.0 Rogue PACK R2 Three Lineages
+name: HIGHFLY Skill Lab 2.0 Rogue Warlock R3 GOLD
 
 on:
   push:
-    branches: [highfly/skill-lab-2.0-pack-r2-rogue-3lineages]
+    branches: [highfly/skill-lab-2.0-rw-r3-gold]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
@@ -13,6 +13,11 @@ on:
       - "overlays/highfly_skill_lab2_rogue_hardening_smoke.mjs"
       - "overlays/apply_skill_lab2_rogue_pack_r2.py"
       - "overlays/highfly_skill_lab2_rogue_pack_r2_smoke.mjs"
+      - "overlays/apply_skill_lab2_warlock_pack_r3.py"
+      - "overlays/apply_skill_lab2_rw_poc_evil_eye.py"
+      - "overlays/apply_skill_lab2_rw_r3_core_adapters.py"
+      - "overlays/apply_skill_lab2_rw_r3_gold.py"
+      - "overlays/highfly_skill_lab2_rw_r3_gold_smoke.mjs"
   workflow_dispatch:
 
 permissions:
@@ -129,6 +134,10 @@ jobs:
           python ../overlays/apply_skill_lab2_rogue_mutation.py
           python ../overlays/apply_skill_lab2_rogue_hardening.py
           python ../overlays/apply_skill_lab2_rogue_pack_r2.py
+          python ../overlays/apply_skill_lab2_warlock_pack_r3.py
+          python ../overlays/apply_skill_lab2_rw_poc_evil_eye.py
+          python ../overlays/apply_skill_lab2_rw_r3_core_adapters.py
+          python ../overlays/apply_skill_lab2_rw_r3_gold.py
           git diff --check
           git diff --stat
 
@@ -149,7 +158,7 @@ jobs:
       - name: Skill Lab focused tests
         working-directory: upstream
         run: |
-          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts             tests/highfly_skill_lab2_rogue_hardening.test.ts             tests/highfly_skill_lab2_rogue_pack_r2.test.ts
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts             tests/highfly_skill_lab2_rogue_hardening.test.ts             tests/highfly_skill_lab2_rogue_pack_r2.test.ts             tests/highfly_skill_lab2_warlock_pack_r3.test.ts             tests/highfly_skill_lab2_rw_poc_evil_eye.test.ts             tests/highfly_skill_lab2_rw_r3_core_adapters.test.ts             tests/highfly_skill_lab2_rw_r3_gold.test.ts
 
       - name: Apply Skill Lab playable harness
         working-directory: upstream
@@ -277,6 +286,23 @@ jobs:
           done
           node ./highfly_skill_lab2_rogue_pack_r2_smoke.mjs
 
+      - name: Skill Lab 2.0 Rogue Warlock R3 GOLD browser smoke
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/highfly_skill_lab2_rw_r3_gold_smoke.mjs ./highfly_skill_lab2_rw_r3_gold_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4177 --base=/u6-mobile-runtime-probe/ > ../skill-lab2-rw-r3-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4177/u6-mobile-runtime-probe/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node ./highfly_skill_lab2_rw_r3_gold_smoke.mjs
+
       - name: Upload Skill Lab diagnostics
         if: always()
         uses: actions/upload-artifact@v4
@@ -310,6 +336,11 @@ jobs:
             skill-lab2-r2-shadowstep.png
             skill-lab2-rogue-pack-r2-report.json
             skill-lab2-r2-preview.log
+            skill-lab2-rw-r3-reaping.png
+            skill-lab2-rw-r3-eye.png
+            skill-lab2-rw-r3-anchor.png
+            skill-lab2-rw-r3-gold-report.json
+            skill-lab2-rw-r3-preview.log
           if-no-files-found: warn
           retention-days: 7
 
