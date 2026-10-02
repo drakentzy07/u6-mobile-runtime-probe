@@ -61,6 +61,8 @@ async function commonSnapshot() {
       onGround:p.onGround,
       channeling:p.channeling,
       castingAbility:p.castingAbility,
+      castRemaining:p.castRemaining,
+      channelTicksLeft:p.channelTicksLeft,
       shieldWall:p.auras.some((a)=>a.kind==='shield_wall' && a.sourceId===p.id),
       speed:p.auras.some((a)=>a.kind==='buff_speed' && a.sourceId===p.id),
       groundZones:sim.groundAoEs?.filter((z)=>z.sourceId===p.id).length ?? 0,
@@ -172,17 +174,36 @@ for(const id of [aegisIds.base,aegisIds.evo,aegisIds.mutation]) {
     {timeout:3000},
   );
   const during=await commonSnapshot();
+
+  // Browser CI can advance the 20 Hz simulation slower than wall clock under
+  // renderer load. Prove the native channel clock is actually progressing
+  // before granting a wider wall-clock completion window.
+  await page.waitForFunction(
+    (startRemaining)=>{
+      const p=window.__game?.sim?.player;
+      return Boolean(
+        p &&
+        p.channeling &&
+        typeof p.castRemaining==='number' &&
+        p.castRemaining < startRemaining - 0.2
+      );
+    },
+    during.castRemaining,
+    {timeout:10000},
+  );
+  const progressing=await commonSnapshot();
+
   await page.waitForFunction(
     ()=>{
       const p=window.__game?.sim?.player;
       return Boolean(p && !p.channeling && p.castingAbility==null);
     },
     null,
-    {timeout:10000},
+    {timeout:30000},
   );
   await page.waitForTimeout(150);
   const after=await commonSnapshot();
-  aegis.push({id,before,during,after});
+  aegis.push({id,before,during,progressing,after});
 }
 await page.screenshot({path:'../skill-lab2-wp-7of7-aegis.png',fullPage:true});
 
@@ -248,6 +269,7 @@ const aegisPassed=
   aegis.every((r)=>
     r.during.channeling &&
     r.during.shieldWall &&
+    r.progressing.castRemaining < r.during.castRemaining &&
     !r.after.channeling &&
     !r.after.shieldWall &&
     r.after.speed &&
