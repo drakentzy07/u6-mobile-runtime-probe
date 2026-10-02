@@ -60,6 +60,17 @@ for (const id of [
   'hf_colossus_tempest_01',
   'hf_seismic_fault_01',
   'hf_world_fracture_01',
+  'hf_bloody_verdict_01',
+  'hf_kings_end_01',
+  'hf_wp_consecration_01',
+  'hf_wp_radiant_sanctuary_01',
+  'hf_wp_dawn_domain_01',
+  'hf_wp_valkyrs_calling_01',
+  'hf_wp_valkyr_descent_01',
+  'hf_wp_divine_descent_01',
+  'hf_wp_aegis_first_dawn_01',
+  'hf_wp_dawn_aegis_01',
+  'hf_wp_unbreakable_dawn_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -159,7 +170,11 @@ LAB_SCRIPT = r"""
   var WARRIOR_LINES = {
     heroic_leap: { label:'Warrior', base:['heroic_leap','Salto Heroico'], evo:['hf_demolishing_leap_01','Salto Demoledor'], mutation:['hf_ascending_cataclysm_01','Cataclismo Ascendente'], spec:null, target:'position', aim:'🎯 SUELO · salto dirigido' },
     whirlwind: { label:'Warrior', base:['whirlwind','Torbellino'], evo:['hf_cutting_whirlwind_01','Torbellino Cortante'], mutation:['hf_colossus_tempest_01','Tempestad del Coloso'], spec:'fury', target:'enemy', aim:'AOE SELF · Bladed Echo x2' },
-    faultline: { label:'Warrior', base:['faultline','Falla'], evo:['hf_seismic_fault_01','Falla Sísmica'], mutation:['hf_world_fracture_01','Fractura del Mundo'], spec:'prot', target:'none', aim:'FRONTAL AOE · stun 3s' }
+    faultline: { label:'Warrior', base:['faultline','Falla'], evo:['hf_seismic_fault_01','Falla Sísmica'], mutation:['hf_world_fracture_01','Fractura del Mundo'], spec:'prot', target:'none', aim:'FRONTAL AOE · stun 3s' },
+    execute: { label:'Warrior', base:['execute','Ejecución'], evo:['hf_bloody_verdict_01','Veredicto Sangriento'], mutation:['hf_kings_end_01','Fin del Rey'], spec:null, target:'enemy', executeWindow:true, dummyDistance:2.5, aim:'🎯 TARGET MELEE · HP <20%' },
+    consecration: { label:'Warrior', base:['hf_wp_consecration_01','Tierra Consagrada'], evo:['hf_wp_radiant_sanctuary_01','Santuario Radiante'], mutation:['hf_wp_dawn_domain_01','Dominio del Alba'], spec:null, target:'none', dummyDistance:3, aim:'AOE SUELO · bajo Warrior' },
+    valkyr: { label:'Warrior', base:['hf_wp_valkyrs_calling_01','Llamado de Valquiria'], evo:['hf_wp_valkyr_descent_01','Descenso de Valquiria'], mutation:['hf_wp_divine_descent_01','Descenso Divino'], spec:null, target:'enemy', dummyDistance:10, aim:'🎯 TARGET · vuelo + landing' },
+    aegis: { label:'Warrior', base:['hf_wp_aegis_first_dawn_01','Égida del Primer Alba'], evo:['hf_wp_dawn_aegis_01','Égida del Alba'], mutation:['hf_wp_unbreakable_dawn_01','Amanecer Inquebrantable'], spec:null, target:'none', hurtSelf:true, aim:'SELF · channel 5s · DR/heal' }
   };
   var activeLineage = params.get('lablineage') || (activeClass === 'warrior' ? 'heroic_leap' : 'ambush');
   if (activeClass === 'warrior') {
@@ -201,7 +216,7 @@ LAB_SCRIPT = r"""
   if (activeClass === 'warrior') {
     lineageLabel = 'WARRIOR PRIME:';
     lineageButtons = Object.keys(WARRIOR_LINES).map(function (id) {
-      var labels = { heroic_leap:'SALTO', whirlwind:'TORBELLINO', faultline:'FALLA' };
+      var labels = { heroic_leap:'SALTO', whirlwind:'TORBELLINO', faultline:'FALLA', execute:'EJECUCIÓN', consecration:'TIERRA', valkyr:'VALQUIRIA', aegis:'ÉGIDA' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
     }).join('');
   } else if (activeClass === 'rogue') {
@@ -389,6 +404,7 @@ LAB_SCRIPT = r"""
     var sim = g.sim;
     var p = sim.player;
     var dummyDistance =
+      config.dummyDistance != null ? config.dummyDistance :
       activeClass === 'rogue' ? 2.5 :
       activeClass === 'warrior' && activeLineage === 'whirlwind' ? 3.5 :
       7;
@@ -403,8 +419,8 @@ LAB_SCRIPT = r"""
     }
     target.dead = false;
     target.hostile = true;
-    target.hp = Math.max(target.hp || 1, 50000);
     target.maxHp = Math.max(target.maxHp || 1, 50000);
+    target.hp = config.executeWindow ? Math.max(1, Math.floor(target.maxHp * 0.19)) : target.maxHp;
     target.pos.x = x;
     target.pos.y = p.pos.y;
     target.pos.z = z;
@@ -451,6 +467,7 @@ LAB_SCRIPT = r"""
     p.cooldowns.delete(abilityId);
     p.gcdRemaining = 0;
     p.resource = p.maxResource;
+    if (config.hurtSelf) p.hp = Math.max(1, p.maxHp - 500);
     if (config.combo) p.comboPoints = config.combo;
     if (config.stealth && !p.auras.some(function (a) { return a.kind === 'stealth'; })) {
       p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
