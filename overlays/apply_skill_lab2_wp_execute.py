@@ -163,7 +163,18 @@ function makeWarrior(seed: number): Sim {
   const meta=sim.meta(sim.playerId);
   for(const id of ['hf_bloody_verdict_01','hf_kings_end_01']) {
     if(meta && !meta.known.some((known)=>known.def.id===id)) {
-      meta.known.push({def:ABILITIES[id]!});
+      const def=ABILITIES[id]!;
+      meta.known.push({
+        def,
+        rank:1,
+        cost:def.cost,
+        castTime:def.castTime,
+        cooldown:def.cooldown,
+        effects:def.effects,
+        threatFlat:def.threat?.flat ?? 0,
+        threatMult:def.threat?.mult ?? 1,
+        bonusCharges:0,
+      });
     }
   }
 
