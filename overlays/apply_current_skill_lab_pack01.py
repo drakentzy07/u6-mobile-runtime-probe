@@ -45,6 +45,15 @@ for (const id of [
   'hf_absolute_void_01',
   'hf_umbral_step_01',
   'hf_abyss_step_01',
+  'hf_rw_evil_eye_01',
+  'hf_rw_abyss_gaze_01',
+  'hf_rw_eye_of_end_01',
+  'hf_rw_reaping_command_01',
+  'hf_rw_unholy_dominion_01',
+  'hf_rw_march_of_dead_01',
+  'hf_rw_umbral_anchor_01',
+  'hf_rw_umbral_return_01',
+  'hf_rw_point_no_return_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -135,7 +144,10 @@ LAB_SCRIPT = r"""
     ambush: { label:'Rogue', base:['ambush','Emboscada'], evo:['hf_shadow_hunt_01','Cacería Sombría'], mutation:['hf_eclipse_mortal_01','Eclipse Mortal'], spec:'subtlety', target:'enemy', stealth:true, aim:'🎯 TARGET · melee/espalda' },
     eviscerate: { label:'Rogue', base:['eviscerate','Remate'], evo:['hf_cruel_finish_01','Remate Cruel'], mutation:['hf_last_whisper_01','Último Susurro'], spec:null, target:'enemy', combo:5, aim:'🎯 TARGET · finisher 5 combo' },
     vanish: { label:'Rogue', base:['vanish','Desvanecer'], evo:['hf_shadow_vanish_01','Desvanecer Sombrío'], mutation:['hf_absolute_void_01','Vacío Absoluto'], spec:'subtlety', target:'none', aim:'SIN TARGET · combat stealth' },
-    shadowstep: { label:'Rogue', base:['shadowstep','Paso Sombrío'], evo:['hf_umbral_step_01','Paso Umbrío'], mutation:['hf_abyss_step_01','Paso del Abismo'], spec:'subtlety', target:'enemy', stealth:true, aim:'🎯 TARGET ANY · 24m' }
+    shadowstep: { label:'Rogue', base:['shadowstep','Paso Sombrío'], evo:['hf_umbral_step_01','Paso Umbrío'], mutation:['hf_abyss_step_01','Paso del Abismo'], spec:'subtlety', target:'enemy', stealth:true, aim:'🎯 TARGET ANY · 24m' },
+    reaping: { label:'Rogue', base:['hf_rw_reaping_command_01','Mandato de Siega'], evo:['hf_rw_unholy_dominion_01','Dominio Profano'], mutation:['hf_rw_march_of_dead_01','Marcha de los Muertos'], spec:null, target:'enemy', heritageUndead:true, aim:'🎯 TARGET · undead Rogue-owned' },
+    evil_eye: { label:'Rogue', base:['hf_rw_evil_eye_01','Ojo Maldito'], evo:['hf_rw_abyss_gaze_01','Mirada del Abismo'], mutation:['hf_rw_eye_of_end_01','Ojo del Fin'], spec:null, target:'enemy', aim:'🎯 TARGET · mark 30m' },
+    umbral_anchor: { label:'Rogue', base:['hf_rw_umbral_anchor_01','Ancla Umbral'], evo:['hf_rw_umbral_return_01','Retorno Umbrío'], mutation:['hf_rw_point_no_return_01','Punto de No Retorno'], spec:null, target:'none', aim:'SIN TARGET · place/recall ≤40m' }
   };
   var activeLineage = params.get('lablineage') || 'ambush';
   if (activeClass === 'rogue') {
@@ -172,7 +184,7 @@ LAB_SCRIPT = r"""
   var lineageButtons = '';
   if (activeClass === 'rogue') {
     lineageButtons = Object.keys(ROGUE_LINES).map(function (id) {
-      var labels = { ambush:'EMBOSCADA', eviscerate:'REMATE', vanish:'DESVANECER', shadowstep:'PASO SOMBRÍO' };
+      var labels = { ambush:'EMBOSCADA', eviscerate:'REMATE', vanish:'DESVANECER', shadowstep:'PASO SOMBRÍO', reaping:'MANDATO', evil_eye:'OJO MALDITO', umbral_anchor:'ANCLA' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
     }).join('');
   }
@@ -267,6 +279,37 @@ LAB_SCRIPT = r"""
     if (p) p.click();
   }
 
+  function stageRogueHeritageUndead() {
+    var g = game();
+    if (!g) return null;
+    var sim = g.sim;
+    var p = sim.player;
+    var undead = Array.from(sim.entities.values()).find(function (e) {
+      return e.kind === 'mob' && e.ownerId === p.id && !e.dead && e.templateId === 'necromancy_skeletal_warrior';
+    });
+    if (undead) return undead;
+    undead = Array.from(sim.entities.values()).find(function (e) {
+      return e.kind === 'mob' && e.ownerId == null && !e.dead;
+    });
+    if (!undead) return null;
+    undead.ownerId = p.id;
+    undead.templateId = 'necromancy_skeletal_warrior';
+    undead.hostile = false;
+    undead.aiState = 'idle';
+    undead.aggroTargetId = null;
+    undead.inCombat = false;
+    undead.tappedById = null;
+    undead.loot = null;
+    undead.lootable = false;
+    undead.moveSpeed = 0;
+    if (undead.weapon) {
+      undead.weapon.min = Math.max(8, undead.weapon.min || 0);
+      undead.weapon.max = Math.max(12, undead.weapon.max || 0);
+      undead.weapon.speed = Math.max(1.8, undead.weapon.speed || 0);
+    }
+    return undead;
+  }
+
   function prepare() {
     var g = game();
     if (!g) return false;
@@ -290,6 +333,7 @@ LAB_SCRIPT = r"""
     if (config.stealth && !p.auras.some(function (a) { return a.kind === 'stealth'; })) {
       p.auras.push({ id:'hf_skill_lab_stealth', name:'Duskveil', kind:'stealth', value:0.5, remaining:3600, duration:3600, sourceId:p.id, school:'physical' });
     }
+    if (config.heritageUndead && !stageRogueHeritageUndead()) return false;
     if (config.necromancy) {
       var fragments = p.auras.find(function (a) { return a.kind === 'soul_fragments'; });
       if (fragments) {
@@ -419,7 +463,7 @@ LAB_SCRIPT = r"""
       clearInterval(boot);
       stageDummy();
       setStatus('LISTO · ' + config.label.toUpperCase(), false);
-      window.__highflySkillLab = { cast:cast, reset:resetLab, stageDummy:stageDummy, activeClass:activeClass, activeLineage:activeLineage };
+      window.__highflySkillLab = { cast:cast, reset:resetLab, stageDummy:stageDummy, stageRogueHeritageUndead:stageRogueHeritageUndead, activeClass:activeClass, activeLineage:activeLineage };
     } else if (tries > 240) {
       clearInterval(boot);
       setStatus('BOOT TIMEOUT', true);
