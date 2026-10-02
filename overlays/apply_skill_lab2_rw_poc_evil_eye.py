@@ -47,7 +47,6 @@ rep(
     id: 'hf_rw_evil_eye_01',
     name: 'Ojo Maldito',
     class: 'rogue',
-    hiddenFromPlayer: true,
     learnLevel: 1,
     cost: 15,
     castTime: 0,
