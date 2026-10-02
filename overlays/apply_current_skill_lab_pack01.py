@@ -51,6 +51,7 @@ for (const id of [
   if (ABILITIES[id]) ABILITIES[id].hiddenFromPlayer = false;
 }
 if (!CLASSES.druid.abilities.includes('moonlash')) CLASSES.druid.abilities.push('moonlash');
+if (!CLASSES.rogue.abilities.includes('shadowstep')) CLASSES.rogue.abilities.push('shadowstep');
 """
 if lab_tail.strip() not in classes:
     write("src/sim/content/classes.ts", classes + lab_tail)
