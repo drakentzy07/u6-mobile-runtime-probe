@@ -143,7 +143,7 @@ rep(
 
 TEST.write_text(
     """import { describe, expect, it } from 'vitest';
-import { MOBS } from '../src/sim/data';
+import { ABILITIES, MOBS } from '../src/sim/data';
 import { createMob } from '../src/sim/entity';
 import { Sim } from '../src/sim/sim';
 import type { Entity, SimEvent } from '../src/sim/types';
@@ -200,10 +200,8 @@ function armSuddenDeath(sim: Sim): void {
 
 describe('HIGHFLY Skill Lab 2.0 Warrior Execute PRIME',()=>{
   it('BASE EVO MUT preserve exact Execute authority',()=>{
-    const base=(sim: Sim,id: string)=>sim.abilityDef(id)!;
-    const sim=makeWarrior(91);
     const authority=(id:string)=>{
-      const d=base(sim,id);
+      const d=ABILITIES[id]!;
       return {
         class:d.class,learnLevel:d.learnLevel,cost:d.cost,castTime:d.castTime,
         cooldown:d.cooldown,range:d.range,school:d.school,
