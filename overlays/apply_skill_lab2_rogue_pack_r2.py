@@ -275,6 +275,16 @@ rep(
         ) {""",
 )
 
+rep(
+    "src/sim/combat/effect_dispatch.ts",
+    """    ability.id === 'sap' ||
+    ability.id === 'shadowstep'
+  );""",
+    """    ability.id === 'sap' ||
+    ['shadowstep', 'hf_umbral_step_01', 'hf_abyss_step_01'].includes(ability.id)
+  );""",
+)
+
 # Kill Chain refreshes the active HIGHFLY Smokefade endpoint as well as BASE.
 rep(
     "src/sim/combat/damage.ts",
@@ -446,7 +456,8 @@ rep(
 # ---------------------------------------------------------------------------
 write(
     "tests/highfly_skill_lab2_rogue_pack_r2.test.ts",
-    """import { describe, expect, it } from 'vitest';
+    """import { readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
 import { ABILITIES, CLASSES } from '../src/sim/data';
 import { highflyPresentationRoute } from '../src/highfly/presentation_adapter';
 import { abilityVfxFullSpec } from '../src/render/ability_vfx_registry';
@@ -476,6 +487,13 @@ describe('HIGHFLY Skill Lab 2.0 Rogue PACK R2', () => {
       expect(def.effects.some((e) => ['directDamage','weaponStrike','finisherDamage'].includes(e.type))).toBe(false);
     }
     expect(abilityVfxFullSpec('hf_absolute_void_01')?.decal).toBe('portal');
+  });
+
+  it('R2C engine aliases preserve Duskveil for EVO/MUT like BASE Shadowstep', () => {
+    const source = readFileSync('src/sim/combat/effect_dispatch.ts', 'utf8');
+    expect(source).toContain(
+      "['shadowstep', 'hf_umbral_step_01', 'hf_abyss_step_01'].includes(ability.id)",
+    );
   });
 
   it('R2C Paso Sombrio preserves any-target 24m blink and zero damage authority', () => {
