@@ -3,7 +3,7 @@ import { chromium } from 'playwright';
 
 const BASE = 'http://127.0.0.1:4173/u6-mobile-runtime-probe/';
 const CASES = [
-  { cls: 'warrior', base: 'heroic_leap', evo: 'hf_jump_smash_01' },
+  { cls: 'warrior', base: 'heroic_leap', evo: 'hf_demolishing_leap_01' },
   { cls: 'paladin', base: 'consecration', evo: 'hf_radiant_sanctuary_01' },
   { cls: 'hunter', base: 'frostjaw_trap', evo: 'hf_hunter_prison_01' },
   { cls: 'rogue', base: 'ambush', evo: 'hf_shadow_hunt_01' },
