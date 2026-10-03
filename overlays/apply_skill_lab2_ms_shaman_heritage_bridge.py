@@ -1,0 +1,185 @@
+from pathlib import Path
+
+ROOT=Path(".")
+
+def read(path:str)->str:
+    return (ROOT/path).read_text(encoding="utf-8")
+
+def write(path:str,text:str)->None:
+    p=ROOT/path
+    p.parent.mkdir(parents=True,exist_ok=True)
+    p.write_text(text,encoding="utf-8")
+
+def rep(path:str,old:str,new:str)->None:
+    text=read(path)
+    n=text.count(old)
+    if n!=1:
+        raise SystemExit(f"{path}: expected 1 anchor, found {n}: {old[:180]!r}")
+    write(path,text.replace(old,new,1))
+
+# Internal-only Thundercall bridge for Mage+Shaman Heritage.
+# No UI/resource bar is added. Mage stays Mage and pays Mana.
+rep(
+    "src/sim/combat/shaman_thundercall.ts",
+    """const THUNDER_VENTS: ReadonlySet<string> = new Set(['earth_shock', 'earthquake']);""",
+    """const HIGHFLY_MS_FAULTWAKE_VENTS: ReadonlySet<string> = new Set([
+  'hf_ms_faultwake_01',
+  'hf_ms_primordial_cataclysm_01',
+  'hf_ms_storms_end_01',
+]);
+const THUNDER_VENTS: ReadonlySet<string> = new Set([
+  'earth_shock',
+  'earthquake',
+  ...HIGHFLY_MS_FAULTWAKE_VENTS,
+]);""",
+)
+
+rep(
+    "src/sim/combat/shaman_thundercall.ts",
+    """  return meta !== undefined && ctx.playerMods(meta).spec === 'elemental';""",
+    """  return (
+    meta !== undefined &&
+    (ctx.playerMods(meta).spec === 'elemental' || meta.cls === 'mage')
+  );""",
+)
+
+rep(
+    "src/sim/combat/shaman_thundercall.ts",
+    """  if (abilityId === 'earthquake') {
+    return (1 + charges * FAULTWAKE_BONUS_PER_CHARGE) * (1 + primalBonus);
+  }""",
+    """  if (abilityId === 'earthquake' || HIGHFLY_MS_FAULTWAKE_VENTS.has(abilityId)) {
+    return (1 + charges * FAULTWAKE_BONUS_PER_CHARGE) * (1 + primalBonus);
+  }""",
+)
+
+rep(
+    "src/sim/combat/shaman_thundercall.ts",
+    """    abilityId === 'earthquake' &&
+    isThundercall(ctx, player) &&""",
+    """    (abilityId === 'earthquake' || HIGHFLY_MS_FAULTWAKE_VENTS.has(abilityId)) &&
+    isThundercall(ctx, player) &&""",
+)
+
+rep(
+    "src/sim/combat/effect_dispatch.ts",
+    """const CHARGE_MAX_DURATION = 3; // seconds before a blocked charge gives up""",
+    """const HIGHFLY_MS_ARC_BOLT_IDS: ReadonlySet<string> = new Set([
+  'hf_ms_arc_bolt_01',
+  'hf_ms_overcharged_bolt_01',
+  'hf_ms_judgment_sky_01',
+]);
+
+const CHARGE_MAX_DURATION = 3; // seconds before a blocked charge gives up""",
+)
+
+rep(
+    "src/sim/combat/effect_dispatch.ts",
+    """        if (ability.id === 'lightning_bolt') {
+          thundercallOnArcBoltImpact(ctx, p);
+          triggerWardCycle(ctx, p);
+          rollArcOverload(ctx, p, target, ability.id, finalDamage, resolvedDamage, threatOpts.mult);
+        }""",
+    """        if (ability.id === 'lightning_bolt' || HIGHFLY_MS_ARC_BOLT_IDS.has(ability.id)) {
+          thundercallOnArcBoltImpact(ctx, p);
+          // HIGHFLY Mage adapters inherit only the internal Thunder builder.
+          // Native Shaman ward cycling / Arc Overload remain Shaman-owned.
+          if (ability.id === 'lightning_bolt') {
+            triggerWardCycle(ctx, p);
+            rollArcOverload(
+              ctx,
+              p,
+              target,
+              ability.id,
+              finalDamage,
+              resolvedDamage,
+              threatOpts.mult,
+            );
+          }
+        }""",
+)
+
+write(
+    "tests/highfly_skill_lab2_ms_shaman_heritage_bridge.test.ts",
+    """import { describe, expect, it } from 'vitest';
+import { addThunderCharges, thunderCharges } from '../src/sim/combat/shaman_thundercall';
+import { ABILITIES, MOBS } from '../src/sim/data';
+import { createMob } from '../src/sim/entity';
+import { Sim } from '../src/sim/sim';
+import type { Entity } from '../src/sim/types';
+import { EMPTY_TEST_WORLD } from './sim_shared';
+
+const ARC='hf_ms_arc_bolt_01';
+const FAULT='hf_ms_faultwake_01';
+
+function grantHidden(sim: Sim, id: string): void {
+  const meta=sim.meta(sim.playerId)!;
+  if(meta.known.some((known)=>known.def.id===id)) return;
+  const def=ABILITIES[id]!;
+  meta.known.push({
+    def,rank:1,cost:def.cost,castTime:def.castTime,cooldown:def.cooldown,effects:def.effects,
+    threatFlat:def.threat?.flat ?? 0,threatMult:def.threat?.mult ?? 1,bonusCharges:0,
+  });
+}
+
+function mage(seed:number):Sim {
+  const sim=new Sim({seed,playerClass:'mage',autoEquip:true,world:EMPTY_TEST_WORLD});
+  sim.setPlayerLevel(20);
+  sim.setSpec('fire');
+  sim.tick();
+  sim.player.resource=sim.player.maxResource;
+  sim.player.hitBonus=1;
+  grantHidden(sim,ARC);
+  grantHidden(sim,FAULT);
+  return sim;
+}
+
+function target(sim:Sim,z=8):Entity {
+  const mob=createMob((sim as unknown as {nextId:number}).nextId++,MOBS.training_dummy,20,{
+    x:sim.player.pos.x,y:sim.player.pos.y,z:sim.player.pos.z+z,
+  });
+  mob.hostile=true;
+  mob.maxHp=mob.hp=100_000;
+  mob.weapon.min=0; mob.weapon.max=0; mob.weapon.speed=1000; mob.swingTimer=1000; mob.moveSpeed=0;
+  sim.addEntity(mob);
+  return mob;
+}
+
+function ticks(sim:Sim,seconds:number):void {
+  for(let i=0;i<Math.ceil(seconds*20)+3;i++) sim.tick();
+}
+
+describe('HIGHFLY Mage Shaman internal Thundercall bridge',()=>{
+  it('Arc Bolt heritage builds hidden Thunder while Mage remains Mana-only',()=>{
+    const sim=mage(301);
+    const t=target(sim);
+    const equipment=JSON.stringify(sim.meta(sim.playerId)?.equipment);
+    sim.targetEntity(t.id);
+    const hp=t.hp;
+    sim.castAbility(ARC);
+    ticks(sim,1.8);
+    expect(t.hp).toBeLessThan(hp);
+    expect(thunderCharges(sim.player)).toBe(1);
+    expect(sim.meta(sim.playerId)?.cls).toBe('mage');
+    expect(sim.player.resourceType).toBe('mana');
+    expect(JSON.stringify(sim.meta(sim.playerId)?.equipment)).toBe(equipment);
+  });
+
+  it('Faultwake heritage vents hidden Thunder and keeps Mage identity',()=>{
+    const sim=mage(302);
+    const t=target(sim);
+    const ctx=(sim as unknown as {ctx:Parameters<typeof addThunderCharges>[0]}).ctx;
+    addThunderCharges(ctx,sim.player,5);
+    expect(thunderCharges(sim.player)).toBe(5);
+    const mana0=sim.player.resource;
+    sim.castAbility(FAULT,sim.player.id,{x:t.pos.x,z:t.pos.z});
+    expect(sim.player.resource).toBe(mana0-80);
+    expect(thunderCharges(sim.player)).toBe(0);
+    expect(sim.meta(sim.playerId)?.cls).toBe('mage');
+    expect(sim.player.resourceType).toBe('mana');
+  });
+});
+""",
+)
+
+print("HIGHFLY_SKILL_LAB2_MS_SHAMAN_HERITAGE_BRIDGE=1")
