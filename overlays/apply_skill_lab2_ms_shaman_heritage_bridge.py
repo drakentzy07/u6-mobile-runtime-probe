@@ -50,6 +50,7 @@ if "const HIGHFLY_MS_FAULTWAKE_VENTS" not in faultwake_text:
     pos=faultwake_text.find(marker)
     if pos<0:
         raise SystemExit(f"{faultwake_path}: missing THUNDER_VENTS declaration")
+    line_start=faultwake_text.rfind("\n",0,pos)+1
     highfly_decl="""const HIGHFLY_MS_FAULTWAKE_VENTS: ReadonlySet<string> = new Set([
   'hf_ms_faultwake_01',
   'hf_ms_primordial_cataclysm_01',
@@ -57,7 +58,12 @@ if "const HIGHFLY_MS_FAULTWAKE_VENTS" not in faultwake_text:
 ]);
 
 """
-    write(faultwake_path,faultwake_text[:pos]+highfly_decl+faultwake_text[pos:])
+    # Insert before the whole declaration line so an existing
+    # `export const THUNDER_VENTS` keeps its export token intact.
+    write(
+        faultwake_path,
+        faultwake_text[:line_start]+highfly_decl+faultwake_text[line_start:],
+    )
 
 append_set_items(
     faultwake_path,
