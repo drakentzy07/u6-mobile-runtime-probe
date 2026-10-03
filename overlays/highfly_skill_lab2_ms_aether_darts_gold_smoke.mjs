@@ -78,7 +78,11 @@ async function hardReset(){
 async function castAndMeasure(id){
   await hardReset();
   const before=await snapshot();
-  await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
+  const castStart=await page.evaluate((abilityId)=>{
+    const p=window.__game.sim.player;
+    window.__highflySkillLab.cast(abilityId);
+    return {resource:p.resource,maxResource:p.maxResource};
+  },id);
 
   await page.waitForFunction(
     (abilityId)=>{
@@ -100,7 +104,7 @@ async function castAndMeasure(id){
   );
   await page.waitForTimeout(250);
   const after=await snapshot();
-  return {id,before,during,after};
+  return {id,before,castStart,during,after};
 }
 
 const base=await castAndMeasure(ids.base);
@@ -154,9 +158,10 @@ const idsPassed=
 const basePassed=castPassed(base);
 const evoPassed=castPassed(evo);
 const mutationPassed=castPassed(mutation);
-const resourceParity=
-  (base.before.resource-base.during.resource)===(evo.before.resource-evo.during.resource) &&
-  (base.before.resource-base.during.resource)===(mutation.before.resource-mutation.during.resource);
+const baseCost=base.castStart.maxResource-base.castStart.resource;
+const evoCost=evo.castStart.maxResource-evo.castStart.resource;
+const mutationCost=mutation.castStart.maxResource-mutation.castStart.resource;
+const resourceParity=baseCost===evoCost && baseCost===mutationCost;
 const passed=idsPassed && basePassed && evoPassed && mutationPassed && resourceParity && criticalErrors.length===0;
 
 const report={
