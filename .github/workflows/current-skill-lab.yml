@@ -47,6 +47,8 @@ on:
 permissions:
   contents: read
   actions: read
+  pages: write
+  id-token: write
 
 concurrency:
   group: highfly-skill-lab-2-run0-audit
@@ -495,6 +497,16 @@ jobs:
           done
           node ./highfly_skill_lab2_ms_magma_burst_gold_smoke.mjs
 
+      - name: Configure GitHub Pages playtest
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Mage Shaman 7of7 playtest
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: upstream/dist
+
       - name: Upload Skill Lab diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -568,3 +580,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 2
 
+
+
+  deploy-playtest:
+    name: Deploy Mage Shaman 7of7 playtest
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
