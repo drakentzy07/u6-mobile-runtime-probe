@@ -2,7 +2,7 @@ from pathlib import Path
 import shutil
 
 ROOT=Path(".")
-HOST=ROOT.parent
+HOST=ROOT.resolve().parent
 
 def read(path:str)->str:
     return (ROOT/path).read_text(encoding="utf-8")
