@@ -68,6 +68,16 @@ async function cast(id){
     const sim=window.__game?.sim,p=sim?.player;
     return Boolean(sim&&p&&(sim.ctx?.groundAoEs??[]).some((z)=>z.sourceId===p.id&&z.hunterTrap&&z.abilityId===x));
   },id,{timeout:10000});
+  await page.evaluate((abilityId)=>{
+    const sim=window.__game.sim,p=sim.player,t=sim.entities.get(p.targetId);
+    const trap=(sim.ctx?.groundAoEs??[]).find((z)=>z.sourceId===p.id&&z.hunterTrap&&z.abilityId===abilityId);
+    if(t&&trap){
+      t.pos.x=trap.pos.x;
+      t.pos.z=trap.pos.z;
+      t.moveSpeed=0;
+      t.aiState='idle';
+    }
+  },id);
   const armed=await snap();
   await page.waitForFunction(()=>{
     const sim=window.__game?.sim,p=sim?.player,t=p?sim.entities.get(p.targetId):null;
