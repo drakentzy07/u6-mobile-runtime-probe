@@ -17,31 +17,65 @@ def rep(path:str,old:str,new:str)->None:
         raise SystemExit(f"{path}: expected 1 anchor, found {n}: {old[:180]!r}")
     write(path,text.replace(old,new,1))
 
+def append_set_items(path:str,const_name:str,items:list[str])->None:
+    text=read(path)
+    start=text.find(f"const {const_name}")
+    if start<0:
+        raise SystemExit(f"{path}: missing const {const_name}")
+    set_start=text.find("new Set([",start)
+    if set_start<0:
+        raise SystemExit(f"{path}: missing new Set([ for {const_name}")
+    body_start=set_start+len("new Set([")
+    end=text.find("]);",body_start)
+    if end<0:
+        raise SystemExit(f"{path}: missing ]); for {const_name}")
+    body=text[body_start:end]
+    missing=[item for item in items if f"'{item}'" not in body]
+    if not missing:
+        return
+    stripped=body.rstrip()
+    prefix=body[:len(body)-len(stripped)]
+    if stripped and not stripped.rstrip().endswith(","):
+        stripped += ","
+    addition="".join(f"\n  '{item}'," for item in missing)
+    new_body=stripped+addition+"\n"
+    write(path,text[:body_start]+new_body+text[end:])
+
 # Internal-only Thundercall bridge for Mage+Shaman Heritage.
 # No UI/resource bar is added. Mage stays Mage and pays Mana.
-rep(
-    "src/sim/combat/shaman_thundercall.ts",
-    """const THUNDER_VENTS: ReadonlySet<string> = new Set(['earth_shock', 'earthquake']);""",
-    """const HIGHFLY_MS_FAULTWAKE_VENTS: ReadonlySet<string> = new Set([
+faultwake_path="src/sim/combat/shaman_thundercall.ts"
+faultwake_text=read(faultwake_path)
+if "const HIGHFLY_MS_FAULTWAKE_VENTS" not in faultwake_text:
+    marker="const THUNDER_VENTS"
+    pos=faultwake_text.find(marker)
+    if pos<0:
+        raise SystemExit(f"{faultwake_path}: missing THUNDER_VENTS declaration")
+    highfly_decl="""const HIGHFLY_MS_FAULTWAKE_VENTS: ReadonlySet<string> = new Set([
   'hf_ms_faultwake_01',
   'hf_ms_primordial_cataclysm_01',
   'hf_ms_storms_end_01',
 ]);
-const THUNDER_VENTS: ReadonlySet<string> = new Set([
-  'earth_shock',
-  'earthquake',
-  ...HIGHFLY_MS_FAULTWAKE_VENTS,
-]);""",
+
+"""
+    write(faultwake_path,faultwake_text[:pos]+highfly_decl+faultwake_text[pos:])
+
+append_set_items(
+    faultwake_path,
+    "THUNDER_VENTS",
+    ["hf_ms_faultwake_01","hf_ms_primordial_cataclysm_01","hf_ms_storms_end_01"],
 )
 
-rep(
-    "src/sim/combat/shaman_thundercall.ts",
-    """  return meta !== undefined && ctx.playerMods(meta).spec === 'elemental';""",
-    """  return (
-    meta !== undefined &&
-    (ctx.playerMods(meta).spec === 'elemental' || meta.cls === 'mage')
-  );""",
-)
+thunder_text=read(faultwake_path)
+old_expr="ctx.playerMods(meta).spec === 'elemental'"
+if "meta.cls === 'mage'" not in thunder_text:
+    if thunder_text.count(old_expr)!=1:
+        raise SystemExit(f"{faultwake_path}: expected one elemental spec predicate")
+    thunder_text=thunder_text.replace(
+        old_expr,
+        "(ctx.playerMods(meta).spec === 'elemental' || meta.cls === 'mage')",
+        1,
+    )
+    write(faultwake_path,thunder_text)
 
 rep(
     "src/sim/combat/shaman_thundercall.ts",
