@@ -38,7 +38,7 @@ async function snap(){
       traps,
       target:t?{
         id:t.id,hp:t.hp,maxHp:t.maxHp,dead:t.dead,
-        rooted:t.auras.some((a)=>a.id==='frostjaw_trap_freeze'),
+        rootIds:t.auras.filter((a)=>a.kind==='root').map((a)=>a.id),
         slowed:t.auras.some((a)=>a.kind==='slow'),
       }:null,
     };
@@ -79,10 +79,10 @@ async function cast(id){
     }
   },id);
   const armed=await snap();
-  await page.waitForFunction(()=>{
+  await page.waitForFunction((abilityId)=>{
     const sim=window.__game?.sim,p=sim?.player,t=p?sim.entities.get(p.targetId):null;
-    return Boolean(t&&t.auras.some((a)=>a.id==='frostjaw_trap_freeze'));
-  },null,{timeout:15000});
+    return Boolean(t&&t.auras.some((a)=>a.kind==='root'&&a.id===abilityId+'_freeze'));
+  },id,{timeout:15000});
   const triggered=await snap();
   return {id,before,armed,triggered};
 }
@@ -108,7 +108,7 @@ function ok(r,expectedRadius,expectedRootAll){
   const z=r.armed.traps.filter((x)=>x.abilityId===r.id);
   return Boolean(
     r.before.target&&z.length===1&&z[0].radius===expectedRadius&&z[0].rootAll===expectedRootAll&&
-    (r.armed.cooldowns[r.id]??0)>0&&r.triggered.target?.rooted&&r.triggered.target?.slowed&&
+    (r.armed.cooldowns[r.id]??0)>0&&r.triggered.target?.rootIds?.includes(r.id+'_freeze')&&r.triggered.target?.slowed&&
     r.triggered.target.hp===r.before.target.hp&&identity(r)
   );
 }
