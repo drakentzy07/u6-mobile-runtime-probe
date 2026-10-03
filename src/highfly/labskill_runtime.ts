@@ -228,6 +228,11 @@ function renderHud(cls:string):void{
 }
 
 function boot():void{
+  const params=new URLSearchParams(location.search);
+  const legacySkillLab=params.get('skilllab')==='1';
+  const dedicatedLabSkill=params.get('labskill')==='1';
+  if(legacySkillLab && !dedicatedLabSkill) return;
+
   creatorWiring();
   let lastClass:string|null=null;
   const tick=()=>{
