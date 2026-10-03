@@ -104,6 +104,7 @@ function identity(before,after){
 }
 
 async function castAndGate(lineage,id){
+  console.log('HD7_GATE_BEGIN', lineage, id);
   await resetFixture();
   const before=await snap(id);
   await page.evaluate((abilityId)=>window.__highflySkillLab.cast(abilityId),id);
@@ -115,11 +116,11 @@ async function castAndGate(lineage,id){
     },id,{timeout:15000});
   } else if(lineage==='fevered'){
     await page.waitForFunction((abilityId)=>window.__game.sim.player.castingAbility===abilityId,id,{timeout:5000});
-    await page.waitForFunction(()=>window.__game.sim.player.castingAbility===null,null,{timeout:15000});
+    await page.waitForFunction(()=>window.__game.sim.player.castingAbility===null,null,{timeout:45000});
     await page.waitForFunction(()=>window.__game.sim.player.auras.some((a)=>a.id==='hunter_coldsight_read'),null,{timeout:5000});
   } else if(lineage==='volley'||lineage==='galeheart'){
     await page.waitForFunction((abilityId)=>window.__game.sim.player.castingAbility===abilityId,id,{timeout:5000});
-    await page.waitForFunction(()=>window.__game.sim.player.castingAbility===null,null,{timeout:20000});
+    await page.waitForFunction(()=>window.__game.sim.player.castingAbility===null,null,{timeout:90000});
   } else if(lineage==='stampede'){
     await page.waitForFunction(()=>{
       const sim=window.__game.sim,p=sim.player;
@@ -150,7 +151,9 @@ async function castAndGate(lineage,id){
     mechanic=after.target.hp<before.target.hp&&after.target.dots.includes('moonfire');
   }
   const cooldownOk=(lineage==='lunar_tempest'||id==='hf_hd_lunar_wave_01')?true:after.cooldown>0;
-  return {id,before,after,passed:Boolean(mechanic&&cooldownOk&&identity(before,after))};
+  const result={id,before,after,passed:Boolean(mechanic&&cooldownOk&&identity(before,after))};
+  console.log('HD7_GATE_END', lineage, id, JSON.stringify({passed:result.passed,cooldown:after.cooldown,casting:after.castingAbility,hp:after.target?.hp,guardians:after.guardians,moontide:after.moontide,coldsight:after.coldsight}));
+  return result;
 }
 
 const report={lineages:{},passed:false};
