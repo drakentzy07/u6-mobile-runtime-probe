@@ -234,7 +234,9 @@ function boot():void{
     const cls=metaClass();
     if(cls&&PRINCIPALS.has(cls)){
       const g=game();
-      g.sim.setPlayerLevel(20);
+      const p=g.sim.player;
+      const meta=g.sim.meta(p.id);
+      if(meta?.level!==20) g.sim.setPlayerLevel(20);
       if(cls!==lastClass||!document.getElementById('hf-labskill-hud')){
         lastClass=cls;
         renderHud(cls);
