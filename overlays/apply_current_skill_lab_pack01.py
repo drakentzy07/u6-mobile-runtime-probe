@@ -75,6 +75,8 @@ for (const id of [
   'hf_ms_crimson_rain_01',
   'hf_ms_fallen_star_01',
   'hf_ms_celestial_extinction_01',
+  'hf_ms_aether_storm_01',
+  'hf_ms_thousand_celestial_darts_01',
   'hf_primordial_cataclysm_01',
   'hf_unholy_dominion_01',
 ]) {
@@ -173,7 +175,8 @@ LAB_SCRIPT = r"""
 
   var MAGE_LINES = {
     pyrelance: { label:'Mage', base:['pyroblast','Lanza Pírica'], evo:['hf_ms_crimson_pyrelance_01','Lanza Pírica Carmesí'], mutation:['hf_ms_crimson_rain_01','Lluvia Carmesí'], spec:'fire', target:'enemy', aim:'🎯 TARGET ENEMIGO · Pyrelance PRIME' },
-    meteor: { label:'Mage', base:['meteor','Meteorito'], evo:['hf_ms_fallen_star_01','Estrella Caída'], mutation:['hf_ms_celestial_extinction_01','Extinción Celeste'], spec:'fire', target:'position', dummyDistance:8, aim:'🎯 SUELO · caída diferida 2s · radio 8' }
+    meteor: { label:'Mage', base:['meteor','Meteorito'], evo:['hf_ms_fallen_star_01','Estrella Caída'], mutation:['hf_ms_celestial_extinction_01','Extinción Celeste'], spec:'fire', target:'position', dummyDistance:8, aim:'🎯 SUELO · caída diferida 2s · radio 8' },
+    aether_darts: { label:'Mage', base:['arcane_missiles','Dardos Etéreos'], evo:['hf_ms_aether_storm_01','Tormenta de Éter'], mutation:['hf_ms_thousand_celestial_darts_01','Mil Dardos Celestes'], spec:'arcane', target:'enemy', aim:'🎯 TARGET · canal 3s · 3 ticks reales' }
   };
 
   var WARRIOR_LINES = {
@@ -240,7 +243,7 @@ LAB_SCRIPT = r"""
   } else if (activeClass === 'mage') {
     lineageLabel = 'MAGE PRIME:';
     lineageButtons = Object.keys(MAGE_LINES).map(function (id) {
-      var labels = { pyrelance:'PYRELANCE', meteor:'METEORITO' };
+      var labels = { pyrelance:'PYRELANCE', meteor:'METEORITO', aether_darts:'DARDOS ETÉREOS' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
     }).join('');
   }
