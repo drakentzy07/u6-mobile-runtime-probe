@@ -15,7 +15,7 @@ const creator=await page.evaluate(()=>({
   labels:[...document.querySelectorAll('#offline-select .mini-class')].map((e)=>e.textContent?.trim()),
 }));
 
-await page.goto(BASE+'?skilllab=1&labclass=mage',{waitUntil:'domcontentloaded',timeout:60000});
+await page.goto(BASE+'?skilllab=1&labskill=1&labclass=mage',{waitUntil:'domcontentloaded',timeout:60000});
 await page.waitForFunction(()=>Boolean(window.__game?.sim?.player),null,{timeout:90000});
 await page.waitForSelector('#hf-labskill-hud',{timeout:30000});
 await page.waitForFunction(()=>document.querySelectorAll('#hf-labskill-hud .hf-ls-skill').length===10,null,{timeout:15000});
