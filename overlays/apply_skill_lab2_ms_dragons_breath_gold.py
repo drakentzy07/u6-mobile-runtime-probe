@@ -162,6 +162,7 @@ export const HF_MS_DRAGONS_BREATH_VFX_FULL_SPEC: Record<string, AbilityVfxFullSp
   hf_ms_dragon_king_breath_01:{
     archetype:'nova',palette:'fire',power:2.1,windup:2.4,windupStyle:'vortex',
     chargeStreams:5,motifs:['pillars','orbitals'],motifAt:'caster',shaft:true,linger:4,
+    spirit:{model:'hawk',path:'lunge',at:'caster',scale:1.25,dur:2.0,tint:'#ff9a55',dim:0.22},
     impact:{flipbook:true,ring:2.8,vRing:true,sparks:76,debris:true,smoke:true,light:1.9},
     rim:'#ef4a28',accent:'#fff0c8',screenFx:true,finisher:true
   },
