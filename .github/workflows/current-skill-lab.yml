@@ -1,4 +1,4 @@
-name: HIGHFLY Skill Lab 2.0 Hunter Druid Frostjaw 1of7 GOLD
+name: HIGHFLY Skill Lab 2.0 Hunter Druid 7of7 GOLD
 
 on:
   push:
@@ -45,6 +45,9 @@ on:
       - "overlays/apply_skill_lab2_hd_frostjaw_gold.py"
       - "overlays/apply_skill_lab2_hd_frostjaw_lab.py"
       - "overlays/highfly_skill_lab2_hd_frostjaw_gold_smoke.mjs"
+      - "overlays/apply_skill_lab2_hd_7of7_gold.py"
+      - "overlays/apply_skill_lab2_hd_7of7_lab.py"
+      - "overlays/highfly_skill_lab2_hd_7of7_gold_smoke.mjs"
   workflow_dispatch:
 
 permissions:
@@ -179,6 +182,7 @@ jobs:
           python ../overlays/apply_skill_lab2_ms_shaman_heritage_bridge.py
           python ../overlays/apply_skill_lab2_ms_magma_burst_gold.py
           python ../overlays/apply_skill_lab2_hd_frostjaw_gold.py
+          python ../overlays/apply_skill_lab2_hd_7of7_gold.py
           git diff --check
           git diff --stat
 
@@ -199,7 +203,7 @@ jobs:
       - name: Skill Lab focused tests
         working-directory: upstream
         run: |
-          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts             tests/highfly_skill_lab2_rogue_hardening.test.ts             tests/highfly_skill_lab2_rogue_pack_r2.test.ts             tests/highfly_skill_lab2_warlock_pack_r3.test.ts             tests/highfly_skill_lab2_rw_poc_evil_eye.test.ts             tests/highfly_skill_lab2_rw_r3_core_adapters.test.ts             tests/highfly_skill_lab2_rw_r3_gold.test.ts             tests/highfly_skill_lab2_wp_main3.test.ts             tests/highfly_skill_lab2_wp_main3_gold.test.ts             tests/highfly_skill_lab2_wp_execute.test.ts             tests/highfly_skill_lab2_wp_paladin_heritage.test.ts             tests/highfly_skill_lab2_wp_7of7_gold.test.ts             tests/highfly_skill_lab2_ms_pyrelance_gold.test.ts             tests/highfly_skill_lab2_ms_meteor_gold.test.ts             tests/highfly_skill_lab2_ms_aether_darts_gold.test.ts             tests/highfly_skill_lab2_ms_dragons_breath_gold.test.ts             tests/highfly_skill_lab2_ms_faultwake_gold.test.ts             tests/highfly_skill_lab2_ms_arc_bolt_gold.test.ts             tests/highfly_skill_lab2_ms_shaman_heritage_bridge.test.ts             tests/highfly_skill_lab2_ms_magma_burst_gold.test.ts             tests/highfly_skill_lab2_hd_frostjaw_gold.test.ts
+          pnpm exec vitest run             tests/highfly_skill_adapter.test.ts             tests/highfly_validation_pack01.test.ts             tests/highfly_production_pack01.test.ts             tests/highfly_production_pack01_run0b.test.ts             tests/highfly_production_pack01_run0c.test.ts             tests/highfly_production_pack01_freeze.test.ts             tests/highfly_production_pack02.test.ts             tests/highfly_production_pack02_freeze.test.ts             tests/highfly_vertical_slice_contract.test.ts             tests/highfly_jump_smash_full.test.ts             tests/ground_aim_hud.test.ts             tests/ground_target_cast.test.ts             tests/heroic_leap.test.ts             tests/mobile_action_page_view.test.ts             tests/highfly_skill_lab2_rogue_mutation.test.ts             tests/highfly_skill_lab2_rogue_premium.test.ts             tests/highfly_skill_lab2_rogue_hardening.test.ts             tests/highfly_skill_lab2_rogue_pack_r2.test.ts             tests/highfly_skill_lab2_warlock_pack_r3.test.ts             tests/highfly_skill_lab2_rw_poc_evil_eye.test.ts             tests/highfly_skill_lab2_rw_r3_core_adapters.test.ts             tests/highfly_skill_lab2_rw_r3_gold.test.ts             tests/highfly_skill_lab2_wp_main3.test.ts             tests/highfly_skill_lab2_wp_main3_gold.test.ts             tests/highfly_skill_lab2_wp_execute.test.ts             tests/highfly_skill_lab2_wp_paladin_heritage.test.ts             tests/highfly_skill_lab2_wp_7of7_gold.test.ts             tests/highfly_skill_lab2_ms_pyrelance_gold.test.ts             tests/highfly_skill_lab2_ms_meteor_gold.test.ts             tests/highfly_skill_lab2_ms_aether_darts_gold.test.ts             tests/highfly_skill_lab2_ms_dragons_breath_gold.test.ts             tests/highfly_skill_lab2_ms_faultwake_gold.test.ts             tests/highfly_skill_lab2_ms_arc_bolt_gold.test.ts             tests/highfly_skill_lab2_ms_shaman_heritage_bridge.test.ts             tests/highfly_skill_lab2_ms_magma_burst_gold.test.ts             tests/highfly_skill_lab2_hd_frostjaw_gold.test.ts             tests/highfly_skill_lab2_hd_7of7_gold.test.ts
 
       - name: Apply Skill Lab playable harness
         working-directory: upstream
@@ -210,6 +214,7 @@ jobs:
           python ../overlays/apply_skill_lab2_ms_pack456_lab.py
           python ../overlays/apply_skill_lab2_ms_pack7_lab.py
           python ../overlays/apply_skill_lab2_hd_frostjaw_lab.py
+          python ../overlays/apply_skill_lab2_hd_7of7_lab.py
           git diff --check
 
       - name: TypeScript source check
@@ -517,6 +522,23 @@ jobs:
           done
           node ./highfly_skill_lab2_hd_frostjaw_gold_smoke.mjs
 
+      - name: Skill Lab 2.0 Hunter Druid 7of7 GOLD browser smoke
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/highfly_skill_lab2_hd_7of7_gold_smoke.mjs ./highfly_skill_lab2_hd_7of7_gold_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4188 --base=/u6-mobile-runtime-probe/ > ../skill-lab2-hd-7of7-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4188/u6-mobile-runtime-probe/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node ./highfly_skill_lab2_hd_7of7_gold_smoke.mjs
+
       - name: Upload Skill Lab diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -590,6 +612,9 @@ jobs:
             skill-lab2-hd-frostjaw-mutation.png
             skill-lab2-hd-frostjaw-gold-report.json
             skill-lab2-hd-frostjaw-preview.log
+            skill-lab2-hd-7of7-final.png
+            skill-lab2-hd-7of7-gold-report.json
+            skill-lab2-hd-7of7-preview.log
           if-no-files-found: warn
           retention-days: 2
 
