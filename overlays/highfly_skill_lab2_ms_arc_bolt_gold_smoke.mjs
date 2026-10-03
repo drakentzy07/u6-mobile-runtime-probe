@@ -29,11 +29,16 @@ async function reset(){await page.evaluate(()=>{
   const t=sim.entities.get(p.targetId);if(t){t.dead=false;t.hp=t.maxHp;t.auras=t.auras.filter((a)=>a.sourceId!==p.id);}
 });}
 async function cast(id){
-  await reset();const before=await snap();await page.evaluate((x)=>window.__highflySkillLab.cast(x),id);
+  await reset();const before=await snap();
+  const castStart=await page.evaluate((x)=>{
+    const p=window.__game.sim.player;
+    window.__highflySkillLab.cast(x);
+    return {resource:p.resource,maxResource:p.maxResource};
+  },id);
   await page.waitForFunction((x)=>window.__game?.sim?.player?.castingAbility===x,id,{timeout:10000});
   const during=await snap();
   await page.waitForFunction((hp)=>{const sim=window.__game?.sim,p=sim?.player,t=p?sim.entities.get(p.targetId):null;return Boolean(p&&t&&p.castingAbility==null&&t.hp<hp);},before.target?.hp??0,{timeout:60000});
-  const after=await snap();return{id,before,during,after};
+  const after=await snap();return{id,before,castStart,during,after};
 }
 const base=await cast(ids.base),evo=await cast(ids.evo),mutation=await cast(ids.mutation);
 await page.screenshot({path:'../skill-lab2-ms-arc-bolt-mutation.png',fullPage:true});
@@ -48,8 +53,10 @@ function ok(r){return Boolean(r.before.target&&r.before.thunder===0&&r.during.ca
   r.before.resourceType==='mana'&&r.after.resourceType==='mana'&&r.before.equipment===r.after.equipment);}
 const idsPassed=ids.base==='hf_ms_arc_bolt_01'&&ids.evo==='hf_ms_overcharged_bolt_01'&&ids.mutation==='hf_ms_judgment_sky_01'&&ids.activeClass==='mage'&&ids.activeLineage==='arc_bolt';
 const basePassed=ok(base),evoPassed=ok(evo),mutationPassed=ok(mutation);
-const costParity=(base.before.resource-base.after.resource)===(evo.before.resource-evo.after.resource)&&
-  (base.before.resource-base.after.resource)===(mutation.before.resource-mutation.after.resource);
+const baseCost=base.castStart.maxResource-base.castStart.resource;
+const evoCost=evo.castStart.maxResource-evo.castStart.resource;
+const mutationCost=mutation.castStart.maxResource-mutation.castStart.resource;
+const costParity=baseCost===evoCost&&baseCost===mutationCost;
 const passed=idsPassed&&basePassed&&evoPassed&&mutationPassed&&costParity&&criticalErrors.length===0;
 const report={ids,base,evo,mutation,gates:{idsPassed,basePassed,evoPassed,mutationPassed,costParity},criticalErrors,passed};
 fs.writeFileSync('../skill-lab2-ms-arc-bolt-gold-report.json',JSON.stringify(report,null,2));
