@@ -60,26 +60,16 @@ rep(
 
 rep(
     "index.html",
-    """  } else if (activeClass === 'mage') {
-    lineageLabel = 'MAGE PRIME:';
-    lineageButtons = Object.keys(MAGE_LINES).map(function (id) {
-      var labels = { pyrelance:'PYRELANCE', meteor:'METEORITO', aether_darts:'DARDOS ETÉREOS' };
-      return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
-    }).join('');
-  }""",
-    """  } else if (activeClass === 'mage') {
-    lineageLabel = 'MAGE PRIME:';
-    lineageButtons = Object.keys(MAGE_LINES).map(function (id) {
-      var labels = { pyrelance:'PYRELANCE', meteor:'METEORITO', aether_darts:'DARDOS ETÉREOS' };
-      return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
-    }).join('');
-  } else if (activeClass === 'hunter') {
+    """  var panel = document.createElement('div');""",
+    """  if (activeClass === 'hunter') {
     lineageLabel = 'HUNTER PRIME:';
     lineageButtons = Object.keys(HUNTER_LINES).map(function (id) {
       var labels = { frostjaw:'FROSTJAW' };
       return '<button class="hf-lineage ' + (id === activeLineage ? 'hf-active' : '') + '" data-lineage="' + id + '">' + labels[id] + '</button>';
     }).join('');
-  }""",
+  }
+
+  var panel = document.createElement('div');""",
 )
 
 print("HIGHFLY_SKILL_LAB2_HD_FROSTJAW_LAB=1")
