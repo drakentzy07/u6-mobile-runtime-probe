@@ -1,8 +1,8 @@
-name: HIGHFLY Skill Lab 2.0 Hunter Druid 7of7 GOLD
+name: HIGHFLY Skill Lab 2.0 Four Pairs FINAL
 
 on:
   push:
-    branches: [highfly/skill-lab-2.0-hd-7of7-goldbase]
+    branches: [highfly/skill-lab-2.0-four-pairs-final]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
@@ -53,9 +53,11 @@ on:
 permissions:
   contents: read
   actions: read
+  pages: write
+  id-token: write
 
 concurrency:
-  group: highfly-skill-lab-2-hd-audit
+  group: highfly-skill-lab-2-four-pairs-final
   cancel-in-progress: true
 
 jobs:
@@ -539,6 +541,16 @@ jobs:
           done
           node ./highfly_skill_lab2_hd_7of7_gold_smoke.mjs
 
+      - name: Configure GitHub Pages final playtest
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Four Pairs final playtest
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: upstream/dist
+
       - name: Upload Skill Lab diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -618,3 +630,16 @@ jobs:
           if-no-files-found: warn
           retention-days: 2
 
+
+
+  deploy-playtest:
+    name: Deploy Four Pairs final playtest
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: highfly-skill-lab-preview
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
