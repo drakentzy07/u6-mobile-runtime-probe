@@ -8,7 +8,7 @@ const errors=[];
 page.on('pageerror',(e)=>errors.push(String(e)));
 
 await page.goto(BASE,{waitUntil:'domcontentloaded',timeout:60000});
-await page.waitForSelector('#offline-select',{timeout:30000});
+await page.waitForSelector('#offline-select',{state:'attached',timeout:30000});
 const creator=await page.evaluate(()=>({
   title:document.querySelector('#offline-select .hf-labskill-creator-title')?.textContent?.trim(),
   ids:[...document.querySelectorAll('#offline-select .mini-class')].map((e)=>e.getAttribute('data-class')),
