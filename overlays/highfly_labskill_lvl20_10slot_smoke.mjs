@@ -24,7 +24,7 @@ const before=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   return {
     cls:m?.cls,
-    level:m?.level,
+    level:p.level,
     resourceType:p.resourceType,
     equipment:JSON.stringify(m?.equipment),
     pair:document.querySelector('#hf-labskill-hud .hf-ls-pair')?.textContent?.trim(),
@@ -39,14 +39,19 @@ const before=await page.evaluate(()=>{
 });
 
 await page.evaluate(()=>window.__highflyLabSkill.castSlot('S9'));
-await page.waitForTimeout(1200);
+await page.waitForFunction(()=>{
+  const sim=window.__game?.sim;
+  if(!sim?.player) return false;
+  const t=sim.entities.get(sim.player.targetId);
+  return Boolean(t && t.hp < t.maxHp);
+},null,{timeout:10000});
 
 const after=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   const t=sim.entities.get(p.targetId);
   return {
     cls:m?.cls,
-    level:m?.level,
+    level:p.level,
     resourceType:p.resourceType,
     equipment:JSON.stringify(m?.equipment),
     targetHp:t?.hp??null,
