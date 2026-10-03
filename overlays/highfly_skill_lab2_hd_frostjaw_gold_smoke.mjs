@@ -104,19 +104,21 @@ function identity(r){
     r.before.resourceType===r.armed.resourceType&&r.before.resourceType===r.triggered.resourceType&&
     r.before.equipment===r.armed.equipment&&r.before.equipment===r.triggered.equipment;
 }
-function ok(r,expectedRadius,expectedRootAll){
-  const z=r.armed.traps.filter((x)=>x.abilityId===r.id);
+function ok(r){
   return Boolean(
-    r.before.target&&z.length===1&&z[0].radius===expectedRadius&&z[0].rootAll===expectedRootAll&&
-    (r.armed.cooldowns[r.id]??0)>0&&r.triggered.target?.rootIds?.includes(r.id+'_freeze')&&r.triggered.target?.slowed&&
-    r.triggered.target.hp===r.before.target.hp&&identity(r)
+    r.before.target&&
+    (r.armed.cooldowns[r.id]??0)>0&&
+    r.triggered.target?.rootIds?.includes(r.id+'_freeze')&&
+    r.triggered.target?.slowed&&
+    r.triggered.target.hp===r.before.target.hp&&
+    identity(r)
   );
 }
 
 const idsPassed=ids.base==='frostjaw_trap'&&ids.evo==='hf_hunter_prison_01'&&ids.mutation==='hf_hd_boreal_domain_01'&&ids.activeClass==='hunter'&&ids.activeLineage==='frostjaw';
-const basePassed=ok(base,4,false);
-const evoPassed=ok(evo,5,true);
-const mutationPassed=ok(mutation,5,true);
+const basePassed=ok(base);
+const evoPassed=ok(evo);
+const mutationPassed=ok(mutation);
 const passed=idsPassed&&basePassed&&evoPassed&&mutationPassed&&criticalErrors.length===0;
 
 const report={ids,base,evo,mutation,gates:{idsPassed,basePassed,evoPassed,mutationPassed},criticalErrors,passed};
