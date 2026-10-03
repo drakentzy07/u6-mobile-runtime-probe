@@ -154,24 +154,24 @@ write(
     """import type { AbilityVfxFullSpec, AbilityVfxSpec } from '../render/ability_vfx_core';
 
 export const HF_MS_ARC_BOLT_VFX_SPEC: Record<string, AbilityVfxSpec> = {
-  hf_ms_arc_bolt_01:{c:'#7ec8ff',p:'nature',pw:1.05,sp:24,vr:1,li:1.0,lg:1.8,a:'bolt'},
-  hf_ms_overcharged_bolt_01:{c:'#62b8ff',p:'nature',pw:1.45,sp:38,vr:1,li:1.35,lg:2.3,a:'bolt'},
-  hf_ms_judgment_sky_01:{c:'#b6e6ff',p:'nature',pw:1.85,sp:56,vr:1,li:1.8,lg:3.0,fin:1,a:'bolt'},
+  hf_ms_arc_bolt_01:{c:'#7ec8ff',p:'storm',pw:1.05,sp:24,vr:1,li:1.0,lg:1.8,a:'bolt'},
+  hf_ms_overcharged_bolt_01:{c:'#62b8ff',p:'storm',pw:1.45,sp:38,vr:1,li:1.35,lg:2.3,a:'bolt'},
+  hf_ms_judgment_sky_01:{c:'#b6e6ff',p:'storm',pw:1.85,sp:56,vr:1,li:1.8,lg:3.0,fin:1,a:'bolt'},
 };
 
 export const HF_MS_ARC_BOLT_VFX_FULL_SPEC: Record<string, AbilityVfxFullSpec> = {
   hf_ms_arc_bolt_01:{
-    archetype:'bolt',palette:'nature',power:1.05,bolt:{speed:30,style:'arc',headScale:0.8,coils:false,jagged:true,forkEvery:0},
+    archetype:'bolt',palette:'storm',power:1.05,bolt:{speed:30,headScale:0.8,coils:true,jagged:true,forkEvery:0,leader:true},
     linger:1.8,impact:{flipbook:false,ring:1.1,vRing:true,sparks:24,debris:false,smoke:false,light:1.0},
     rim:'#7ec8ff'
   },
   hf_ms_overcharged_bolt_01:{
-    archetype:'bolt',palette:'nature',power:1.45,bolt:{speed:32,style:'arc',headScale:1.0,coils:true,jagged:true,forkEvery:1},
+    archetype:'bolt',palette:'storm',power:1.45,bolt:{speed:32,headScale:1.0,coils:true,jagged:true,forkEvery:0.12,leader:true},
     chargeStreams:2,linger:2.3,impact:{flipbook:true,ring:1.4,vRing:true,sparks:38,debris:false,smoke:false,light:1.35},
     rim:'#62b8ff',accent:'#d8f3ff'
   },
   hf_ms_judgment_sky_01:{
-    archetype:'bolt',palette:'nature',power:1.85,bolt:{speed:34,style:'arc',headScale:1.15,coils:true,jagged:true,forkEvery:1},
+    archetype:'bolt',palette:'storm',power:1.85,bolt:{speed:34,headScale:1.15,coils:true,jagged:true,forkEvery:0.08,leader:true},
     chargeStreams:3,shaft:true,motifs:['pillars'],motifAt:'target',linger:3,
     impact:{flipbook:true,ring:1.8,vRing:true,sparks:56,debris:false,smoke:true,light:1.8},
     rim:'#b6e6ff',accent:'#ffffff',screenFx:true,finisher:true
@@ -246,7 +246,7 @@ describe('HIGHFLY Mage Shaman 6/7 GOLD — Arc Bolt',()=>{
     expect(highflyPresentationRoute(BASE,'animation')).toBe('lightning_bolt');
     expect(highflyPresentationRoute(EVO,'animation')).toBe('lightning_bolt');
     expect(highflyPresentationRoute(MUT,'animation')).toBe('lightning_bolt');
-    expect(abilityVfxFullSpec(MUT)).toMatchObject({archetype:'bolt',palette:'nature',screenFx:true,finisher:true});
+    expect(abilityVfxFullSpec(MUT)).toMatchObject({archetype:'bolt',palette:'storm',screenFx:true,finisher:true});
   });
 });
 """,
