@@ -12,12 +12,12 @@ def write(path:str,text:str)->None:
     p.parent.mkdir(parents=True,exist_ok=True)
     p.write_text(text,encoding="utf-8")
 
-def rep(path:str,old:str,new:str)->None:
+def rep(path:str,old:str,new:str,count:int=1)->None:
     text=read(path)
     n=text.count(old)
-    if n!=1:
-        raise SystemExit(f"{path}: expected 1 anchor, found {n}: {old[:180]!r}")
-    write(path,text.replace(old,new,1))
+    if n!=count:
+        raise SystemExit(f"{path}: expected {count} anchor(s), found {n}: {old[:180]!r}")
+    write(path,text.replace(old,new,count))
 
 # Copy dedicated LABSKILL sources from host repo into frozen upstream worktree.
 for src,dst in [
@@ -48,7 +48,7 @@ creator_new="""                <div class="mini-class-row hf-labskill-class-row"
                   <button type="button" class="mini-class" data-class="mage" aria-label="Mage + Shaman" aria-pressed="false">MAGE + SHAMAN</button>
                   <button type="button" class="mini-class" data-class="hunter" aria-label="Hunter + Druid" aria-pressed="false">HUNTER + DRUID</button>
                 </div>"""
-rep("index.html",creator_old,creator_new)
+rep("index.html",creator_old,creator_new,count=2)
 
 rep(
     "index.html",
