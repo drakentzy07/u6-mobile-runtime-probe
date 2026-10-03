@@ -370,9 +370,20 @@ function core(id:string) {
     requiresTarget:d.requiresTarget,projectileFx:d.projectileFx,effects:d.effects,ranks:d.ranks};
 }
 
+function grantHidden(sim:Sim,id:string):void {
+  const meta=sim.meta(sim.playerId)!;
+  if(meta.known.some((known)=>known.def.id===id)) return;
+  const def=ABILITIES[id]!;
+  meta.known.push({
+    def,rank:1,cost:def.cost,castTime:def.castTime,cooldown:def.cooldown,effects:def.effects,
+    threatFlat:def.threat?.flat ?? 0,threatMult:def.threat?.mult ?? 1,bonusCharges:0,
+  });
+}
+
 function mage(seed:number):{sim:Sim,p:Entity,target:Entity} {
   const sim=new Sim({seed,playerClass:'mage',autoEquip:true,world:EMPTY_TEST_WORLD});
   sim.setPlayerLevel(20); sim.setSpec('fire'); sim.tick();
+  for(const id of [CINDER,BASE,EVO,MUT]) grantHidden(sim,id);
   const p=sim.player; p.resource=p.maxResource; p.hitBonus=1;
   const target=createMob((sim as unknown as {nextId:number}).nextId++,MOBS.training_dummy,20,{
     x:p.pos.x,y:p.pos.y,z:p.pos.z+6,
