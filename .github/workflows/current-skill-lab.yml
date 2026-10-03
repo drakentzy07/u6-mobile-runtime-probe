@@ -1,8 +1,8 @@
-name: HIGHFLY Skill Lab 2.0 Four Pairs FINAL
+name: HIGHFLY LABSKILL LVL20 4 Pairs 10 Slot
 
 on:
   push:
-    branches: [highfly/skill-lab-2.0-four-pairs-final]
+    branches: [highfly/labskill-lvl20-10slot]
     paths:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
@@ -48,6 +48,12 @@ on:
       - "overlays/apply_skill_lab2_hd_7of7_gold.py"
       - "overlays/apply_skill_lab2_hd_7of7_lab.py"
       - "overlays/highfly_skill_lab2_hd_7of7_gold_smoke.mjs"
+      - "overlays/apply_highfly_labskill_lvl20_10slot.py"
+      - "overlays/highfly_labskill_lvl20_10slot_smoke.mjs"
+      - "src/highfly/labskill_loadouts.ts"
+      - "src/highfly/labskill_runtime.ts"
+      - "src/styles/hf_labskill.css"
+      - "tests/highfly_labskill_lvl20_10slot.test.ts"
   workflow_dispatch:
 
 permissions:
@@ -57,7 +63,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: highfly-skill-lab-2-four-pairs-final
+  group: highfly-labskill-lvl20-10slot
   cancel-in-progress: true
 
 jobs:
@@ -217,7 +223,12 @@ jobs:
           python ../overlays/apply_skill_lab2_ms_pack7_lab.py
           python ../overlays/apply_skill_lab2_hd_frostjaw_lab.py
           python ../overlays/apply_skill_lab2_hd_7of7_lab.py
+          python ../overlays/apply_highfly_labskill_lvl20_10slot.py
           git diff --check
+
+      - name: HIGHFLY LABSKILL 5+5 contract tests
+        working-directory: upstream
+        run: pnpm exec vitest run tests/highfly_labskill_lvl20_10slot.test.ts
 
       - name: TypeScript source check
         working-directory: upstream
@@ -541,12 +552,29 @@ jobs:
           done
           node ./highfly_skill_lab2_hd_7of7_gold_smoke.mjs
 
+      - name: HIGHFLY LABSKILL LVL20 10-slot browser smoke
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/highfly_labskill_lvl20_10slot_smoke.mjs ./highfly_labskill_lvl20_10slot_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4189 --base=/u6-mobile-runtime-probe/ > ../labskill-lvl20-10slot-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:4189/u6-mobile-runtime-probe/ >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          node ./highfly_labskill_lvl20_10slot_smoke.mjs
+
       - name: Configure GitHub Pages final playtest
         uses: actions/configure-pages@v5
         with:
           enablement: true
 
-      - name: Upload Four Pairs final playtest
+      - name: Upload HIGHFLY LABSKILL LVL20 playtest
         uses: actions/upload-pages-artifact@v3
         with:
           path: upstream/dist
@@ -627,13 +655,16 @@ jobs:
             skill-lab2-hd-7of7-final.png
             skill-lab2-hd-7of7-gold-report.json
             skill-lab2-hd-7of7-preview.log
+            labskill-lvl20-mage-10slot.png
+            labskill-lvl20-10slot-report.json
+            labskill-lvl20-10slot-preview.log
           if-no-files-found: warn
           retention-days: 2
 
 
 
   deploy-playtest:
-    name: Deploy Four Pairs final playtest
+    name: Deploy HIGHFLY LABSKILL LVL20 playtest
     needs: build
     runs-on: ubuntu-latest
     environment:
