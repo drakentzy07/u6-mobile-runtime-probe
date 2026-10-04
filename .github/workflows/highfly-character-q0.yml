@@ -1,0 +1,223 @@
+name: HIGHFLY CHARACTER Q0
+
+on:
+  push:
+    branches: [highfly/character-q0]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: highfly-character-q0
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Character Q0 host
+        uses: actions/checkout@v4
+
+      - name: Checkout current HIGHFLY movement foundation
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: b40a9b68d1bac946976878d788cf21771cc8c0d3
+          path: foundation-src
+
+      - name: Checkout frozen ClaudeCraft
+        uses: actions/checkout@v4
+        with:
+          repository: levy-street/world-of-claudecraft
+          ref: 9b57e49c9676d75962700f828cc00a50a9a988b5
+          path: upstream
+          filter: blob:none
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /src/
+            /tests/
+            /electron/
+            /scripts/
+            /server/
+            /headless/
+            /bot/
+            /data/
+            /patches/
+            /private/
+            /public/
+            /package.json
+            /pnpm-lock.yaml
+            /vite.config.ts
+            /tsconfig.json
+            /tsconfig.admin.json
+            /tsconfig.bot.json
+            /svelte.config.js
+            /.browserslistrc
+            /.npmrc
+            /biome.json
+            /index.html
+            /admin.html
+            /guide.html
+            /editor.html
+            /play.html
+            /wallet-handoff.html
+
+      - name: Verify frozen ClaudeCraft
+        working-directory: upstream
+        run: test "$(git rev-parse HEAD)" = "9b57e49c9676d75962700f828cc00a50a9a988b5"
+
+      - name: Apply current HIGHFLY mobile foundation
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply ../foundation-src/overlays/pages-media-base.patch
+          git apply ../foundation-src/overlays/cobalt-offline-gate.patch
+          python ../foundation-src/overlays/highfly_mobile_360.py
+          python ../foundation-src/overlays/highfly_mobile_analog.py
+          python ../foundation-src/overlays/verify_highfly_8way.py
+          python ../foundation-src/overlays/highfly_offline_save.py
+          python ../foundation-src/overlays/highfly_entry_es.py
+          python ../foundation-src/overlays/highfly_mobile_creator.py
+          python ../foundation-src/overlays/highfly_offline_resume_preview.py
+          python ../foundation-src/overlays/highfly_mobile_polish.py
+          python ../foundation-src/overlays/highfly_advanced_mobility.py
+          python ../foundation-src/overlays/highfly_run09_mobile_actions.py
+          python ../foundation-src/overlays/highfly_run091_ui_polish.py
+          python ../foundation-src/overlays/highfly_run092_hud_comfort.py
+          python ../foundation-src/overlays/highfly_run093_preview_hud.py
+          python ../foundation-src/overlays/highfly_run093_combat.py
+          cp ../foundation-src/overlays/rewrite_source_public_paths.py ../rewrite_source_public_paths_q0.py
+          sed -i 's#/cobalt-hollow-lab#/u6-mobile-runtime-probe#g' ../rewrite_source_public_paths_q0.py
+          python ../rewrite_source_public_paths_q0.py
+          python -c "from pathlib import Path; p=Path('vite.config.ts'); s=p.read_text(); old=\"  base: '/',\"; new=\"  base: env(['VITE_COBALT_BASE']) ?? '/',\"; assert s.count(old)==1; p.write_text(s.replace(old,new))"
+
+      - name: Apply frozen Affinity Lab and Character Q0 overlay
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          python ../overlays/apply_highfly_affinity_lab_v1.py
+          python ../overlays/apply_highfly_character_q0.py
+          cp ../tests/highfly_character_q0.test.ts tests/highfly_character_q0.test.ts
+          git diff --check
+          git diff --stat
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Enable pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.34.5 --activate
+
+      - name: Install dependencies
+        working-directory: upstream
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Build Q0 donors onto canonical Rig_Medium
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/build_highfly_character_q0.mjs ./highfly_character_q0_build.mjs
+          node ./highfly_character_q0_build.mjs
+          test -s public/models/chars/players/q0/hf_q0_male_rigmedium.glb
+          test -s public/models/chars/players/q0/hf_q0_female_rigmedium.glb
+
+      - name: Character Q0 isolation and Affinity gates
+        working-directory: upstream
+        run: |
+          pnpm exec vitest run \
+            tests/highfly_character_q0.test.ts \
+            tests/highfly_affinity_lab_v1.test.ts \
+            tests/heroic_leap.test.ts \
+            tests/ground_aim_hud.test.ts \
+            tests/ground_target_cast.test.ts \
+            tests/mobile_action_page_view.test.ts
+
+      - name: TypeScript source check
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > tsconfig.character-q0-src.json <<'EOF'
+          {
+            "extends": "./tsconfig.json",
+            "include": ["src/**/*.ts", "src/**/*.tsx"],
+            "exclude": ["tests/**"]
+          }
+          EOF
+          pnpm exec tsc --project tsconfig.character-q0-src.json --noEmit --incremental false
+
+      - name: Build Character Q0 WebGL
+        working-directory: upstream
+        env:
+          VITE_COBALT_OFFLINE: "1"
+          VITE_COBALT_BASE: "/u6-mobile-runtime-probe/"
+        shell: bash
+        run: |
+          set -euo pipefail
+          pnpm run build:bundle
+          node scripts/build_media_manifest.mjs prune
+          cp ../foundation-src/overlays/rewrite_pages_static.py ../rewrite_pages_static_q0.py
+          sed -i 's#/cobalt-hollow-lab#/u6-mobile-runtime-probe#g' ../rewrite_pages_static_q0.py
+          python ../rewrite_pages_static_q0.py
+          touch dist/.nojekyll
+          du -sh dist
+
+      - name: Character Q0 browser smoke
+        working-directory: upstream
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp ../overlays/highfly_character_q0_smoke.mjs ./highfly_character_q0_smoke.mjs
+          pnpm exec vite preview --host 127.0.0.1 --port 4190 --base=/u6-mobile-runtime-probe/ > ../character-q0-preview.log 2>&1 &
+          PREVIEW_PID=$!
+          trap 'kill "$PREVIEW_PID" 2>/dev/null || true' EXIT
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:4190/u6-mobile-runtime-probe/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node ./highfly_character_q0_smoke.mjs
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Upload Character Q0 playtest
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: upstream/dist
+
+      - name: Upload Character Q0 diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-character-q0-diagnostics
+          path: |
+            character-q0-rig-report.json
+            character-q0-smoke-report.json
+            character-q0-warrior.png
+            character-q0-preview.log
+          if-no-files-found: warn
+          retention-days: 3
+
+  deploy-playtest:
+    name: Deploy HIGHFLY Character Q0
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: highfly-character-q0-preview
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy Character Q0 to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
