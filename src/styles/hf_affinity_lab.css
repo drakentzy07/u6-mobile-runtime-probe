@@ -27,3 +27,7 @@ body.hf-affinity-active #hud{padding-top:86px}
 .hf-aff-classpick{font-size:10px;padding:7px 8px!important}
 .hf-aff-compare.hf-spec-mismatch{opacity:.45}
 .hf-aff-compare.hf-spec-mismatch .hf-aff-receptor:after{content:" · elegí spec";font-size:9px;color:#ffcf80}
+
+.hf-q0-label{font-size:10px;font-weight:900;letter-spacing:.08em;opacity:.78;margin-left:5px}
+.hf-q0-body{font-size:10px;padding:7px 9px!important;border:1px solid rgba(255,255,255,.2)!important}
+.hf-q0-body.hf-active{border-color:#e4a8ff!important;background:#54226f!important;box-shadow:0 0 0 1px rgba(228,168,255,.18) inset}
