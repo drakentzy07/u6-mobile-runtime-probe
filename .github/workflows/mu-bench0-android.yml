@@ -17,7 +17,7 @@ permissions:
 
 jobs:
   android-benchmark:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     timeout-minutes: 60
 
     steps:
@@ -25,66 +25,80 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Checkout pinned MU client
+        shell: pwsh
         run: |
           git clone https://github.com/bernatvadell/muonline.git muonline
-          cd muonline
+          Set-Location muonline
           git checkout 7baa3454b890c1b33189fd2bc89c7f6d7af3058d
-          git status --short
           git rev-parse HEAD
 
       - name: Apply MU-BENCH 0 patch
+        shell: pwsh
         run: |
-          python3 mu-bench0/patch.py
-          grep -R "MU-BENCH 0" -n muonline/Client.Main muonline/MuAndroid | head -30
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+          python mu-bench0/patch.py
+          Get-ChildItem muonline/Client.Main,muonline/MuAndroid -Recurse -File | Select-String -Pattern "MU-BENCH 0" | Select-Object -First 30
 
       - name: Setup .NET 10
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
+          include-prerelease: true
+
+      - name: Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          cmdline-tools-version: 11076708
+          packages: |
+            platform-tools
+            platforms;android-36
+            build-tools;35.0.0
+            ndk;27.2.12479018
+          accept-android-sdk-licenses: true
 
       - name: Install Android workload
-        run: |
-          dotnet --info
-          dotnet workload install android
-          dotnet workload list
+        shell: pwsh
+        run: dotnet workload install android
+
+      - name: Restore MonoGame tools
+        working-directory: muonline
+        shell: pwsh
+        run: dotnet tool restore
 
       - name: Restore Android project
         working-directory: muonline
-        run: dotnet restore ./MuAndroid/MuAndroid.csproj
+        shell: pwsh
+        run: dotnet restore MuAndroid/MuAndroid.csproj -p:AndroidSdkDirectory=$env:ANDROID_SDK_ROOT
 
-      - name: Build installable Android APK
+      - name: Build Android APK
         working-directory: muonline
+        shell: pwsh
+        run: dotnet build MuAndroid/MuAndroid.csproj -c Release -f net10.0-android -p:AndroidSdkDirectory=$env:ANDROID_SDK_ROOT -p:AcceptAndroidSdkLicenses=true -p:AndroidPackageFormat=apk
+
+      - name: Publish Android APK
+        working-directory: muonline
+        shell: pwsh
+        run: dotnet publish MuAndroid/MuAndroid.csproj -c Release -f net10.0-android -o publish-android -p:AndroidSdkDirectory=$env:ANDROID_SDK_ROOT -p:AcceptAndroidSdkLicenses=true -p:AndroidPackageFormat=apk
+
+      - name: Collect playable APK
+        shell: pwsh
         run: |
-          dotnet build ./MuAndroid/MuAndroid.csproj \
-            -f net10.0-android \
-            -c Debug \
-            -p:AndroidPackageFormat=apk \
-            -p:AcceptAndroidSDKLicenses=true
-
-      - name: Collect APK
-        run: |
-          mkdir -p out
-          echo "APK candidates:"
-          find muonline/MuAndroid/bin -type f -name "*.apk" -print || true
-
-          APK="$(find muonline/MuAndroid/bin -type f -name "*-Signed.apk" | head -1)"
-          if [ -z "$APK" ]; then
-            APK="$(find muonline/MuAndroid/bin -type f -name "*.apk" | head -1)"
-          fi
-          if [ -z "$APK" ]; then
-            echo "::error::No APK produced"
-            exit 1
-          fi
-
-          cp "$APK" out/HIGHFLY-MU-BENCH0.apk
-          sha256sum out/HIGHFLY-MU-BENCH0.apk | tee out/SHA256.txt
-          ls -lh out/
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          $apk = Get-ChildItem -Path muonline/publish-android -Filter *.apk -Recurse | Select-Object -First 1
+          if (-not $apk) {
+            $apk = Get-ChildItem -Path muonline/MuAndroid/bin -Filter *.apk -Recurse | Select-Object -First 1
+          }
+          if (-not $apk) {
+            throw "No APK produced."
+          }
+          Copy-Item $apk.FullName out/HIGHFLY-MU-BENCH0.apk
+          Get-FileHash out/HIGHFLY-MU-BENCH0.apk -Algorithm SHA256 | ForEach-Object { "$($_.Hash)  HIGHFLY-MU-BENCH0.apk" } | Set-Content out/SHA256.txt
+          Get-ChildItem out | Format-Table Name,Length
 
       - name: Upload playable APK
         uses: actions/upload-artifact@v4
