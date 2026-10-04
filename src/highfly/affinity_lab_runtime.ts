@@ -6,6 +6,11 @@ import {
   type HighflyAffinity,
   type HighflyClass,
 } from './affinity_lab_loadouts';
+import {
+  highflyCharacterQ0Body,
+  setHighflyCharacterQ0Body,
+  type HighflyCharacterQ0Body,
+} from './character_q0_visual';
 
 const w = window as any;
 const ELEMENTS: readonly Exclude<HighflyAffinity, 'base'>[] = ['fire', 'frost', 'lightning'];
@@ -15,6 +20,9 @@ const CLASS_SPECS: Partial<Record<HighflyClass, readonly string[]>> = {
   rogue: ['assassination', 'combat', 'subtlety'],
   mage: ['arcane', 'fire', 'frost'],
 };
+const savedQ0Body = (localStorage.getItem('hf_character_q0_body') || 'claude') as HighflyCharacterQ0Body;
+setHighflyCharacterQ0Body(savedQ0Body);
+
 let affinity = (localStorage.getItem('hf_affinity_lab_element') as HighflyAffinity) || 'fire';
 if (!ELEMENTS.includes(affinity as Exclude<HighflyAffinity, 'base'>)) affinity = 'fire';
 
@@ -236,6 +244,18 @@ function switchClass(cls: HighflyClass): void {
   location.href = location.pathname + '?' + params.toString();
 }
 
+function selectQ0Body(next: HighflyCharacterQ0Body): void {
+  const before = highflyCharacterQ0Body();
+  const selected = setHighflyCharacterQ0Body(next);
+  localStorage.setItem('hf_character_q0_body', selected);
+  const cls = metaClass();
+  if (cls) renderHud(cls);
+  if (selected !== before) {
+    toast('PERSONAJE · ' + (selected === 'claude' ? 'CLAUDE' : selected === 'qmale' ? 'Q-MALE' : 'Q-FEMALE'));
+    result('HOT SWAP VISUAL · SIM / skill / target / cámara permanecen intactos.');
+  }
+}
+
 function resetLab(): void {
   const g = game();
   if (!g) return;
@@ -266,6 +286,19 @@ function renderHud(cls: HighflyClass): void {
     '<span class="hf-aff-class">' + audit.label + '</span>' +
     '<span class="hf-aff-level">LVL 20</span>' +
     '<span class="hf-aff-spacer"></span>';
+
+  const bodyLabel = document.createElement('span');
+  bodyLabel.className = 'hf-q0-label';
+  bodyLabel.textContent = 'PERSONAJE';
+  head.append(bodyLabel);
+  for (const candidate of ['claude', 'qmale', 'qfemale'] as const) {
+    const button = document.createElement('button');
+    button.className = 'hf-q0-body' + (highflyCharacterQ0Body() === candidate ? ' hf-active' : '');
+    button.dataset.body = candidate;
+    button.textContent = candidate === 'claude' ? 'CLAUDE' : candidate === 'qmale' ? 'Q-MALE' : 'Q-FEMALE';
+    button.addEventListener('click', () => selectQ0Body(candidate));
+    head.append(button);
+  }
 
   if (TANDA1_CLASSES.includes(cls)) {
     for (const candidate of TANDA1_CLASSES) {
@@ -394,6 +427,11 @@ if (document.readyState === 'loading') {
 } else {
   boot();
 }
+
+w.__highflyCharacterQ0 = {
+  body: () => highflyCharacterQ0Body(),
+  selectBody: (next: HighflyCharacterQ0Body) => selectQ0Body(next),
+};
 
 w.__highflyAffinityLab = {
   audit: HIGHFLY_AFFINITY_AUDIT_V1,
