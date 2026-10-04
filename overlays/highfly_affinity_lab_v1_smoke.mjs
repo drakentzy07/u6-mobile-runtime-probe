@@ -33,6 +33,7 @@ async function setSpecIfNeeded(spec){
 }
 
 async function castAndMeasure(receptor,mode){
+  console.log('[AFFINITY_CAST]', receptor.id, mode, receptor.spec??'base-spec');
   await setSpecIfNeeded(receptor.spec);
   const before=await page.evaluate(()=>{
     const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
