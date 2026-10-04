@@ -1,0 +1,88 @@
+name: MU-BENCH 0 Fast Pages Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/mu-bench0-pages-fast.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: mu-bench0-fast-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout launcher page
+        uses: actions/checkout@v4
+
+      - name: Download frozen Skill Lab Pages artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: base-pages
+          repository: drakentzy07/u6-mobile-runtime-probe
+          run-id: 37231431429
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download MU-BENCH 0.2 APK
+        uses: actions/download-artifact@v4
+        with:
+          name: HIGHFLY-MU-BENCH0-ANDROID
+          path: mu-apk
+          repository: drakentzy07/u6-mobile-runtime-probe
+          run-id: 37234379474
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rebuild Pages artifact without rebuilding Skill Lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p site
+          echo "Base Pages artifact:"
+          find base-pages -maxdepth 2 -type f -print
+          PAGES_TAR="$(find base-pages -type f -name '*.tar' | head -1)"
+          if [ -z "$PAGES_TAR" ]; then
+            echo "::error::Pages tar not found"
+            exit 1
+          fi
+          tar -xf "$PAGES_TAR" -C site
+
+          mkdir -p site/mu-bench0
+          cp mu-bench0-pages/index.html site/mu-bench0/index.html
+
+          APK="$(find mu-apk -type f -name 'HIGHFLY-MU-BENCH0.apk' | head -1)"
+          if [ -z "$APK" ]; then
+            echo "::error::MU-BENCH APK not found"
+            exit 1
+          fi
+          cp "$APK" site/mu-bench0/HIGHFLY-MU-BENCH0.apk
+          touch site/.nojekyll
+
+          test -s site/mu-bench0/index.html
+          test -s site/mu-bench0/HIGHFLY-MU-BENCH0.apk
+          ls -lh site/mu-bench0
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Upload refreshed Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
