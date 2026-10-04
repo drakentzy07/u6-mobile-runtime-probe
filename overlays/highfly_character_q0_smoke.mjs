@@ -37,6 +37,28 @@ async function waitCameraStable(){
   return last;
 }
 
+const visualSignature=()=>page.evaluate(()=>{
+  const g=window.__game,sim=g?.sim,p=sim?.player;
+  const view=p?g?.renderer?.views?.get(p.id):null;
+  const visual=view?.visual??null;
+  let verts=0,tris=0,meshes=0,skinned=0;
+  visual?.root?.traverse?.((o)=>{
+    if(!o?.isMesh||!o.geometry)return;
+    const pos=o.geometry.getAttribute?.('position');
+    if(!pos)return;
+    meshes++;
+    if(o.isSkinnedMesh)skinned++;
+    verts+=pos.count??0;
+    const idx=o.geometry.getIndex?.();
+    tris+=idx?Math.floor(idx.count/3):Math.floor((pos.count??0)/3);
+  });
+  return {
+    visualKey:view?.visualKey??null,
+    modular:Boolean(visual?.modularLook),
+    verts,tris,meshes,skinned,
+  };
+});
+
 const snapshot=()=>page.evaluate(()=>{
   const g=window.__game,sim=g.sim,p=sim.player,m=sim.meta(p.id);
   const cam=g.renderer?.camera;
@@ -70,7 +92,8 @@ for(const body of ['qmale','qfemale','claude']){
     return Boolean(p&&g.renderer?.views?.get(p.id)?.visualKey===key);
   },want,{timeout:20000});
   const after=await snapshot();
-  swaps.push({body,want,after});
+  const visual=await visualSignature();
+  swaps.push({body,want,after,visual});
 }
 
 function cameraNear(a,b,tol=0.05){
@@ -121,6 +144,9 @@ const report={
   initial,swaps,casts,buttons,collapseText,collapsedButtons,activeBadge,errors,
   passed:
     swaps.length===3&&swaps.every(x=>eqStable(initial,x.after))&&
+    swaps.every(x=>x.visual.visualKey===x.want)&&
+    swaps.filter(x=>x.body!=='claude').every(x=>x.visual.modular===false&&x.visual.skinned>0)&&
+    new Set(swaps.map(x=>x.visual.verts+':'+x.visual.tris)).size===3&&
     casts.length===3&&casts.every(x=>x.stable&&x.damaged)&&
     ['CLAUDE','Q-MALE','Q-FEMALE'].every(x=>buttons.includes(x))&&
     ['CLAUDE','Q-MALE','Q-FEMALE'].every(x=>collapsedButtons.includes(x))&&
