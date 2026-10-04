@@ -135,9 +135,15 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
 
   toast((mode === 'base' ? 'BASE' : mode.toUpperCase()) + ' · ' + receptor.label);
   result('CAST EN CURSO · midiendo impacto…');
-  window.setTimeout(() => {
+  const startedAt = performance.now();
+  const measureImpact = () => {
     const liveTarget = target?.id != null ? sim.entities.get(target.id) : null;
     const impact = startHp != null && liveTarget ? startHp - liveTarget.hp : null;
+    const timedOut = performance.now() - startedAt >= 3500;
+    if ((impact ?? 0) <= 0 && !timedOut) {
+      window.setTimeout(measureImpact, 50);
+      return;
+    }
     const liveMeta = sim.meta(p.id);
     const stable = liveMeta?.cls === cls && (p.specId ?? liveMeta?.spec ?? null) === spec;
     result(
@@ -147,7 +153,8 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
         ' · clase/spec ' +
         (stable ? 'OK' : 'FAIL'),
     );
-  }, 900);
+  };
+  window.setTimeout(measureImpact, 50);
 }
 
 function resetLab(): void {
