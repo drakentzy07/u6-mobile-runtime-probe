@@ -21,3 +21,9 @@ body.hf-affinity-active #hud{padding-top:86px}
 #hf-affinity-toast.hf-show{opacity:1;transform:translateX(-50%) translateY(0)}
 #hf-affinity-toast.hf-bad{border-color:#ff6464;color:#ffb0b0}
 @media(max-width:850px){body.hf-affinity-active #hud{padding-top:132px}#hf-affinity-hud{top:3px;width:97vw;padding:6px;font-size:10px}.hf-aff-title{width:100%}.hf-aff-receptor{width:76px}.hf-aff-skill{min-width:0;padding:7px 6px!important;font-size:10px}.hf-aff-change{display:none}.hf-aff-queue{font-size:9px}}
+
+.hf-aff-classpick.hf-active,.hf-aff-spec.hf-active{border-color:#c687ff!important;background:#43245d!important}
+.hf-aff-spec{font-size:10px;padding:7px 8px!important}
+.hf-aff-classpick{font-size:10px;padding:7px 8px!important}
+.hf-aff-compare.hf-spec-mismatch{opacity:.45}
+.hf-aff-compare.hf-spec-mismatch .hf-aff-receptor:after{content:" · elegí spec";font-size:9px;color:#ffcf80}
