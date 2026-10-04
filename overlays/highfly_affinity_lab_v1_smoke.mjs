@@ -31,8 +31,11 @@ const before=await page.evaluate(()=>{
 });
 
 await page.evaluate(()=>window.__highflyAffinityLab.castBase());
-await page.waitForFunction(()=>Boolean(window.__game?.sim?.player?.leap),null,{timeout:5000}).catch(()=>{});
-await page.waitForTimeout(1200);
+await page.waitForFunction(()=>{
+  const sim=window.__game?.sim,p=sim?.player;
+  const t=p?sim.entities.get(p.targetId):null;
+  return Boolean(t && t.hp < t.maxHp);
+},null,{timeout:10000});
 const baseResult=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   const t=sim.entities.get(p.targetId);
@@ -52,7 +55,11 @@ await page.click('#hf-affinity-hud .hf-aff-reset');
 await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('fire'));
 await page.waitForFunction(()=>window.__highflyAffinityLab.affinity()==='fire',null,{timeout:3000});
 await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForTimeout(1300);
+await page.waitForFunction(()=>{
+  const sim=window.__game?.sim,p=sim?.player;
+  const t=p?sim.entities.get(p.targetId):null;
+  return Boolean(t && t.hp < t.maxHp);
+},null,{timeout:10000});
 const fireImpact=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   const t=sim.entities.get(p.targetId);
@@ -71,7 +78,11 @@ const fireImpact=await page.evaluate(()=>{
 await page.click('#hf-affinity-hud .hf-aff-reset');
 await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('frost'));
 await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForTimeout(850);
+await page.waitForFunction(()=>{
+  const sim=window.__game?.sim,p=sim?.player;
+  const t=p?sim.entities.get(p.targetId):null;
+  return Boolean(t && t.hp < t.maxHp);
+},null,{timeout:10000});
 const frostImpact=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   const t=sim.entities.get(p.targetId);
@@ -85,7 +96,11 @@ const frostImpact=await page.evaluate(()=>{
 await page.click('#hf-affinity-hud .hf-aff-reset');
 await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('lightning'));
 await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForTimeout(700);
+await page.waitForFunction(()=>{
+  const sim=window.__game?.sim,p=sim?.player;
+  const t=p?sim.entities.get(p.targetId):null;
+  return Boolean(t && t.hp < t.maxHp);
+},null,{timeout:10000});
 const lightningImpact=await page.evaluate(()=>{
   const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
   const t=sim.entities.get(p.targetId);
