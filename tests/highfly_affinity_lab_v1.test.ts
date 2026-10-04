@@ -85,10 +85,24 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
     ).toEqual(base);
   });
 
-  it('does not use setSpec to launch affinity variants', () => {
+  it('never changes spec implicitly while preparing or casting affinity variants', () => {
     const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts', 'utf8');
-    expect(runtime).not.toContain('setSpec(');
-    expect(runtime).not.toContain('setSpec (');
+    const prepareStart = runtime.indexOf('function prepareCast(');
+    const castStart = runtime.indexOf('function cast(');
+    const selectSpecStart = runtime.indexOf('function selectSpec(');
+    const resetStart = runtime.indexOf('function resetLab(');
+    expect(prepareStart).toBeGreaterThanOrEqual(0);
+    expect(castStart).toBeGreaterThanOrEqual(0);
+    expect(selectSpecStart).toBeGreaterThanOrEqual(0);
+    expect(resetStart).toBeGreaterThan(selectSpecStart);
+
+    const prepareBody = runtime.slice(prepareStart, castStart);
+    const castBody = runtime.slice(castStart, selectSpecStart);
+    const explicitSpecUiBody = runtime.slice(selectSpecStart, resetStart);
+
+    expect(prepareBody).not.toContain('setSpec(');
+    expect(castBody).not.toContain('setSpec(');
+    expect(explicitSpecUiBody).toContain('g.sim.setSpec(spec)');
   });
 
   it('keeps SIM authority for elemental riders', () => {
