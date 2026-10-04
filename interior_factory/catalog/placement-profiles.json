@@ -1,0 +1,14 @@
+{
+  "schemaVersion":"HF-PlacementProfiles/0.1",
+  "profiles":{
+    "smithing.forge":{"anchor":"floor+wall","clearanceM":[1.2,1.5],"avoid":["entry","stairs","wood-display"],"prefer":["bellows","anvil","fuel-storage"],"heatRadiusM":1.25},
+    "smithing.anvil":{"anchor":"floor","clearanceM":[0.9,1.2],"maxDistance":{"smithing.forge":3.0},"prefer":["tool-rack","workbench"]},
+    "smithing.bellows":{"anchor":"floor","clearanceM":[0.4,0.7],"maxDistance":{"smithing.forge":1.5}},
+    "smithing.grindstone":{"anchor":"floor","clearanceM":[0.8,1.0],"avoid":["stairs","entry"]},
+    "shop.weaponRack":{"anchor":"wall-or-floor","clearanceM":[0.65,0.9],"avoid":["door-swing","stairs","main-corridor"],"facing":"toward-room"},
+    "shop.counter":{"anchor":"floor","clearanceM":[1.0,1.3],"requires":["vendor-behind","customer-front"]},
+    "storage.resourceStack":{"anchor":"floor-or-shelf","clearanceM":[0.3,0.6],"prefer":["storage-zone","workbench"],"avoid":["main-corridor"]},
+    "decoration.smallTool":{"anchor":"bench-or-rack","clearanceM":[0.05,0.15],"neverFloorUnlessTagged":true},
+    "architecture.stair":{"anchor":"floor","minWidthM":1.15,"minHeadroomM":2.1,"mustConnectLevels":true,"clearLandingM":1.2}
+  }
+}

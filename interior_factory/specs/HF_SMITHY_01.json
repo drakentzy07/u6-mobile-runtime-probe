@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "HF-InteriorSpec/0.1",
+  "id": "HF_SMITHY_01",
+  "name": "Forja Definitiva",
+  "theme": "premium_medieval_fantasy",
+  "target": {"platforms":["webgl","android"],"camera":"third-person","mobileLandscape":true},
+  "floors": [
+    {
+      "id":"SHOP","level":0,"size":[12,10],"purpose":"vendor_showroom",
+      "zones":[
+        {"id":"ENTRY","kind":"circulation","rect":[5,0,2,3]},
+        {"id":"DISPLAY_L","kind":"display","rect":[0.6,1,3.2,7.5]},
+        {"id":"DISPLAY_R","kind":"display","rect":[8.2,1,3.2,7.5]},
+        {"id":"COUNTER","kind":"vendor","rect":[4.1,6.8,3.8,1.6]},
+        {"id":"STAIR_DOWN","kind":"vertical","rect":[8.4,7.8,2.2,1.6]}
+      ]
+    },
+    {
+      "id":"WORKSHOP_BASEMENT","level":-1,"size":[12,10],"purpose":"smithing_workshop",
+      "zones":[
+        {"id":"STAIR_UP","kind":"vertical","rect":[8.4,0.6,2.2,1.6]},
+        {"id":"HOT_ZONE","kind":"forge","rect":[0.7,1.0,4.0,4.3]},
+        {"id":"ANVIL_ZONE","kind":"anvil","rect":[4.8,1.0,2.4,3.2]},
+        {"id":"GRIND_ZONE","kind":"grind","rect":[7.4,1.0,2.2,2.4]},
+        {"id":"BENCH_ZONE","kind":"bench","rect":[0.7,6.0,5.2,2.2]},
+        {"id":"STORAGE","kind":"storage","rect":[7.0,5.5,4.1,3.0]}
+      ]
+    }
+  ],
+  "requirements": {
+    "minClearPathM":1.15,"minHeadroomM":2.1,"interactionReachM":2.0,
+    "mustContain":["smithing.forge","smithing.anvil","smithing.grindstone","shop.weaponRack"],
+    "semanticRules":[
+      "anvil within 3m of forge",
+      "bellows adjacent to forge",
+      "hot zone separated from entry path",
+      "weapon displays do not obstruct doors or stairs",
+      "stairs maintain continuous clear corridor",
+      "small tools snap to bench/rack/anvil-near anchors"
+    ]
+  },
+  "referenceDonors":["HF_DONOR_BLACKSMITH_B","HF_ROOM_STORE_7X7"]
+}
