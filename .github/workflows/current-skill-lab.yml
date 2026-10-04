@@ -7,6 +7,7 @@ on:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
       - "overlays/highfly_current_skill_lab_smoke.mjs"
+      - "mu-bench0-pages/**"
   workflow_dispatch:
 
 permissions:
@@ -216,6 +217,23 @@ jobs:
             sleep 1
           done
           node ./highfly_current_skill_lab_smoke.mjs
+
+      - name: Add MU-BENCH 0 direct APK page
+        uses: actions/download-artifact@v4
+        with:
+          name: HIGHFLY-MU-BENCH0-ANDROID
+          path: mu-bench0-apk
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 37230139987
+
+      - name: Stage MU-BENCH 0 under Pages subroute
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p upstream/dist/mu-bench0
+          cp mu-bench0-pages/index.html upstream/dist/mu-bench0/index.html
+          cp mu-bench0-apk/HIGHFLY-MU-BENCH0.apk upstream/dist/mu-bench0/HIGHFLY-MU-BENCH0.apk
+          ls -lh upstream/dist/mu-bench0
 
       - name: Configure Pages
         uses: actions/configure-pages@v6
