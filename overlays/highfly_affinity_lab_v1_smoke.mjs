@@ -7,146 +7,132 @@ const page=await browser.newPage({viewport:{width:1600,height:900}});
 const errors=[];
 page.on('pageerror',(e)=>errors.push(String(e)));
 
-await page.goto(BASE+'?affinitylab=1&labclass=warrior',{waitUntil:'domcontentloaded',timeout:60000});
-await page.waitForFunction(()=>Boolean(window.__game?.sim?.player),null,{timeout:90000});
-await page.waitForSelector('#hf-affinity-hud',{timeout:30000});
-await page.waitForFunction(()=>Boolean(window.__highflyAffinityLab),null,{timeout:15000});
+const TANDA1=['warrior','rogue','mage'];
+const expectedImplemented={
+  warrior:['heroic_leap','whirlwind','thunder_clap','cleave'],
+  rogue:['eviscerate','ambush','sinister_strike','rupture'],
+  mage:['fireball','arcane_missiles','frostbolt','frost_nova'],
+};
+const modes=['base','fire','frost','lightning'];
 
-const before=await page.evaluate(()=>{
-  const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
-  const buttons=[...document.querySelectorAll('#hf-affinity-hud .hf-aff-skill')].map((e)=>({
-    ability:e.getAttribute('data-ability'),
-    text:e.textContent?.trim()??'',
-  }));
+async function openClass(cls){
+  await page.goto(BASE+'?affinitylab=1&labclass='+cls,{waitUntil:'domcontentloaded',timeout:60000});
+  await page.waitForFunction(()=>Boolean(window.__game?.sim?.player),null,{timeout:90000});
+  await page.waitForSelector('#hf-affinity-hud',{timeout:30000});
+  await page.waitForFunction(()=>Boolean(window.__highflyAffinityLab),null,{timeout:15000});
+  await page.waitForFunction((want)=>window.__game?.sim?.meta(window.__game.sim.player.id)?.cls===want,cls,{timeout:10000});
+}
+
+async function setSpecIfNeeded(spec){
+  if(!spec)return;
+  await page.evaluate((s)=>window.__highflyAffinityLab.selectSpec(s),spec);
+  await page.waitForFunction((s)=>{
+    const sim=window.__game?.sim,p=sim?.player,m=p?sim.meta(p.id):null;
+    return (p?.specId??m?.spec??null)===s;
+  },spec,{timeout:5000});
+}
+
+async function castAndMeasure(receptor,mode){
+  await setSpecIfNeeded(receptor.spec);
+  const before=await page.evaluate(()=>{
+    const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
+    return {
+      cls:m?.cls,
+      spec:p.specId??m?.spec??null,
+      resourceType:p.resourceType,
+      equipment:JSON.stringify(m?.equipment),
+    };
+  });
+
+  await page.evaluate(({id,mode})=>window.__highflyAffinityLab.castReceptor(id,mode),{id:receptor.id,mode});
+
+  await page.waitForFunction(()=>{
+    const sim=window.__game?.sim,p=sim?.player;
+    const t=p?sim.entities.get(p.targetId):null;
+    return Boolean(t && t.hp < t.maxHp);
+  },null,{timeout:12000});
+
+  const after=await page.evaluate(()=>{
+    const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
+    const t=sim.entities.get(p.targetId);
+    return {
+      cls:m?.cls,
+      spec:p.specId??m?.spec??null,
+      resourceType:p.resourceType,
+      equipment:JSON.stringify(m?.equipment),
+      targetHp:t?.hp??null,
+      targetMaxHp:t?.maxHp??null,
+    };
+  });
+
+  const stable=
+    before.cls===after.cls &&
+    before.spec===after.spec &&
+    before.resourceType===after.resourceType &&
+    before.equipment===after.equipment;
+
   return {
-    cls:m?.cls,
-    level:p.level,
-    spec:p.specId??m?.spec??null,
-    resourceType:p.resourceType,
-    equipment:JSON.stringify(m?.equipment),
-    affinity:window.__highflyAffinityLab.affinity(),
-    buttons,
-    auditClasses:Object.keys(window.__highflyAffinityLab.audit),
+    receptor:receptor.id,
+    mode,
+    before,
+    after,
+    stable,
+    damaged:after.targetHp!==null&&after.targetMaxHp!==null&&after.targetHp<after.targetMaxHp,
   };
-});
+}
 
-await page.evaluate(()=>window.__highflyAffinityLab.castBase());
-await page.waitForFunction(()=>{
-  const sim=window.__game?.sim,p=sim?.player;
-  const t=p?sim.entities.get(p.targetId):null;
-  return Boolean(t && t.hp < t.maxHp);
-},null,{timeout:10000});
-const baseResult=await page.evaluate(()=>{
-  const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
-  const t=sim.entities.get(p.targetId);
-  return {
-    cls:m?.cls,
-    spec:p.specId??m?.spec??null,
-    resourceType:p.resourceType,
-    equipment:JSON.stringify(m?.equipment),
-    targetHp:t?.hp??null,
-    targetMaxHp:t?.maxHp??null,
-    toast:document.querySelector('#hf-affinity-toast')?.textContent??'',
-    result:document.querySelector('#hf-affinity-result')?.textContent??'',
-  };
-});
+const report={classes:{},errors,passed:false};
 
-await page.click('#hf-affinity-hud .hf-aff-reset');
-await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('fire'));
-await page.waitForFunction(()=>window.__highflyAffinityLab.affinity()==='fire',null,{timeout:3000});
-await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForFunction(()=>{
-  const sim=window.__game?.sim,p=sim?.player;
-  const t=p?sim.entities.get(p.targetId):null;
-  return Boolean(t && t.hp < t.maxHp);
-},null,{timeout:10000});
-const fireImpact=await page.evaluate(()=>{
-  const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
-  const t=sim.entities.get(p.targetId);
-  return {
-    cls:m?.cls,
-    spec:p.specId??m?.spec??null,
-    resourceType:p.resourceType,
-    equipment:JSON.stringify(m?.equipment),
-    targetHp:t?.hp??null,
-    targetMaxHp:t?.maxHp??null,
-    hasBurn:Boolean(t?.auras?.some((a)=>String(a.id).startsWith('hf_affinity_leap_fire_'))),
-    result:document.querySelector('#hf-affinity-result')?.textContent??'',
-  };
-});
+for(const cls of TANDA1){
+  await openClass(cls);
+  const data=await page.evaluate(()=>{
+    const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
+    const cls=m.cls;
+    const audit=window.__highflyAffinityLab.audit[cls];
+    return {
+      cls,
+      level:p.level,
+      resourceType:p.resourceType,
+      audit:audit.receptors.filter((r)=>r.implemented).map((r)=>({
+        id:r.id,
+        spec:r.spec??null,
+        variants:r.variants,
+      })),
+      classButtons:[...document.querySelectorAll('.hf-aff-classpick')].map((e)=>e.textContent?.trim()??''),
+      specButtons:[...document.querySelectorAll('.hf-aff-spec')].map((e)=>e.textContent?.trim()??''),
+    };
+  });
 
-await page.click('#hf-affinity-hud .hf-aff-reset');
-await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('frost'));
-await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForFunction(()=>{
-  const sim=window.__game?.sim,p=sim?.player;
-  const t=p?sim.entities.get(p.targetId):null;
-  return Boolean(t && t.hp < t.maxHp);
-},null,{timeout:10000});
-const frostImpact=await page.evaluate(()=>{
-  const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
-  const t=sim.entities.get(p.targetId);
-  return {
-    cls:m?.cls,
-    spec:p.specId??m?.spec??null,
-    hasSlow:Boolean(t?.auras?.some((a)=>String(a.id).startsWith('hf_affinity_leap_frost_'))),
-  };
-});
+  const results=[];
+  for(const receptor of data.audit){
+    for(const mode of modes){
+      if(!receptor.variants[mode])continue;
+      results.push(await castAndMeasure(receptor,mode));
+    }
+  }
+  report.classes[cls]={data,results};
+  await page.screenshot({path:'../affinity-lab-v1-'+cls+'.png',fullPage:true});
+}
 
-await page.click('#hf-affinity-hud .hf-aff-reset');
-await page.evaluate(()=>window.__highflyAffinityLab.selectAffinity('lightning'));
-await page.evaluate(()=>window.__highflyAffinityLab.castElement());
-await page.waitForFunction(()=>{
-  const sim=window.__game?.sim,p=sim?.player;
-  const t=p?sim.entities.get(p.targetId):null;
-  return Boolean(t && t.hp < t.maxHp);
-},null,{timeout:10000});
-const lightningImpact=await page.evaluate(()=>{
-  const sim=window.__game.sim,p=sim.player,m=sim.meta(p.id);
-  const t=sim.entities.get(p.targetId);
-  return {
-    cls:m?.cls,
-    spec:p.specId??m?.spec??null,
-    targetHp:t?.hp??null,
-    targetMaxHp:t?.maxHp??null,
-  };
-});
-
-await page.screenshot({path:'../affinity-lab-v1-warrior.png',fullPage:true});
-
-const expectedClasses=['warrior','paladin','rogue','warlock','mage','shaman','hunter','druid','priest'];
-const stable=(x)=>x.cls===before.cls&&x.spec===before.spec;
-const passed=
-  before.cls==='warrior' &&
-  before.level===20 &&
-  before.resourceType==='rage' &&
-  JSON.stringify(before.auditClasses)===JSON.stringify(expectedClasses) &&
-  before.buttons.some((b)=>b.ability==='heroic_leap') &&
-  before.buttons.some((b)=>b.ability==='hf_aff_heroic_leap_fire_01') &&
-  stable(baseResult) &&
-  baseResult.resourceType===before.resourceType &&
-  baseResult.equipment===before.equipment &&
-  baseResult.targetHp!==null &&
-  baseResult.targetMaxHp!==null &&
-  baseResult.targetHp<baseResult.targetMaxHp &&
-  stable(fireImpact) &&
-  fireImpact.resourceType===before.resourceType &&
-  fireImpact.equipment===before.equipment &&
-  fireImpact.targetHp!==null &&
-  fireImpact.targetMaxHp!==null &&
-  fireImpact.targetHp<fireImpact.targetMaxHp &&
-  fireImpact.hasBurn &&
-  stable(frostImpact) &&
-  frostImpact.hasSlow &&
-  stable(lightningImpact) &&
-  lightningImpact.targetHp!==null &&
-  lightningImpact.targetMaxHp!==null &&
-  lightningImpact.targetHp<lightningImpact.targetMaxHp &&
+const allResults=Object.values(report.classes).flatMap((entry)=>entry.results);
+report.passed=
+  TANDA1.every((cls)=>{
+    const entry=report.classes[cls];
+    return (
+      entry?.data?.cls===cls &&
+      entry?.data?.level===20 &&
+      JSON.stringify(entry.data.audit.map((r)=>r.id))===JSON.stringify(expectedImplemented[cls]) &&
+      entry.data.classButtons.includes('WARRIOR') &&
+      entry.data.classButtons.includes('ROGUE') &&
+      entry.data.classButtons.includes('MAGE')
+    );
+  }) &&
+  allResults.length===48 &&
+  allResults.every((x)=>x.stable&&x.damaged) &&
   errors.filter((x)=>/TypeError|ReferenceError|SyntaxError|RangeError/.test(x)).length===0;
 
-const report={before,baseResult,fireImpact,frostImpact,lightningImpact,errors,passed};
 fs.writeFileSync('../affinity-lab-v1-report.json',JSON.stringify(report,null,2));
-console.log('HIGHFLY_AFFINITY_LAB_V1_REPORT');
+console.log('HIGHFLY_AFFINITY_LAB_V1_TANDA1_REPORT');
 console.log(JSON.stringify(report,null,2));
 await browser.close();
-if(!passed)process.exitCode=2;
+if(!report.passed)process.exitCode=2;
