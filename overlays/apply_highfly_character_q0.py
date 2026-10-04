@@ -72,4 +72,27 @@ rep(
   }""",
 )
 
+
+# Q0 must override the app-level modular body ONLY while Q-MALE/Q-FEMALE is selected.
+# Otherwise createCharacterVisual() would resolve modularKeyFor(e) before visualKeyFor(e),
+# making the internal visualKey change while the visible body remained Claude.
+index = 'src/render/characters/index.ts'
+rep(
+    index,
+    "import { type Entity, isMechWearer, type PlayerClass } from '../../sim/types';",
+    "import { type Entity, isMechWearer, type PlayerClass } from '../../sim/types';\n"
+    "import { highflyCharacterQ0Body } from '../../highfly/character_q0_visual';",
+)
+
+rep(
+    index,
+    """  const look = formKey || isMechWearer(e) ? null : (modularLookProvider?.(e) ?? null);""",
+    """  const q0VisualReplacement =
+    !formKey && e.kind === 'player' && highflyCharacterQ0Body() !== 'claude';
+  const look =
+    formKey || isMechWearer(e) || q0VisualReplacement
+      ? null
+      : (modularLookProvider?.(e) ?? null);""",
+)
+
 print('HIGHFLY_CHARACTER_Q0=1')
