@@ -115,6 +115,14 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
     expect(explicitSpecUiBody).toContain('sim.setSpec(spec)');
   });
 
+  it('uses canonical Claude entity targeting and keeps ranged casters out of melee staging', () => {
+    const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts', 'utf8');
+    expect(runtime).toContain("meta?.cls === 'mage'");
+    expect(runtime).toContain('? 12');
+    expect(runtime).toContain('sim.castAbility(id, p.id);');
+    expect(runtime).not.toContain('sim.castAbility(id, p.id, target.id)');
+  });
+
   it('keeps SIM authority for elemental riders', () => {
     const leap = readFileSync('src/sim/combat/heroic_leap.ts', 'utf8');
     expect(leap).toContain('highflyAffinityLeapRider(ctx, entity, target, flight.abilityId)');
