@@ -23,6 +23,7 @@ def rep(path: str, old: str, new: str, count: int = 1) -> None:
 for src, dst in [
     ("src/highfly/affinity_lab_loadouts.ts", "src/highfly/affinity_lab_loadouts.ts"),
     ("src/highfly/affinity_lab_runtime.ts", "src/highfly/affinity_lab_runtime.ts"),
+    ("src/highfly/character_q0_visual.ts", "src/highfly/character_q0_visual.ts"),
     ("src/styles/hf_affinity_lab.css", "src/styles/hf_affinity_lab.css"),
     ("tests/highfly_affinity_lab_v1.test.ts", "tests/highfly_affinity_lab_v1.test.ts"),
 ]:
