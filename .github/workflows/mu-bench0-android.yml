@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "mu-bench0/**"
+      - ".github/workflows/mu-bench0-android.yml"
   push:
     branches:
       - highfly/mu-bench0-real-android
