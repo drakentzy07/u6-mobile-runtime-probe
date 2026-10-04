@@ -9,6 +9,12 @@ import {
 
 const w = window as any;
 const ELEMENTS: readonly Exclude<HighflyAffinity, 'base'>[] = ['fire', 'frost', 'lightning'];
+const TANDA1_CLASSES: readonly HighflyClass[] = ['warrior', 'rogue', 'mage'];
+const CLASS_SPECS: Partial<Record<HighflyClass, readonly string[]>> = {
+  warrior: ['arms', 'fury', 'prot'],
+  rogue: ['assassination', 'combat', 'subtlety'],
+  mage: ['arcane', 'fire', 'frost'],
+};
 let affinity = (localStorage.getItem('hf_affinity_lab_element') as HighflyAffinity) || 'fire';
 if (!ELEMENTS.includes(affinity as Exclude<HighflyAffinity, 'base'>)) affinity = 'fire';
 
@@ -50,6 +56,7 @@ function stageDummy(distance = 8): any {
   target.aggroTargetId = null;
   target.inCombat = false;
   target.moveSpeed = 0;
+  target.facing = p.facing;
   p.targetId = target.id;
   return target;
 }
@@ -74,7 +81,10 @@ function result(message: string): void {
   if (el) el.textContent = message;
 }
 
-function prepareCast(id: string): { sim: any; p: any; target: any; cls: string; spec: string | null } | null {
+function prepareCast(
+  id: string,
+  receptor: AffinityReceptor,
+): { sim: any; p: any; target: any; cls: string; spec: string | null } | null {
   const g = game();
   if (!g) return null;
   const sim = g.sim;
@@ -91,7 +101,27 @@ function prepareCast(id: string): { sim: any; p: any; target: any; cls: string; 
   p.castingAbility = null;
   p.channeling = false;
   p.leap = null;
-  const target = stageDummy(8);
+  const target = stageDummy(receptor.target === 'position' ? 8 : 2.4);
+  if (meta?.cls === 'rogue') {
+    if (receptor.id === 'eviscerate' || receptor.id === 'rupture') {
+      p.comboPoints = 5;
+      p.comboUntil = sim.time + 30;
+    }
+    if (receptor.id === 'ambush') {
+      p.auras = p.auras.filter((a: any) => a.id !== 'hf_affinity_lab_stealth');
+      p.auras.push({
+        id: 'hf_affinity_lab_stealth',
+        name: 'Afinidad LAB · Sigilo',
+        kind: 'stealth',
+        remaining: 8,
+        duration: 8,
+        value: 0,
+        sourceId: p.id,
+      });
+      p.stealthed = true;
+      if (target) target.facing = p.facing;
+    }
+  }
   return { sim, p, target, cls, spec };
 }
 
@@ -101,7 +131,7 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
     toast('VARIANTE AÚN NO IMPLEMENTADA', true);
     return;
   }
-  const prep = prepareCast(id);
+  const prep = prepareCast(id, receptor);
   if (!prep) {
     toast('JUEGO NO LISTO', true);
     return;
@@ -157,6 +187,26 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
   window.setTimeout(measureImpact, 50);
 }
 
+function selectSpec(cls: HighflyClass, spec: string): void {
+  const g = game();
+  if (!g || metaClass() !== cls) return;
+  const ok = g.sim.setSpec(spec);
+  if (!ok) {
+    toast('NO SE PUDO CAMBIAR SPEC', true);
+    return;
+  }
+  g.sim.player.resource = g.sim.player.maxResource;
+  toast('SPEC · ' + spec.toUpperCase());
+  renderHud(cls);
+}
+
+function switchClass(cls: HighflyClass): void {
+  const params = new URLSearchParams(location.search);
+  params.set('affinitylab', '1');
+  params.set('labclass', cls);
+  location.href = location.pathname + '?' + params.toString();
+}
+
 function resetLab(): void {
   const g = game();
   if (!g) return;
@@ -187,6 +237,26 @@ function renderHud(cls: HighflyClass): void {
     '<span class="hf-aff-class">' + audit.label + '</span>' +
     '<span class="hf-aff-level">LVL 20</span>' +
     '<span class="hf-aff-spacer"></span>';
+
+  if (TANDA1_CLASSES.includes(cls)) {
+    for (const candidate of TANDA1_CLASSES) {
+      const button = document.createElement('button');
+      button.className = 'hf-aff-classpick' + (candidate === cls ? ' hf-active' : '');
+      button.textContent = candidate.toUpperCase();
+      button.addEventListener('click', () => switchClass(candidate));
+      head.append(button);
+    }
+  }
+
+  const specs = CLASS_SPECS[cls] ?? [];
+  const currentSpec = game()?.sim?.player?.specId ?? game()?.sim?.meta(game()?.sim?.player?.id)?.spec ?? null;
+  for (const spec of specs) {
+    const button = document.createElement('button');
+    button.className = 'hf-aff-spec' + (spec === currentSpec ? ' hf-active' : '');
+    button.textContent = spec.toUpperCase();
+    button.addEventListener('click', () => selectSpec(cls, spec));
+    head.append(button);
+  }
 
   for (const element of ELEMENTS) {
     const button = document.createElement('button');
@@ -222,13 +292,16 @@ function renderHud(cls: HighflyClass): void {
       row.className = 'hf-aff-compare';
       const label = document.createElement('div');
       label.className = 'hf-aff-receptor';
-      label.textContent = receptor.label;
+      const activeSpec = game()?.sim?.player?.specId ?? game()?.sim?.meta(game()?.sim?.player?.id)?.spec ?? null;
+      label.textContent = receptor.label + (receptor.spec ? ' [' + receptor.spec.toUpperCase() + ']' : '');
+      row.classList.toggle('hf-spec-mismatch', Boolean(receptor.spec && receptor.spec !== activeSpec));
       row.append(label);
 
       const base = document.createElement('button');
       base.className = 'hf-aff-skill hf-base';
       base.dataset.ability = receptor.variants.base;
       base.textContent = 'BASE · ' + receptor.label;
+      base.disabled = Boolean(receptor.spec && receptor.spec !== activeSpec);
       base.addEventListener('click', () => cast(receptor, 'base'));
       row.append(base);
 
@@ -240,7 +313,7 @@ function renderHud(cls: HighflyClass): void {
         (affinity === 'fire' ? '🔥 FUEGO' : affinity === 'frost' ? '❄ HIELO' : '⚡ RAYO') +
         ' · ' +
         receptor.label;
-      elemental.disabled = !elementalId;
+      elemental.disabled = !elementalId || Boolean(receptor.spec && receptor.spec !== activeSpec);
       elemental.addEventListener('click', () => cast(receptor, affinity));
       row.append(elemental);
       root.append(row);
@@ -303,6 +376,15 @@ w.__highflyAffinityLab = {
       const cls = metaClass();
       if (cls) renderHud(cls);
     }
+  },
+  selectSpec: (spec: string) => {
+    const cls = metaClass();
+    if (cls) selectSpec(cls, spec);
+  },
+  castReceptor: (id: string, mode: HighflyAffinity = 'base') => {
+    const cls = metaClass();
+    const receptor = cls ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.id === id && r.implemented) : null;
+    if (receptor) cast(receptor, mode);
   },
   castBase: () => {
     const cls = metaClass();
