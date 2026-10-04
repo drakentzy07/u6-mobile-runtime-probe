@@ -22,7 +22,7 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
     ]);
   });
 
-  it('audits 3-5 receptors per class without pretending they are implemented', () => {
+  it('implements only Tanda 1 while keeping the other six classes audited', () => {
     for (const cls of HIGHFLY_AFFINITY_CLASSES) {
       const receptors = HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors;
       expect(receptors.length).toBeGreaterThanOrEqual(4);
@@ -33,7 +33,20 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
         .filter((receptor) => receptor.implemented)
         .map((receptor) => `${cls}:${receptor.id}`),
     );
-    expect(implemented).toEqual(['warrior:heroic_leap']);
+    expect(implemented).toEqual([
+      'warrior:heroic_leap',
+      'warrior:whirlwind',
+      'warrior:thunder_clap',
+      'warrior:cleave',
+      'rogue:eviscerate',
+      'rogue:ambush',
+      'rogue:sinister_strike',
+      'rogue:rupture',
+      'mage:fireball',
+      'mage:arcane_missiles',
+      'mage:frostbolt',
+      'mage:frost_nova',
+    ]);
   });
 
   it('keeps Heroic Leap base plus three same-class elemental variants', () => {
