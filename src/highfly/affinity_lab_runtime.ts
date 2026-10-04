@@ -190,12 +190,31 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
 function selectSpec(cls: HighflyClass, spec: string): void {
   const g = game();
   if (!g || metaClass() !== cls) return;
-  const ok = g.sim.setSpec(spec);
+  const sim = g.sim;
+  const p = sim.player;
+
+  // LAB-only tester transition: leave combat before an EXPLICIT spec change.
+  // Production keeps Claude's normal "no spec swaps in combat" rule untouched.
+  p.inCombat = false;
+  p.combatTimer = 99;
+  p.autoAttack = false;
+  p.gcdRemaining = 0;
+  p.castingAbility = null;
+  p.channeling = false;
+  p.leap = null;
+  p.queuedCastTargetId = null;
+  const target = p.targetId != null ? sim.entities.get(p.targetId) : null;
+  if (target) {
+    target.inCombat = false;
+    target.aggroTargetId = null;
+  }
+
+  const ok = sim.setSpec(spec);
   if (!ok) {
     toast('NO SE PUDO CAMBIAR SPEC', true);
     return;
   }
-  g.sim.player.resource = g.sim.player.maxResource;
+  p.resource = p.maxResource;
   toast('SPEC · ' + spec.toUpperCase());
   renderHud(cls);
 }
