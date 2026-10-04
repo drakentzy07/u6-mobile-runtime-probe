@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>HIGHFLY — Interior Editor v1</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;background:#07090e;color:#eef3fb;font-family:Inter,system-ui,sans-serif}canvas{display:block}
+#top{position:fixed;left:10px;right:10px;top:10px;z-index:20;display:flex;gap:7px;align-items:center;pointer-events:auto}
+.panel{background:#0b111ddd;border:1px solid #31415a;border-radius:11px;backdrop-filter:blur(10px)}
+#brand{padding:8px 11px}.title{font:800 12px ui-monospace;letter-spacing:.08em}.sub{font:10px ui-monospace;color:#95a7c0;margin-top:2px}
+button{border:1px solid #465c7d;background:#111a2a;color:#e8eef8;border-radius:8px;padding:7px 9px;font:700 10px ui-monospace;cursor:pointer}
+button:hover,button.active{background:#243552;border-color:#7a96c0}.danger{border-color:#7e4450}.ok{border-color:#3e765b}
+#tools{display:none;gap:5px;padding:5px}#saveState{margin-left:auto;padding:8px 10px;font:700 10px ui-monospace;color:#86eeb1}
+#catalog{position:fixed;right:10px;top:58px;bottom:10px;width:330px;z-index:18;display:none;flex-direction:column;pointer-events:auto;overflow:hidden}
+#catalogHead{padding:9px;border-bottom:1px solid #27364c}.row{display:flex;gap:5px;align-items:center}.grow{flex:1}
+input,select{width:100%;background:#0a111d;color:#e9eff8;border:1px solid #344861;border-radius:7px;padding:7px;font:11px ui-monospace}
+#filters{display:flex;gap:4px;margin-top:7px;flex-wrap:wrap}.chip{padding:5px 7px;font-size:9px}
+#cards{padding:8px;overflow:auto;display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}
+.card{background:#111827;border:1px solid #2e4059;border-radius:9px;overflow:hidden;cursor:pointer;position:relative}.card:hover{border-color:#7894bd}
+.thumb{height:86px;background:radial-gradient(circle at 50% 55%,#293246,#111722);display:flex;align-items:center;justify-content:center}.thumb img{max-width:100%;max-height:100%;object-fit:contain}.loadingThumb{font:24px ui-monospace;color:#70829c}
+.meta{padding:6px}.name{font:800 10px ui-monospace}.cat{font:9px ui-monospace;color:#8fa2bb;margin-top:2px}.badge{position:absolute;top:5px;left:5px;background:#18243a;border:1px solid #58769f;border-radius:999px;padding:2px 5px;font:8px ui-monospace}
+.used{right:5px;left:auto;background:#243421;border-color:#557e4c}
+#bottom{position:fixed;left:10px;bottom:10px;z-index:17;display:flex;gap:7px;pointer-events:none}#bottom>*{pointer-events:auto}
+#hint{padding:8px 10px;font:10px ui-monospace;color:#aab8ca}.key{color:#fff}
+#selection{padding:8px 10px;display:none;min-width:210px}.selname{font:800 10px ui-monospace}.selmeta{font:9px ui-monospace;color:#91a1b7;margin-top:3px}
+#modeBadge{padding:8px 10px;font:800 10px ui-monospace}.play{color:#7de9ad}.edit{color:#ffcd72}
+#placeBanner{position:fixed;left:50%;top:66px;transform:translateX(-50%);z-index:19;display:none;padding:8px 12px;font:800 10px ui-monospace;pointer-events:none}
+#cross{position:fixed;left:50%;top:50%;width:7px;height:7px;border:1px solid #fff9;border-radius:50%;transform:translate(-50%,-50%);pointer-events:none;z-index:15}
+#io{display:none}#toast{position:fixed;left:50%;bottom:60px;transform:translateX(-50%);z-index:30;padding:8px 11px;font:800 10px ui-monospace;opacity:0;transition:.2s;pointer-events:none}
+</style>
+</head>
+<body>
+<div id="top">
+  <div id="brand" class="panel"><div class="title">HIGHFLY // INTERIOR EDITOR v1</div><div class="sub">FORJA · IA + EDICIÓN MANUAL</div></div>
+  <button id="modeBtn">EDITAR</button>
+  <div id="tools" class="panel">
+    <button data-mode="translate" class="active">MOVER</button>
+    <button data-mode="rotate">ROTAR</button>
+    <button data-mode="scale">ESCALA</button>
+    <button id="dupBtn">DUPLICAR</button>
+    <button id="delBtn" class="danger">BORRAR</button>
+    <button id="undoBtn">↶</button><button id="redoBtn">↷</button>
+    <button id="resetBtn">RESET</button>
+    <button id="exportBtn" class="ok">EXPORTAR</button>
+    <button id="importBtn">IMPORTAR</button>
+  </div>
+  <div id="saveState" class="panel">AUTOSAVE ✓</div>
+</div>
+
+<aside id="catalog" class="panel">
+  <div id="catalogHead">
+    <div class="row"><input id="search" class="grow" placeholder="Buscar asset…"><select id="category"><option value="all">Todas</option></select></div>
+    <div id="filters"><button class="chip active" data-filter="recommended">RECOMENDADOS</button><button class="chip" data-filter="used">UTILIZADOS</button><button class="chip" data-filter="all">TODOS</button><button class="chip" data-filter="forge">FORJA</button><button class="chip" data-filter="tavern">TABERNA</button></div>
+  </div>
+  <div id="cards"></div>
+</aside>
+
+<div id="bottom">
+  <div id="modeBadge" class="panel play">MODO JUGAR</div>
+  <div id="hint" class="panel"><span class="key">WASD</span> mover · mouse cámara · <span class="key">Shift</span> correr</div>
+  <div id="selection" class="panel"><div class="selname"></div><div class="selmeta"></div></div>
+</div>
+<div id="placeBanner" class="panel"></div><div id="toast" class="panel"></div><div id="cross"></div><input id="io" type="file" accept=".json">
+
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.170.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.170.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import {PointerLockControls} from 'three/addons/controls/PointerLockControls.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {TransformControls} from 'three/addons/controls/TransformControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const ROOT='https://raw.githubusercontent.com/GeorgeQLe/assets-kaykit-3d-props/main/assets/kaykit/';
+const P={tools:ROOT+'rpg-tools-bits-1.0/Assets/gltf/',weapons:ROOT+'fantasy-weapons-bits-1.0/Assets/gltf/',resources:ROOT+'resource-bits-1.0/Assets/gltf/',furniture:ROOT+'furniture-bits-1.0/Assets/gltf/',proto:ROOT+'prototype-bits-1.1/Assets/gltf/',block:ROOT+'block-bits-1.0/Assets/gltf/'};
+
+const CATALOG=[
+['anvil','Yunque','Herramientas',P.tools+'anvil.gltf',['forge'],1.25],
+['grind','Piedra de afilar','Herramientas',P.tools+'grindstone.gltf',['forge'],1.25],
+['hammer','Martillo','Herramientas',P.tools+'hammer.gltf',['forge'],.55],
+['tongs','Tenazas','Herramientas',P.tools+'tongs.gltf',['forge'],.62],
+['saw','Sierra','Herramientas',P.tools+'saw.gltf',['forge'],.7],
+['bucket','Cubo metálico','Herramientas',P.tools+'bucket_metal.gltf',['forge'],.68],
+['torch','Antorcha','Iluminación',P.tools+'torch.gltf',['forge','tavern'],.7],
+['rack','Rack de armas','Exhibición',P.proto+'Weaponrack.gltf',['forge'],1.9],
+['rackD','Rack decorado','Exhibición',P.proto+'Weaponrack_Decorated.gltf',['forge'],2.05],
+['swordA','Espada I','Armas',P.weapons+'sword_A.gltf',['forge'],1.15],
+['swordB','Espada II','Armas',P.weapons+'sword_B.gltf',['forge'],1.15],
+['swordF','Espada grande','Armas',P.weapons+'sword_F.gltf',['forge'],1.2],
+['axeA','Hacha I','Armas',P.weapons+'axe_A.gltf',['forge'],1.1],
+['axeC','Hacha II','Armas',P.weapons+'axe_C.gltf',['forge'],1.1],
+['spearA','Lanza I','Armas',P.weapons+'spear_A.gltf',['forge'],1.45],
+['shieldA','Escudo I','Armas',P.weapons+'shield_A.gltf',['forge'],1.0],
+['shieldB','Escudo II','Armas',P.weapons+'shield_B.gltf',['forge'],1.0],
+['dagger','Daga','Armas',P.weapons+'dagger_A.gltf',['forge'],.78],
+['chest','Cofre','Almacenamiento',P.block+'chest.gltf',['forge','tavern'],1.0],
+['barrel','Barril','Almacenamiento',P.block+'barrel.gltf',['forge','tavern'],.9],
+['crate','Caja de recursos','Almacenamiento',P.resources+'Containers_Crate_Medium_Wood.gltf',['forge','tavern'],.88],
+['ironL','Hierro · pila grande','Materiales',P.resources+'Iron_Bars_Stack_Large.gltf',['forge'],.95],
+['ironM','Hierro · pila mediana','Materiales',P.resources+'Iron_Bars_Stack_Medium.gltf',['forge'],.78],
+['copper','Cobre','Materiales',P.resources+'Copper_Bars_Stack_Medium.gltf',['forge'],.78],
+['silver','Plata','Materiales',P.resources+'Silver_Bars_Stack_Small.gltf',['forge'],.62],
+['wood','Leña','Materiales',P.resources+'Wood_Log_Stack.gltf',['forge','tavern'],1.1],
+['shelf','Estante','Muebles',P.furniture+'shelf_A_small.gltf',['forge','tavern'],1.05],
+['shelfD','Estante decorado','Muebles',P.furniture+'shelf_B_large_decorated.gltf',['forge','tavern'],1.9],
+['table','Banco / mesa','Muebles',P.furniture+'table_medium_long.gltf',['forge','tavern'],2.2],
+['chair','Silla','Muebles',P.furniture+'chair_A_wood.gltf',['tavern'],1.0],
+['stool','Banqueta','Muebles',P.furniture+'chair_stool_wood.gltf',['tavern'],.8],
+['books','Libros','Decoración',P.block+'books_A.gltf',['tavern'],.62],
+['blueprint','Planos','Decoración',P.tools+'blueprint_stacked.gltf',['forge'],.52]
+].map(x=>({key:x[0],name:x[1],category:x[2],url:x[3],tags:x[4],size:x[5]}));
+const BYKEY=Object.fromEntries(CATALOG.map(a=>[a.key,a]));
+
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x080a0f);scene.fog=new THREE.FogExp2(0x080a0f,.018);
+const camera=new THREE.PerspectiveCamera(64,innerWidth/innerHeight,.05,120);camera.position.set(7,2.0,10.4);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.08;renderer.shadowMap.enabled=true;document.body.prepend(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0x8499ba,0x241b16,1.2));const sun=new THREE.DirectionalLight(0xc7d5ea,1.3);sun.position.set(-5,9,8);scene.add(sun);
+
+const play=new PointerLockControls(camera,renderer.domElement);
+const orbit=new OrbitControls(camera,renderer.domElement);orbit.enabled=false;orbit.enableDamping=true;orbit.target.set(7,1.2,6);
+const transform=new TransformControls(camera,renderer.domElement);transform.enabled=false;transform.setSize(.78);scene.add(transform.getHelper());
+transform.addEventListener('dragging-changed',e=>orbit.enabled=editMode&&!e.value);
+transform.addEventListener('mouseDown',()=>pushHistory());
+transform.addEventListener('objectChange',()=>scheduleSave());
+transform.addEventListener('mouseUp',()=>{saveNow();refreshUsed()});
+
+const mat={stone:new THREE.MeshStandardMaterial({color:0x5e564c,roughness:.96}),stone2:new THREE.MeshStandardMaterial({color:0x3e3934,roughness:1}),plaster:new THREE.MeshStandardMaterial({color:0x88765e,roughness:.97}),wood:new THREE.MeshStandardMaterial({color:0x4d3321,roughness:.9}),wood2:new THREE.MeshStandardMaterial({color:0x684526,roughness:.88}),ember:new THREE.MeshStandardMaterial({color:0xee7622,emissive:0xff4305,emissiveIntensity:2})};
+const records=new Map(), roots=[], loader=new GLTFLoader(), cache=new Map();let uid=0,editMode=false,selected=null,placing=null,clipboard=null,dirtyTimer=null;
+const SAVEKEY='HIGHFLY_INTERIOR_EDITOR_V1_FORGE';
+function id(p='obj'){return p+'-'+(++uid)}
+function tag(root,rec){root.userData.editableRoot=root;root.userData.recordId=rec.id;rec.root=root;records.set(rec.id,rec);roots.push(root);root.traverse(c=>c.userData.editableRoot=root);return root}
+function primitiveBox(rec){const m=mat[rec.mat]||mat.stone;const o=new THREE.Mesh(new THREE.BoxGeometry(...rec.dims),m);o.castShadow=true;o.receiveShadow=true;o.position.fromArray(rec.pos);o.rotation.fromArray(rec.rot||[0,0,0]);o.scale.fromArray(rec.scale||[1,1,1]);scene.add(o);return tag(o,rec)}
+async function assetObj(rec){let src=cache.get(rec.asset);if(!src){const a=BYKEY[rec.asset];if(!a)return null;src=loader.loadAsync(a.url).then(g=>g.scene);cache.set(rec.asset,src)}const base=await src;const o=base.clone(true);o.traverse(n=>{if(n.isMesh){n.castShadow=true;n.receiveShadow=true}});let b=new THREE.Box3().setFromObject(o),sz=b.getSize(new THREE.Vector3()),mx=Math.max(sz.x,sz.y,sz.z)||1;const a=BYKEY[rec.asset];o.scale.multiplyScalar((rec.baseSize||a.size)/mx);b=new THREE.Box3().setFromObject(o);const c=b.getCenter(new THREE.Vector3());o.position.set(-c.x,-b.min.y,-c.z);const g=new THREE.Group();g.add(o);g.position.fromArray(rec.pos);g.rotation.fromArray(rec.rot||[0,0,0]);g.scale.fromArray(rec.scale||[1,1,1]);scene.add(g);return tag(g,rec)}
+function addBox(name,pos,dims,material='stone',category='Arquitectura',locked=false){const rec={id:id('p'),kind:'primitive',name,category,mat:material,dims,pos,rot:[0,0,0],scale:[1,1,1],locked};return primitiveBox(rec)}
+async function addAsset(key,pos,rot=[0,0,0],scale=[1,1,1],customId=null){const a=BYKEY[key],rec={id:customId||id('a'),kind:'asset',asset:key,name:a.name,category:a.category,pos,rot,scale,baseSize:a.size};return assetObj(rec)}
+function removeRoot(root){if(!root)return;transform.detach();scene.remove(root);records.delete(root.userData.recordId);const i=roots.indexOf(root);if(i>=0)roots.splice(i,1);if(selected===root)select(null)}
+function clearEditable(){transform.detach();for(const r of [...roots])scene.remove(r);roots.length=0;records.clear();selected=null}
+function rootOf(obj){while(obj&&obj!==scene){if(obj.userData?.editableRoot)return obj.userData.editableRoot;obj=obj.parent}return null}
+
+// Base architecture: intentionally editable wall modules.
+const UP=0,LOW=-4.2;
+function baseArchitecture(){
+ addBox('Piso tienda',[7,-.09,6],[14,.18,12],'stone2','Arquitectura',true);
+ addBox('Piso taller',[7,LOW-.09,6],[14,.18,12],'stone2','Arquitectura',true);
+ addBox('Pared izquierda',[.12,1.6,6],[.24,3.2,12],'plaster','Paredes');
+ addBox('Pared derecha',[13.88,1.6,6],[.24,3.2,12],'plaster','Paredes');
+ addBox('Pared fondo',[7,1.6,11.88],[14,3.2,.24],'plaster','Paredes');
+ addBox('Frente izquierda',[2.8,1.6,.12],[5.6,3.2,.24],'plaster','Paredes');
+ addBox('Frente derecha',[11.2,1.6,.12],[5.6,3.2,.24],'plaster','Paredes');
+ addBox('Muro exposición izq',[3.35,1.6,2.3],[5.7,3.2,.18],'plaster','Paredes');
+ addBox('Muro exposición der',[10.65,1.6,2.3],[4.7,3.2,.18],'plaster','Paredes');
+ // timber counter centered back
+ addBox('Mostrador',[7,.48,9.15],[4,.96,.9],'wood2','Muebles');
+ // staircase at side - editable as grouped steps individually to allow experimentation
+ for(let i=0;i<13;i++){const t=i/12,y=UP-4*t,z=9.2+(4.2-9.2)*t;addBox('Escalón '+(i+1),[12.15,y-.06,z],[2.05,.22,.5],'wood','Escaleras')}
+ // basement stone walls
+ addBox('Taller pared izq',[.12,LOW+1.55,6],[.24,3.1,12],'stone','Paredes');
+ addBox('Taller pared der',[13.88,LOW+1.55,6],[.24,3.1,12],'stone','Paredes');
+ addBox('Taller fondo',[7,LOW+1.55,11.88],[14,3.1,.24],'stone','Paredes');
+ addBox('Taller frente',[7,LOW+1.55,.12],[14,3.1,.24],'stone','Paredes');
+ // main forge + secondary furnace built from editable blocks
+ addBox('Fragua base',[1.7,LOW+.55,2.05],[2.6,1.1,1.6],'stone','Hornos');
+ addBox('Fragua hogar',[1.7,LOW+1.35,2.05],[1.35,.18,.72],'ember','Hornos');
+ addBox('Fundición secundaria',[11.75,LOW+.48,2.0],[1.8,.96,1.4],'stone','Hornos');
+ addBox('Fundición hogar',[11.75,LOW+1.05,2.0],[.82,.16,.5],'ember','Hornos');
+ addBox('Banco pared',[4.6,LOW+.44,10.65],[5.0,.88,1.0],'wood2','Muebles');
+ addBox('Panel herramientas',[4.6,LOW+1.78,11.45],[5.2,1.85,.12],'wood2','Muebles');
+}
+async function baseProps(){
+ const list=[
+ ['rack',[1.05,0,5.5],[0,Math.PI/2,0]],['rack',[12.95,0,5.5],[0,-Math.PI/2,0]],
+ ['shieldA',[4.8,1.15,2.42],[0,Math.PI,0]],['shieldB',[9.8,1.15,2.42],[0,Math.PI,0]],
+ ['swordA',[3.35,.42,2.4]],[ 'axeA',[5.8,.4,2.4]],[ 'spearA',[8.5,.18,2.4]],[ 'swordB',[11.1,.42,2.4]],
+ ['chest',[1.8,0,10.35]],['chest',[3.1,0,10.35]],['chest',[4.4,0,10.35]],
+ ['shelf',[1.0,1.15,7.25],[0,Math.PI/2,0]],['shelf',[1.0,1.15,8.6],[0,Math.PI/2,0]],
+ ['anvil',[3.7,LOW,2.4]],['anvil',[5.55,LOW,3.05],[0,.25,0]],['grind',[8.0,LOW,2.2],[0,Math.PI/2,0]],
+ ['ironL',[8.7,LOW,6.5]],['ironM',[9.75,LOW,6.6]],['copper',[8.7,LOW,7.8]],['silver',[9.65,LOW,7.9]],['wood',[2.1,LOW,6.1]],['wood',[2.1,LOW,7.25]],
+ ['crate',[10.4,LOW,8.4]],['barrel',[12.7,LOW,8.6]],['barrel',[12.7,LOW,9.6]],
+ ['hammer',[2.6,LOW+1.12,11.12],[0,0,Math.PI/2]],['tongs',[3.6,LOW+1.1,11.12],[0,0,Math.PI/2]],['saw',[6.3,LOW+1.02,11.12],[0,0,Math.PI/2]]
+ ];
+ await Promise.all(list.map(x=>addAsset(x[0],x[1],x[2]||[0,0,0])));
+}
+
+const floorPlane=new THREE.Plane(new THREE.Vector3(0,1,0),0),ray=new THREE.Raycaster(),mouse=new THREE.Vector2();
+function pointerNDC(e){const r=renderer.domElement.getBoundingClientRect();mouse.x=((e.clientX-r.left)/r.width)*2-1;mouse.y=-((e.clientY-r.top)/r.height)*2+1}
+function select(root){selected=root;transform.detach();const box=document.querySelector('#selection');if(!root){box.style.display='none';return}const rec=records.get(root.userData.recordId);if(!rec)return;if(!rec.locked){transform.attach(root)}box.style.display='block';box.querySelector('.selname').textContent=rec.name;box.querySelector('.selmeta').textContent=rec.category+' · '+rec.id}
+renderer.domElement.addEventListener('pointerdown',async e=>{
+ if(!editMode||transform.dragging)return;pointerNDC(e);ray.setFromCamera(mouse,camera);
+ if(placing){const hit=new THREE.Vector3(),py=(camera.position.y<-.8?LOW:UP),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-py);ray.ray.intersectPlane(plane,hit);pushHistory();const o=await addAsset(placing.key,[hit.x,py,hit.z]);select(o);placing=null;document.querySelector('#placeBanner').style.display='none';saveNow();renderCards();return}
+ const hits=ray.intersectObjects(roots,true);select(hits.length?rootOf(hits[0].object):null);
+});
+
+function recState(rec){const o=rec.root;return {...rec,pos:o.position.toArray(),rot:[o.rotation.x,o.rotation.y,o.rotation.z],scale:o.scale.toArray(),root:undefined}}
+function layout(){return {version:1,scene:'FORJA',savedAt:new Date().toISOString(),objects:[...records.values()].map(recState)}}
+let history=[],future=[];
+function pushHistory(){history.push(JSON.stringify(layout()));if(history.length>40)history.shift();future.length=0}
+async function restore(data){clearEditable();let max=0;for(const rec of data.objects||[]){const n=Number((rec.id||'').split('-').pop());if(n>max)max=n;if(rec.kind==='primitive')primitiveBox({...rec});else if(rec.kind==='asset')await assetObj({...rec})}uid=Math.max(uid,max);select(null);refreshUsed();saveNow(false)}
+function scheduleSave(){clearTimeout(dirtyTimer);document.querySelector('#saveState').textContent='GUARDANDO…';dirtyTimer=setTimeout(()=>saveNow(),220)}
+function saveNow(toastIt=false){localStorage.setItem(SAVEKEY,JSON.stringify(layout()));document.querySelector('#saveState').textContent='AUTOSAVE ✓';if(toastIt)toast('Guardado')}
+async function undo(){if(!history.length)return;future.push(JSON.stringify(layout()));await restore(JSON.parse(history.pop()))}
+async function redo(){if(!future.length)return;history.push(JSON.stringify(layout()));await restore(JSON.parse(future.pop()))}
+
+function setEdit(v){editMode=v;document.querySelector('#modeBtn').textContent=v?'JUGAR':'EDITAR';document.querySelector('#tools').style.display=v?'flex':'none';document.querySelector('#catalog').style.display=v?'flex':'none';document.querySelector('#cross').style.display=v?'none':'block';const badge=document.querySelector('#modeBadge');badge.textContent=v?'MODO EDITAR':'MODO JUGAR';badge.className='panel '+(v?'edit':'play');document.querySelector('#hint').innerHTML=v?'<span class="key">CLICK</span> seleccionar · M mover · R rotar · S escala · Ctrl+C/V · Delete · Ctrl+Z/Y':'<span class="key">WASD</span> mover · mouse cámara · <span class="key">Shift</span> correr';if(v){play.unlock();orbit.enabled=true;orbit.target.copy(camera.position).add(new THREE.Vector3(0,0,-4));transform.enabled=true}else{orbit.enabled=false;transform.enabled=false;transform.detach();select(null)}}
+document.querySelector('#modeBtn').onclick=()=>setEdit(!editMode);
+document.querySelectorAll('#tools [data-mode]').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tools [data-mode]').forEach(x=>x.classList.remove('active'));b.classList.add('active');transform.setMode(b.dataset.mode)});
+document.querySelector('#dupBtn').onclick=()=>duplicate();
+document.querySelector('#delBtn').onclick=()=>delSelected();
+document.querySelector('#undoBtn').onclick=undo;document.querySelector('#redoBtn').onclick=redo;
+document.querySelector('#resetBtn').onclick=async()=>{if(confirm('¿Restaurar la Forja base?')){localStorage.removeItem(SAVEKEY);location.reload()}};
+document.querySelector('#exportBtn').onclick=()=>{const blob=new Blob([JSON.stringify(layout(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='HIGHFLY_FORJA_LAYOUT.json';a.click();URL.revokeObjectURL(a.href);toast('Layout exportado')};
+const io=document.querySelector('#io');document.querySelector('#importBtn').onclick=()=>io.click();io.onchange=async()=>{const f=io.files[0];if(!f)return;pushHistory();await restore(JSON.parse(await f.text()));toast('Layout importado')};
+
+async function duplicate(){if(!selected)return;const rec=records.get(selected.userData.recordId);if(!rec||rec.locked)return;pushHistory();let nr={...rec,id:id(rec.kind==='asset'?'a':'p'),pos:[selected.position.x+.6,selected.position.y,selected.position.z+.6],rot:[selected.rotation.x,selected.rotation.y,selected.rotation.z],scale:selected.scale.toArray(),root:undefined};const o=nr.kind==='asset'?await assetObj(nr):primitiveBox(nr);select(o);saveNow();refreshUsed()}
+function delSelected(){if(!selected)return;const rec=records.get(selected.userData.recordId);if(rec?.locked)return;pushHistory();removeRoot(selected);saveNow();refreshUsed()}
+addEventListener('keydown',async e=>{
+ if(editMode){
+  if(e.code==='KeyM')transform.setMode('translate');if(e.code==='KeyR')transform.setMode('rotate');if(e.code==='KeyS')transform.setMode('scale');
+  if(e.code==='Delete'||e.code==='Backspace')delSelected();
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyC'&&selected){clipboard=recState(records.get(selected.userData.recordId));toast('Copiado')}
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyV'&&clipboard){pushHistory();let r={...clipboard,id:id(clipboard.kind==='asset'?'a':'p'),pos:[clipboard.pos[0]+.6,clipboard.pos[1],clipboard.pos[2]+.6]};const o=r.kind==='asset'?await assetObj(r):primitiveBox(r);select(o);saveNow();refreshUsed()}
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyZ'){e.preventDefault();e.shiftKey?redo():undo()}
+  if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){e.preventDefault();redo()}
+  if(e.code==='Escape'&&placing){placing=null;document.querySelector('#placeBanner').style.display='none'}
+ }
+});
+
+let filter='recommended';
+const cats=[...new Set(CATALOG.map(a=>a.category))].sort(),sel=document.querySelector('#category');for(const c of cats){const o=document.createElement('option');o.value=c;o.textContent=c;sel.append(o)}
+document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;renderCards()});
+document.querySelector('#search').oninput=renderCards;sel.onchange=renderCards;
+function usedKeys(){return new Set([...records.values()].filter(r=>r.kind==='asset').map(r=>r.asset))}
+function refreshUsed(){renderCards()}
+function renderCards(){const q=document.querySelector('#search').value.toLowerCase(),cat=sel.value,used=usedKeys(),cards=document.querySelector('#cards');cards.innerHTML='';let list=CATALOG.filter(a=>(!q||a.name.toLowerCase().includes(q)||a.category.toLowerCase().includes(q))&&(cat==='all'||a.category===cat));if(filter==='recommended')list=list.filter(a=>a.tags.includes('forge'));else if(filter==='used')list=list.filter(a=>used.has(a.key));else if(filter==='forge'||filter==='tavern')list=list.filter(a=>a.tags.includes(filter));
+ for(const a of list){const d=document.createElement('div');d.className='card';d.innerHTML='<span class="badge">'+(a.tags.includes('forge')?'RECOM.':'ASSET')+'</span>'+(used.has(a.key)?'<span class="badge used">USADO</span>':'')+'<div class="thumb"><span class="loadingThumb">◈</span></div><div class="meta"><div class="name">'+a.name+'</div><div class="cat">'+a.category+'</div></div>';d.onclick=()=>{placing=a;const b=document.querySelector('#placeBanner');b.textContent='COLOCAR: '+a.name+' · click en el piso · ESC cancela';b.style.display='block'};cards.append(d);makeThumb(a,d.querySelector('.thumb'))}
+}
+const thumbRenderer=new THREE.WebGLRenderer({alpha:true,antialias:true,preserveDrawingBuffer:true});thumbRenderer.setSize(150,86);thumbRenderer.setPixelRatio(1);
+const thumbScene=new THREE.Scene();thumbScene.add(new THREE.HemisphereLight(0xffffff,0x303030,2));const thumbCam=new THREE.PerspectiveCamera(35,150/86,.01,50);thumbCam.position.set(2.5,1.8,3);thumbCam.lookAt(0,.7,0);const thumbQueue=[];let thumbBusy=false;
+function makeThumb(a,host){thumbQueue.push({a,host});runThumbs()}
+async function runThumbs(){if(thumbBusy)return;thumbBusy=true;while(thumbQueue.length){const {a,host}=thumbQueue.shift();try{let src=cache.get(a.key);if(!src){src=loader.loadAsync(a.url).then(g=>g.scene);cache.set(a.key,src)}const base=await src,clone=base.clone(true);let b=new THREE.Box3().setFromObject(clone),sz=b.getSize(new THREE.Vector3()),mx=Math.max(sz.x,sz.y,sz.z)||1;clone.scale.multiplyScalar(1.4/mx);b=new THREE.Box3().setFromObject(clone);const c=b.getCenter(new THREE.Vector3());clone.position.set(-c.x,-b.min.y,-c.z);thumbScene.add(clone);thumbRenderer.render(thumbScene,thumbCam);const im=document.createElement('img');im.src=thumbRenderer.domElement.toDataURL('image/png');host.innerHTML='';host.append(im);thumbScene.remove(clone)}catch(e){host.innerHTML='<span class="loadingThumb">?</span>'}}thumbBusy=false}
+
+const toastEl=document.querySelector('#toast');function toast(t){toastEl.textContent=t;toastEl.style.opacity=1;clearTimeout(toastEl._t);toastEl._t=setTimeout(()=>toastEl.style.opacity=0,1300)}
+
+const keys={};addEventListener('keydown',e=>keys[e.code]=1);addEventListener('keyup',e=>keys[e.code]=0);renderer.domElement.addEventListener('click',()=>{if(!editMode)play.lock()});
+let last=performance.now(),level='UPPER';
+function stairY(x,z){if(x<10.8||x>13.5||z<4.0||z>9.3)return null;const t=THREE.MathUtils.clamp((9.2-z)/5,0,1);return 1.65-4*t}
+function loop(now){requestAnimationFrame(loop);const dt=Math.min((now-last)/1000,.05);last=now;if(editMode)orbit.update();else if(play.isLocked){let x=(keys.KeyD?1:0)-(keys.KeyA?1:0),z=(keys.KeyW?1:0)-(keys.KeyS?1:0),l=Math.hypot(x,z)||1,sp=(keys.ShiftLeft||keys.ShiftRight)?4.8:2.9;play.moveRight(x/l*sp*dt);play.moveForward(z/l*sp*dt);camera.position.x=THREE.MathUtils.clamp(camera.position.x,.4,13.6);camera.position.z=THREE.MathUtils.clamp(camera.position.z,.4,11.6);const sy=stairY(camera.position.x,camera.position.z);if(sy!==null){camera.position.y=sy;if(camera.position.z<4.3)level='LOWER';if(camera.position.z>9.0)level='UPPER'}else camera.position.y=level==='UPPER'?1.65:LOW+1.65}renderer.render(scene,camera)}
+requestAnimationFrame(loop);
+
+async function init(){baseArchitecture();await baseProps();const saved=localStorage.getItem(SAVEKEY);if(saved){try{await restore(JSON.parse(saved));toast('Layout recuperado')}catch(e){console.warn(e)}}renderCards();saveNow(false)}
+init();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body></html>
