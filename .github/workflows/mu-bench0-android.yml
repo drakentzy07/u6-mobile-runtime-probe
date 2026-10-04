@@ -1,6 +1,9 @@
 name: HIGHFLY MU-BENCH 0 Android
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - highfly/mu-bench0-real-android
