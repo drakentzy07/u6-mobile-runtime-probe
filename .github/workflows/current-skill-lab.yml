@@ -9,13 +9,10 @@ on:
       - ".github/workflows/current-skill-lab.yml"
       - "overlays/apply_current_skill_lab_pack01.py"
       - "overlays/highfly_current_skill_lab_smoke.mjs"
-      - "mu-bench0-pages/**"
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
   group: highfly-current-skill-lab-pages
@@ -220,30 +217,13 @@ jobs:
           done
           node ./highfly_current_skill_lab_smoke.mjs
 
-      - name: Add MU-BENCH 0 direct APK page
-        uses: actions/download-artifact@v4
+      - name: Upload Skill Lab WebGL artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: HIGHFLY-MU-BENCH0-ANDROID
-          path: mu-bench0-apk
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 37230139987
-
-      - name: Stage MU-BENCH 0 under Pages subroute
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p upstream/dist/mu-bench0
-          cp mu-bench0-pages/index.html upstream/dist/mu-bench0/index.html
-          cp mu-bench0-apk/HIGHFLY-MU-BENCH0.apk upstream/dist/mu-bench0/HIGHFLY-MU-BENCH0.apk
-          ls -lh upstream/dist/mu-bench0
-
-      - name: Configure Pages
-        uses: actions/configure-pages@v6
-
-      - name: Upload Skill Lab Pages artifact
-        uses: actions/upload-pages-artifact@v4
-        with:
+          name: current-skill-lab-webgl
           path: upstream/dist
+          if-no-files-found: error
+          retention-days: 7
 
       - name: Upload Skill Lab diagnostics
         if: always()
@@ -269,14 +249,3 @@ jobs:
             skill-lab-druid.png
           if-no-files-found: warn
           retention-days: 7
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy current Skill Lab
-        id: deployment
-        uses: actions/deploy-pages@v4
