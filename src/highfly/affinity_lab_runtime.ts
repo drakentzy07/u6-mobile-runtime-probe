@@ -101,7 +101,13 @@ function prepareCast(
   p.castingAbility = null;
   p.channeling = false;
   p.leap = null;
-  const target = stageDummy(receptor.target === 'position' ? 8 : 2.4);
+  const targetDistance =
+    receptor.target === 'position'
+      ? 8
+      : meta?.cls === 'mage' || meta?.cls === 'warlock' || meta?.cls === 'priest' || meta?.cls === 'shaman'
+        ? 12
+        : 2.4;
+  const target = stageDummy(targetDistance);
   if (meta?.cls === 'rogue') {
     if (receptor.id === 'eviscerate' || receptor.id === 'rupture') {
       p.comboPoints = 5;
@@ -144,7 +150,9 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
       const z = p.pos.z + Math.cos(p.facing) * 8;
       sim.castAbility(id, p.id, { x, z });
     } else if (receptor.target === 'enemy' && target) {
-      sim.castAbility(id, p.id, target.id);
+      // Canonical Claude targeting: p.targetId already owns the entity target.
+      // Argument 3 is reserved for ground aim, not an entity id.
+      sim.castAbility(id, p.id);
     } else if (receptor.target === 'self') {
       sim.castAbility(id, p.id, p.id);
     } else {
