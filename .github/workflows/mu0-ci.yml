@@ -1,0 +1,50 @@
+name: HIGHFLY MU-0 Android Slice
+
+on:
+  push:
+    branches: [highfly/mu0-android-playable]
+    paths:
+      - "mu0/**"
+      - ".github/workflows/mu0-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout MU-0
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Validate playable contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s mu0/index.html
+          grep -q "HIGHFLY MU-0" mu0/index.html
+          grep -q "pointerdown" mu0/index.html
+          grep -q "localStorage" mu0/index.html
+          grep -q "Goblin" mu0/index.html
+          grep -q "Esqueleto" mu0/index.html
+          grep -q "Inventario MU-0" mu0/index.html
+          python - <<'PY'
+          from pathlib import Path
+          s=Path("mu0/index.html").read_text()
+          js=s.split("<script>",1)[1].split("</script>",1)[0]
+          Path("/tmp/mu0.js").write_text(js)
+          PY
+          node --check /tmp/mu0.js
+      - name: Package Android browser playtest
+        run: zip -r highfly-mu0-android.zip mu0
+      - name: Upload playable
+        uses: actions/upload-artifact@v4
+        with:
+          name: highfly-mu0-android-playable
+          path: highfly-mu0-android.zip
+          retention-days: 7
