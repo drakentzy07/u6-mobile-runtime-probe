@@ -104,9 +104,11 @@ function prepareCast(
   const targetDistance =
     receptor.target === 'position'
       ? 8
-      : meta?.cls === 'mage' || meta?.cls === 'warlock' || meta?.cls === 'priest' || meta?.cls === 'shaman'
-        ? 12
-        : 2.4;
+      : receptor.target === 'none'
+        ? 5
+        : meta?.cls === 'mage' || meta?.cls === 'warlock' || meta?.cls === 'priest' || meta?.cls === 'shaman'
+          ? 12
+          : 2.4;
   const target = stageDummy(targetDistance);
   if (meta?.cls === 'rogue') {
     if (receptor.id === 'eviscerate' || receptor.id === 'rupture') {
