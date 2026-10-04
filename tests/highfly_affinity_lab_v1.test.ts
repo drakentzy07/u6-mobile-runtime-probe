@@ -112,7 +112,7 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
 
     expect(prepareBody).not.toContain('setSpec(');
     expect(castBody).not.toContain('setSpec(');
-    expect(explicitSpecUiBody).toContain('g.sim.setSpec(spec)');
+    expect(explicitSpecUiBody).toContain('sim.setSpec(spec)');
   });
 
   it('keeps SIM authority for elemental riders', () => {
