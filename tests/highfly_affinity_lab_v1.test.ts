@@ -85,6 +85,16 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
     ).toEqual(base);
   });
 
+  it('keeps Claude no-respec-in-combat rule in production while the LAB exits combat only for explicit tester spec changes', () => {
+    const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts', 'utf8');
+    const selectSpecStart = runtime.indexOf('function selectSpec(');
+    const resetStart = runtime.indexOf('function resetLab(');
+    const body = runtime.slice(selectSpecStart, resetStart);
+    expect(body).toContain('p.inCombat = false');
+    expect(body).toContain('p.autoAttack = false');
+    expect(body).toContain('const ok = sim.setSpec(spec)');
+  });
+
   it('never changes spec implicitly while preparing or casting affinity variants', () => {
     const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts', 'utf8');
     const prepareStart = runtime.indexOf('function prepareCast(');
