@@ -25,6 +25,7 @@ export interface AffinityReceptor {
   target: AffinityTarget;
   variants: AffinityVariantSet;
   implemented: boolean;
+  spec?: string;
   note?: string;
 }
 
@@ -37,8 +38,9 @@ export interface AffinityClassAudit {
  * AFFINITY LAB v1
  * - Native Claude class remains authoritative.
  * - Base ability remains available beside the selected elemental comparison.
- * - Only Heroic Leap is implemented in the first mechanical slice.
- * - The remaining receptors are the audited expansion queue, not fake/proxy skills.
+ * - TANDA 1 implements Warrior + Rogue + Mage.
+ * - Spec-gated receptors remain spec-gated; the lab may change spec only by explicit tester action.
+ * - The remaining six classes stay audited expansion queue, never fake/proxy skills.
  */
 export const HIGHFLY_AFFINITY_AUDIT_V1: Record<HighflyClass, AffinityClassAudit> = {
   warrior: {
@@ -57,10 +59,10 @@ export const HIGHFLY_AFFINITY_AUDIT_V1: Record<HighflyClass, AffinityClassAudit>
         },
         note: 'Primer A/B real del pipeline.',
       },
-      { id: 'whirlwind', label: 'Torbellino', target: 'enemy', implemented: false, variants: { base: 'whirlwind' } },
-      { id: 'thunder_clap', label: 'Golpe de Trueno', target: 'none', implemented: false, variants: { base: 'thunder_clap' } },
+      { id: 'whirlwind', label: 'Torbellino', target: 'enemy', implemented: true, spec: 'fury', variants: { base: 'whirlwind', fire: 'hf_aff_whirlwind_fire_01', frost: 'hf_aff_whirlwind_frost_01', lightning: 'hf_aff_whirlwind_lightning_01' } },
+      { id: 'thunder_clap', label: 'Golpe de Trueno', target: 'none', implemented: true, spec: 'prot', variants: { base: 'thunder_clap', fire: 'hf_aff_thunder_clap_fire_01', frost: 'hf_aff_thunder_clap_frost_01', lightning: 'hf_aff_thunder_clap_lightning_01' } },
       { id: 'faultline', label: 'Falla', target: 'none', implemented: false, variants: { base: 'faultline' } },
-      { id: 'cleave', label: 'Cleave', target: 'enemy', implemented: false, variants: { base: 'cleave' } },
+      { id: 'cleave', label: 'Barrido', target: 'none', implemented: true, spec: 'arms', variants: { base: 'cleave', fire: 'hf_aff_cleave_fire_01', frost: 'hf_aff_cleave_frost_01', lightning: 'hf_aff_cleave_lightning_01' } },
     ],
   },
   paladin: {
@@ -76,10 +78,10 @@ export const HIGHFLY_AFFINITY_AUDIT_V1: Record<HighflyClass, AffinityClassAudit>
   rogue: {
     label: 'ROGUE',
     receptors: [
-      { id: 'eviscerate', label: 'Remate', target: 'enemy', implemented: false, variants: { base: 'eviscerate' } },
-      { id: 'ambush', label: 'Emboscada', target: 'enemy', implemented: false, variants: { base: 'ambush' } },
-      { id: 'sinister_strike', label: 'Wicked Slash', target: 'enemy', implemented: false, variants: { base: 'sinister_strike' } },
-      { id: 'rupture', label: 'Ruptura', target: 'enemy', implemented: false, variants: { base: 'rupture' } },
+      { id: 'eviscerate', label: 'Remate', target: 'enemy', implemented: true, variants: { base: 'eviscerate', fire: 'hf_aff_eviscerate_fire_01', frost: 'hf_aff_eviscerate_frost_01', lightning: 'hf_aff_eviscerate_lightning_01' } },
+      { id: 'ambush', label: 'Emboscada', target: 'enemy', implemented: true, variants: { base: 'ambush', fire: 'hf_aff_ambush_fire_01', frost: 'hf_aff_ambush_frost_01', lightning: 'hf_aff_ambush_lightning_01' } },
+      { id: 'sinister_strike', label: 'Wicked Slash', target: 'enemy', implemented: true, variants: { base: 'sinister_strike', fire: 'hf_aff_sinister_strike_fire_01', frost: 'hf_aff_sinister_strike_frost_01', lightning: 'hf_aff_sinister_strike_lightning_01' } },
+      { id: 'rupture', label: 'Ruptura', target: 'enemy', implemented: true, variants: { base: 'rupture', fire: 'hf_aff_rupture_fire_01', frost: 'hf_aff_rupture_frost_01', lightning: 'hf_aff_rupture_lightning_01' } },
     ],
   },
   warlock: {
@@ -95,11 +97,11 @@ export const HIGHFLY_AFFINITY_AUDIT_V1: Record<HighflyClass, AffinityClassAudit>
   mage: {
     label: 'MAGE',
     receptors: [
-      { id: 'fireball', label: 'Cinderbolt', target: 'enemy', implemented: false, variants: { base: 'fireball' } },
+      { id: 'fireball', label: 'Cinderbolt', target: 'enemy', implemented: true, variants: { base: 'fireball', fire: 'hf_aff_fireball_fire_01', frost: 'hf_aff_fireball_frost_01', lightning: 'hf_aff_fireball_lightning_01' } },
       { id: 'meteor', label: 'Meteorito', target: 'position', implemented: false, variants: { base: 'meteor' } },
-      { id: 'arcane_missiles', label: 'Dardos Etéreos', target: 'enemy', implemented: false, variants: { base: 'arcane_missiles' } },
-      { id: 'frostbolt', label: 'Frostbolt', target: 'enemy', implemented: false, variants: { base: 'frostbolt' } },
-      { id: 'frozen_orb', label: 'Orbe Helado', target: 'enemy', implemented: false, variants: { base: 'frozen_orb' } },
+      { id: 'arcane_missiles', label: 'Dardos Etéreos', target: 'enemy', implemented: true, spec: 'arcane', variants: { base: 'arcane_missiles', fire: 'hf_aff_arcane_missiles_fire_01', frost: 'hf_aff_arcane_missiles_frost_01', lightning: 'hf_aff_arcane_missiles_lightning_01' } },
+      { id: 'frostbolt', label: 'Rimelance', target: 'enemy', implemented: true, variants: { base: 'frostbolt', fire: 'hf_aff_frostbolt_fire_01', frost: 'hf_aff_frostbolt_frost_01', lightning: 'hf_aff_frostbolt_lightning_01' } },
+      { id: 'frost_nova', label: 'Nova de Hielo', target: 'none', implemented: true, variants: { base: 'frost_nova', fire: 'hf_aff_frost_nova_fire_01', frost: 'hf_aff_frost_nova_frost_01', lightning: 'hf_aff_frost_nova_lightning_01' } },
     ],
   },
   shaman: {
