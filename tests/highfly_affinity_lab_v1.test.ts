@@ -123,6 +123,12 @@ describe('HIGHFLY AFFINITY LAB v1', () => {
     expect(runtime).not.toContain('sim.castAbility(id, p.id, target.id)');
   });
 
+  it('stages self-centered AoE receptors inside their authored radius', () => {
+    const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts', 'utf8');
+    expect(runtime).toContain("receptor.target === 'none'");
+    expect(runtime).toContain('? 5');
+  });
+
   it('keeps SIM authority for elemental riders', () => {
     const leap = readFileSync('src/sim/combat/heroic_leap.ts', 'utf8');
     expect(leap).toContain('highflyAffinityLeapRider(ctx, entity, target, flight.abilityId)');
