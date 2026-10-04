@@ -326,6 +326,7 @@ function renderHud(cls: HighflyClass): void {
   const root = document.createElement('div');
   root.id = 'hf-affinity-hud';
   root.classList.toggle('hf-collapsed', q0Collapsed);
+  document.body.classList.toggle('hf-q0-collapsed', q0Collapsed);
 
   const head = document.createElement('div');
   head.className = 'hf-aff-head';
