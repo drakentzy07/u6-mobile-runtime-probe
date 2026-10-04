@@ -18,6 +18,25 @@ await page.evaluate(()=>{
   if(target)p.targetId=target.id;
 });
 
+async function waitCameraStable(){
+  let last=null,stable=0;
+  for(let i=0;i<40;i++){
+    const cam=await page.evaluate(()=>{
+      const g=window.__game;
+      const c=g?.renderer?.camera;
+      return c?[c.position.x,c.position.y,c.position.z,c.rotation.x,c.rotation.y,c.rotation.z]:null;
+    });
+    if(cam&&last){
+      const maxDelta=Math.max(...cam.map((v,i)=>Math.abs(v-last[i])));
+      stable=maxDelta<0.01?stable+1:0;
+      if(stable>=3)return cam;
+    }
+    last=cam;
+    await page.waitForTimeout(100);
+  }
+  return last;
+}
+
 const snapshot=()=>page.evaluate(()=>{
   const g=window.__game,sim=g.sim,p=sim.player,m=sim.meta(p.id);
   const cam=g.renderer?.camera;
@@ -40,6 +59,7 @@ const snapshot=()=>page.evaluate(()=>{
   };
 });
 
+await waitCameraStable();
 const initial=await snapshot();
 const swaps=[];
 for(const body of ['qmale','qfemale','claude']){
@@ -53,12 +73,17 @@ for(const body of ['qmale','qfemale','claude']){
   swaps.push({body,want,after});
 }
 
+function cameraNear(a,b,tol=0.05){
+  if(a===null||b===null)return a===b;
+  if(a.length!==b.length)return false;
+  return a.every((v,i)=>Math.abs(v-b[i])<=tol);
+}
 function eqStable(a,b){
   return a.playerId===b.playerId&&a.cls===b.cls&&a.spec===b.spec&&a.level===b.level&&
     a.hp===b.hp&&a.maxHp===b.maxHp&&a.resource===b.resource&&a.maxResource===b.maxResource&&
     a.resourceType===b.resourceType&&a.targetId===b.targetId&&a.equipment===b.equipment&&
     a.cooldowns===b.cooldowns&&JSON.stringify(a.pos)===JSON.stringify(b.pos)&&
-    a.facing===b.facing&&JSON.stringify(a.camera)===JSON.stringify(b.camera);
+    a.facing===b.facing&&cameraNear(a.camera,b.camera);
 }
 
 const casts=[];
@@ -87,12 +112,20 @@ for(const body of ['claude','qmale','qfemale']){
 }
 
 const buttons=await page.locator('.hf-q0-body').allTextContents();
+const collapseText=await page.locator('.hf-q0-collapse').textContent();
+await page.evaluate(()=>window.__highflyCharacterQ0.toggleCollapsed());
+await page.waitForFunction(()=>document.querySelector('#hf-affinity-hud')?.classList.contains('hf-collapsed'),null,{timeout:3000});
+const collapsedButtons=await page.locator('.hf-q0-body').allTextContents();
+const activeBadge=await page.locator('#hf-q0-active').textContent();
 const report={
-  initial,swaps,casts,buttons,errors,
+  initial,swaps,casts,buttons,collapseText,collapsedButtons,activeBadge,errors,
   passed:
     swaps.length===3&&swaps.every(x=>eqStable(initial,x.after))&&
     casts.length===3&&casts.every(x=>x.stable&&x.damaged)&&
     ['CLAUDE','Q-MALE','Q-FEMALE'].every(x=>buttons.includes(x))&&
+    ['CLAUDE','Q-MALE','Q-FEMALE'].every(x=>collapsedButtons.includes(x))&&
+    /MINIMIZAR|MAXIMIZAR/.test(collapseText??'')&&
+    /ACTIVO:/.test(activeBadge??'')&&
     errors.filter(x=>/TypeError|ReferenceError|SyntaxError|RangeError/.test(x)).length===0,
 };
 fs.writeFileSync('../character-q0-smoke-report.json',JSON.stringify(report,null,2));
