@@ -28,11 +28,11 @@ describe('HIGHFLY CHARACTER Q0', () => {
   });
 
   it('bypasses Claude modular composition only while a Q0 replacement body is selected', () => {
-    const overlay = readFileSync('overlays/apply_highfly_character_q0.py','utf8');
-    expect(overlay).toContain("highflyCharacterQ0Body() !== 'claude'");
-    expect(overlay).toContain("e.kind === 'player'");
-    expect(overlay).toContain("formKey || isMechWearer(e) || q0VisualReplacement");
-    expect(overlay).toContain("? null");
+    const index = readFileSync('src/render/characters/index.ts','utf8');
+    expect(index).toContain("highflyCharacterQ0Body() !== 'claude'");
+    expect(index).toContain("e.kind === 'player'");
+    expect(index).toContain("formKey || isMechWearer(e) || q0VisualReplacement");
+    expect(index).toContain("? null");
   });
 
   it('keeps Q0 selector out of SIM/combat/movement authority', () => {
