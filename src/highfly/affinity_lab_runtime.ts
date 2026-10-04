@@ -22,12 +22,38 @@ const CLASS_SPECS: Partial<Record<HighflyClass, readonly string[]>> = {
 };
 const savedQ0Body = (localStorage.getItem('hf_character_q0_body') || 'claude') as HighflyCharacterQ0Body;
 setHighflyCharacterQ0Body(savedQ0Body);
+let q0Collapsed = localStorage.getItem('hf_character_q0_collapsed') === '1';
 
 let affinity = (localStorage.getItem('hf_affinity_lab_element') as HighflyAffinity) || 'fire';
 if (!ELEMENTS.includes(affinity as Exclude<HighflyAffinity, 'base'>)) affinity = 'fire';
 
 function game(): any {
   return w.__game?.sim ? w.__game : null;
+}
+
+function activeQ0VisualKey(): string | null {
+  const g = game();
+  if (!g) return null;
+  return g.renderer?.views?.get?.(g.sim.player.id)?.visualKey ?? null;
+}
+
+function expectedQ0VisualKey(cls: HighflyClass, body = highflyCharacterQ0Body()): string {
+  return body === 'claude' ? 'player_' + cls : 'player_' + cls + '_' + body;
+}
+
+function updateQ0VisualStatus(): void {
+  const cls = metaClass();
+  const el = document.getElementById('hf-q0-active');
+  if (!cls || !el) return;
+  const selected = highflyCharacterQ0Body();
+  const actual = activeQ0VisualKey();
+  const expected = expectedQ0VisualKey(cls, selected);
+  const ok = actual === expected;
+  const label = selected === 'claude' ? 'CLAUDE' : selected === 'qmale' ? 'Q-MALE' : 'Q-FEMALE';
+  el.textContent = 'ACTIVO: ' + label + (ok ? ' ✓' : ' …');
+  el.classList.toggle('hf-q0-ready', ok);
+  el.classList.toggle('hf-q0-wait', !ok);
+  el.title = 'renderer visualKey: ' + (actual ?? 'N/D');
 }
 
 function metaClass(): HighflyClass | null {
@@ -252,8 +278,29 @@ function selectQ0Body(next: HighflyCharacterQ0Body): void {
   if (cls) renderHud(cls);
   if (selected !== before) {
     toast('PERSONAJE · ' + (selected === 'claude' ? 'CLAUDE' : selected === 'qmale' ? 'Q-MALE' : 'Q-FEMALE'));
-    result('HOT SWAP VISUAL · SIM / skill / target / cámara permanecen intactos.');
+    result('HOT SWAP VISUAL · esperando renderer…');
+    const started = performance.now();
+    const verify = () => {
+      updateQ0VisualStatus();
+      const liveCls = metaClass();
+      if (!liveCls) return;
+      const ok = activeQ0VisualKey() === expectedQ0VisualKey(liveCls, selected);
+      if (ok) {
+        result('HOT SWAP OK · cuerpo visual cambiado; SIM / skill / target / cámara intactos.');
+        return;
+      }
+      if (performance.now() - started < 2500) window.setTimeout(verify, 50);
+      else result('Q0 WARNING · selección cambió pero el renderer no confirmó el cuerpo.');
+    };
+    window.setTimeout(verify, 50);
   }
+}
+
+function toggleQ0Collapsed(): void {
+  q0Collapsed = !q0Collapsed;
+  localStorage.setItem('hf_character_q0_collapsed', q0Collapsed ? '1' : '0');
+  const cls = metaClass();
+  if (cls) renderHud(cls);
 }
 
 function resetLab(): void {
@@ -278,6 +325,7 @@ function renderHud(cls: HighflyClass): void {
 
   const root = document.createElement('div');
   root.id = 'hf-affinity-hud';
+  root.classList.toggle('hf-collapsed', q0Collapsed);
 
   const head = document.createElement('div');
   head.className = 'hf-aff-head';
@@ -299,6 +347,18 @@ function renderHud(cls: HighflyClass): void {
     button.addEventListener('click', () => selectQ0Body(candidate));
     head.append(button);
   }
+
+  const activeBody = document.createElement('span');
+  activeBody.id = 'hf-q0-active';
+  activeBody.className = 'hf-q0-active';
+  activeBody.textContent = 'ACTIVO: …';
+  head.append(activeBody);
+
+  const minimize = document.createElement('button');
+  minimize.className = 'hf-q0-collapse';
+  minimize.textContent = q0Collapsed ? 'MAXIMIZAR' : 'MINIMIZAR';
+  minimize.addEventListener('click', toggleQ0Collapsed);
+  head.append(minimize);
 
   if (TANDA1_CLASSES.includes(cls)) {
     for (const candidate of TANDA1_CLASSES) {
@@ -400,6 +460,7 @@ function renderHud(cls: HighflyClass): void {
   root.append(resultEl);
 
   document.body.append(root);
+  updateQ0VisualStatus();
 }
 
 function boot(): void {
@@ -417,6 +478,7 @@ function boot(): void {
         renderHud(cls);
       }
     }
+    updateQ0VisualStatus();
     window.setTimeout(tick, 250);
   };
   tick();
@@ -430,7 +492,9 @@ if (document.readyState === 'loading') {
 
 w.__highflyCharacterQ0 = {
   body: () => highflyCharacterQ0Body(),
+  activeVisualKey: () => activeQ0VisualKey(),
   selectBody: (next: HighflyCharacterQ0Body) => selectQ0Body(next),
+  toggleCollapsed: () => toggleQ0Collapsed(),
 };
 
 w.__highflyAffinityLab = {
