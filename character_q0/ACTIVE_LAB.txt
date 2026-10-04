@@ -1,0 +1,4 @@
+HIGHFLY CHARACTER Q0 ACTIVE LAB
+Reactivated after MU-BENCH cleanup.
+Character Q0 owns the current GitHub Pages playtest.
+Baseline: d25c7d7eb53470a3f1eaad1458b307947aca2f63
