@@ -197,6 +197,8 @@ jobs:
           path: |
             affinity-lab-v1-report.json
             affinity-lab-v1-warrior.png
+            affinity-lab-v1-rogue.png
+            affinity-lab-v1-mage.png
             affinity-lab-v1-preview.log
           if-no-files-found: warn
           retention-days: 2
