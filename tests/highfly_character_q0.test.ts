@@ -36,13 +36,17 @@ describe('HIGHFLY CHARACTER Q0', () => {
   });
 
   it('fits Q0 held props visually without changing combat authority', () => {
-    const overlay = readFileSync('overlays/apply_highfly_character_q0.py','utf8');
-    expect(overlay).toContain("key.endsWith('_qmale') ? 0.74");
-    expect(overlay).toContain("key.endsWith('_qfemale') ? 0.70");
-    expect(overlay).toContain("heldPropHolder");
-    expect(overlay).not.toContain('WeaponTrace');
-    expect(overlay).not.toContain('hitbox');
-    expect(overlay).not.toContain('castAbility');
+    const visual = readFileSync('src/render/characters/visual.ts','utf8');
+    expect(visual).toContain("key.endsWith('_qmale') ? 0.74");
+    expect(visual).toContain("key.endsWith('_qfemale') ? 0.70");
+    expect(visual).toContain("heldPropHolder");
+    const q0Slice = visual.slice(
+      visual.indexOf('const highflyQ0HeldScale'),
+      visual.indexOf('// Release-on-throw', visual.indexOf('const highflyQ0HeldScale')),
+    );
+    expect(q0Slice).not.toContain('WeaponTrace');
+    expect(q0Slice).not.toContain('hitbox');
+    expect(q0Slice).not.toContain('castAbility');
   });
 
   it('exposes all nine native Claude classes in the Q0 lab', () => {
