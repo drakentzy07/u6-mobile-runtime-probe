@@ -35,6 +35,21 @@ describe('HIGHFLY CHARACTER Q0', () => {
     expect(index).toContain("? null");
   });
 
+  it('fits Q0 held props visually without changing combat authority', () => {
+    const overlay = readFileSync('overlays/apply_highfly_character_q0.py','utf8');
+    expect(overlay).toContain("key.endsWith('_qmale') ? 0.74");
+    expect(overlay).toContain("key.endsWith('_qfemale') ? 0.70");
+    expect(overlay).toContain("heldPropHolder");
+    expect(overlay).not.toContain('WeaponTrace');
+    expect(overlay).not.toContain('hitbox');
+    expect(overlay).not.toContain('castAbility');
+  });
+
+  it('exposes all nine native Claude classes in the Q0 lab', () => {
+    const runtime = readFileSync('src/highfly/affinity_lab_runtime.ts','utf8');
+    expect(runtime).toContain('for (const candidate of HIGHFLY_AFFINITY_CLASSES)');
+  });
+
   it('keeps Q0 selector out of SIM/combat/movement authority', () => {
     const selector = readFileSync('src/highfly/character_q0_visual.ts','utf8');
     expect(selector).not.toContain('castAbility');
