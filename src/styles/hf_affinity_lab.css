@@ -93,11 +93,48 @@ body.hf-q1-active #mobile-action-radial { display: none !important; }
 
 body.mobile-touch.hf-q1-active #actionbar {
   --hf-q1-skill-size: 46px;
-  gap: 6px !important;
   right: max(12px, env(safe-area-inset-right)) !important;
   bottom: calc(150px + env(safe-area-inset-bottom)) !important;
 }
 body.mobile-touch.hf-q1-active #actionbar .keybind { display: none; }
+
+/*
+ * HIGHFLY mobile landscape — approved DOUBLE CRESCENT.
+ * Two independent five-skill arcs wrap inward from the right control cluster.
+ * No skill owns the camera surface; Evadir/Saltar/Usar remain their native
+ * standalone controls below the arcs.
+ */
+@media (orientation: landscape) {
+  body.mobile-touch.hf-q1-active #actionbar {
+    --hf-q1-skill-size: 44px;
+    display: block !important;
+    width: 258px !important;
+    height: 188px !important;
+    right: max(8px, env(safe-area-inset-right)) !important;
+    bottom: calc(92px + env(safe-area-inset-bottom)) !important;
+    pointer-events: none !important;
+  }
+  body.mobile-touch.hf-q1-active #actionbar .action-btn[data-hotbar-slot] {
+    position: absolute !important;
+    margin: 0 !important;
+    pointer-events: auto !important;
+  }
+
+  /* Inner crescent: S1 -> S5. */
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="1"] { right: 14px !important; bottom: 8px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="2"] { right: 58px !important; bottom: 16px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="3"] { right: 96px !important; bottom: 37px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="4"] { right: 126px !important; bottom: 68px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="5"] { right: 144px !important; bottom: 106px !important; }
+
+  /* Outer crescent: S6 -> S10, offset left/up from the first arc. */
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="6"] { right: 82px !important; bottom: 72px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="7"] { right: 126px !important; bottom: 88px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="8"] { right: 164px !important; bottom: 113px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="9"] { right: 194px !important; bottom: 145px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="10"] { right: 208px !important; bottom: 144px !important; }
+}
+
 @media (max-width: 480px) {
   .hf-aff-head { gap: 6px; }
   .hf-aff-title { font-size: 9px; }
@@ -108,8 +145,9 @@ body.mobile-touch.hf-q1-active #actionbar .keybind { display: none; }
 @media (max-height: 520px) and (orientation: landscape) {
   body.mobile-touch.hf-q1-active #actionbar {
     --hf-q1-skill-size: 42px;
-    gap: 5px !important;
-    bottom: calc(122px + env(safe-area-inset-bottom)) !important;
+    transform: scale(.92) !important;
+    transform-origin: right bottom !important;
+    bottom: calc(86px + env(safe-area-inset-bottom)) !important;
   }
 }
 @media (prefers-reduced-motion: reduce) {
