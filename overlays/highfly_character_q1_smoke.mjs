@@ -91,10 +91,16 @@ async function layout(targetPage, label) {
       const r = b.getBoundingClientRect(), s = getComputedStyle(b);
       return r.width > 0 && r.height > 0 && s.display !== 'none' && s.visibility !== 'hidden';
     });
-    return { viewport: [innerWidth, innerHeight], nativeHotbar: window.__highflyAffinityLab.nativeHotbar(), proxies: document.querySelectorAll('.hf-aff-skill').length, slots: slots.map((b) => {
-      const r = b.getBoundingClientRect(), s = getComputedStyle(b);
-      return { slot: +b.dataset.hotbarSlot, x: r.x, y: r.y, width: r.width, height: r.height, radius: s.borderRadius, empty: b.classList.contains('empty'), icon: getComputedStyle(b.querySelector('.icon-label')).backgroundImage };
-    }) };
+    return {
+      viewport: [innerWidth, innerHeight],
+      mobileLandscape: document.body.classList.contains('mobile-touch') && innerWidth > innerHeight,
+      nativeHotbar: window.__highflyAffinityLab.nativeHotbar(),
+      proxies: document.querySelectorAll('.hf-aff-skill').length,
+      slots: slots.map((b) => {
+        const r = b.getBoundingClientRect(), s = getComputedStyle(b);
+        return { slot: +b.dataset.hotbarSlot, x: r.x, y: r.y, width: r.width, height: r.height, radius: s.borderRadius, empty: b.classList.contains('empty'), icon: getComputedStyle(b.querySelector('.icon-label')).backgroundImage };
+      }),
+    };
   });
   report.layouts.push({ label, ...result });
   require(result.proxies === 0, label + ': proxy buttons present');
@@ -104,6 +110,14 @@ async function layout(targetPage, label) {
   for (let i = 0; i < result.slots.length; i++) for (let j = i + 1; j < result.slots.length; j++) {
     const a = result.slots[i], b = result.slots[j];
     require(a.x + a.width <= b.x + 1 || b.x + b.width <= a.x + 1 || a.y + a.height <= b.y + 1 || b.y + b.height <= a.y + 1, label + ': native buttons overlap');
+  }
+  if (result.mobileLandscape) {
+    const ordered = [...result.slots].sort((a, b) => a.slot - b.slot);
+    const inner = ordered.slice(0, 5), outer = ordered.slice(5, 10);
+    const meanX = (rows) => rows.reduce((n, row) => n + row.x, 0) / rows.length;
+    require(meanX(outer) < meanX(inner), label + ': S6-S10 must form the outer/left crescent');
+    require(inner.every((row, i) => i === 0 || row.y < inner[i - 1].y), label + ': S1-S5 inner crescent order broken');
+    require(outer.every((row, i) => i === 0 || row.y < outer[i - 1].y), label + ': S6-S10 outer crescent order broken');
   }
   require(result.nativeHotbar.every((a) => a.type === 'ability' && !a.id.startsWith('hf_aff_')), label + ': hotbar must use native BASE IDs');
 }
@@ -120,6 +134,11 @@ for (const cls of CLASSES) await step('class-model-parity:' + cls, async () => {
     require(JSON.stringify(original.actions) === JSON.stringify(candidate.actions), cls + '/' + body + ': native animation coverage changed');
     require(candidate.handR && candidate.handL && !candidate.modular && candidate.skinned > 0 && candidate.textured > 0, cls + '/' + body + ': loaded rig/material/socket missing');
     require(candidate.held === original.held, cls + '/' + body + ': held-prop count changed');
+    if (candidate.held > 0) {
+      const caps = { sword: .37, dagger: .18, axe: .30, shield: .28, spear: .66, bow: .46, staff: .64, other: .30 };
+      require(candidate.fits.length === candidate.held, cls + '/' + body + ': not every held prop received BODY x WEAPON fit');
+      require(candidate.fits.every((fit) => fit.bodyRatio <= (caps[fit.family] ?? caps.other) + .012), cls + '/' + body + ': weapon exceeds Q1.1 body-ratio cap');
+    }
     if (cls === 'warrior') await page.screenshot({ path: '../character-q1-warrior-' + body + '-desktop.png' });
   }
   const row = { cls, original, replacements };
