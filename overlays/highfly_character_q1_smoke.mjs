@@ -197,51 +197,61 @@ await step('native-paid-rogue-skill', async () => {
   require(after.resource <= before.resource - before.cost + 5 && after.gcd > 0, 'Paid native button did not consume canonical cost');
 });
 await step('mobile-landscape-native-hud-and-leap', async () => {
-  // Reuse the already-proven desktop session state. A brand-new mobile context
-  // has no local HIGHFLY character/save and can remain on the entry flow instead
-  // of ever exposing __game, which made the old gate wait 180s on a condition
-  // that could never become true.
-  const storageState = await context.storageState({ indexedDB: true });
-  console.log('Q1_MOBILE_STAGE context-create');
-  const mobile = await browser.newContext({
-    viewport: { width: 900, height: 420 },
-    hasTouch: true,
-    isMobile: true,
-    deviceScaleFactor: 1,
-    storageState,
-  });
-  await mobile.addInitScript(() => localStorage.setItem('hf_character_q0_body', 'claude'));
-  const mp = await mobile.newPage();
-  mp.on('pageerror', (e) => report.errors.push(String(e)));
+  // ClaudeCraft's own headless mobile checks force the authoritative
+  // body.mobile-touch signal after boot: Chromium headless does not reliably
+  // expose pointer:coarse / phone media during a cold WebGL startup. Reuse the
+  // already-proven game page, then switch the exact HUD/runtime signal and
+  // viewport that Hud.isMobileLayout() reads.
+  console.log('Q1_MOBILE_STAGE ready-warrior');
+  await ready(page, 'warrior');
+  console.log('Q1_MOBILE_STAGE ready-warrior-pass');
 
-  console.log('Q1_MOBILE_STAGE ready-landscape');
-  await ready(mp, 'warrior');
-  console.log('Q1_MOBILE_STAGE ready-landscape-pass');
+  await page.setViewportSize({ width: 900, height: 420 });
+  await page.evaluate(() => {
+    document.body.classList.add('mobile-touch', 'game-active');
+    window.dispatchEvent(new Event('resize'));
+  });
+  await page.waitForFunction(() =>
+    document.body.classList.contains('mobile-touch') &&
+    window.innerWidth === 900 &&
+    window.innerHeight === 420,
+    null,
+    { timeout: 10000 },
+  );
+  console.log('Q1_MOBILE_STAGE landscape-surface-pass');
 
   for (const body of ['qmale', 'qfemale']) {
     console.log('Q1_MOBILE_STAGE select-' + body);
-    await selectBody(mp, 'warrior', body);
+    await selectBody(page, 'warrior', body);
     console.log('Q1_MOBILE_STAGE layout-' + body);
-    await layout(mp, body + '-mobile-landscape');
-    await mp.screenshot({ path: '../character-q1-warrior-' + body + '-mobile.png' });
+    await layout(page, body + '-mobile-landscape');
+    await page.screenshot({ path: '../character-q1-warrior-' + body + '-mobile.png' });
     console.log('Q1_MOBILE_STAGE screenshot-' + body + '-pass');
   }
 
   console.log('Q1_MOBILE_STAGE leap');
-  await nativeLeap(mp, 'mobile-landscape');
+  await nativeLeap(page, 'mobile-landscape');
   console.log('Q1_MOBILE_STAGE leap-pass');
 
-  await mp.setViewportSize({ width: 360, height: 800 });
-  console.log('Q1_MOBILE_STAGE ready-portrait');
-  await ready(mp, 'warrior');
-  console.log('Q1_MOBILE_STAGE ready-portrait-pass');
-  await selectBody(mp, 'warrior', 'qmale');
-  await layout(mp, 'qmale-mobile-portrait');
-  const compact = await mp.locator('#hf-affinity-hud').boundingBox();
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.evaluate(() => {
+    document.body.classList.add('mobile-touch', 'game-active');
+    window.dispatchEvent(new Event('resize'));
+  });
+  await page.waitForFunction(() =>
+    document.body.classList.contains('mobile-touch') &&
+    window.innerWidth === 360 &&
+    window.innerHeight === 800,
+    null,
+    { timeout: 10000 },
+  );
+  console.log('Q1_MOBILE_STAGE portrait-surface-pass');
+  await selectBody(page, 'warrior', 'qmale');
+  await layout(page, 'qmale-mobile-portrait');
+  const compact = await page.locator('#hf-affinity-hud').boundingBox();
   require(compact && compact.x >= 0 && compact.y >= 0 && compact.x + compact.width <= 361, 'Compact lab panel leaves 360px viewport');
-  await mp.screenshot({ path: '../character-q1-warrior-qmale-mobile-portrait.png' });
+  await page.screenshot({ path: '../character-q1-warrior-qmale-mobile-portrait.png' });
   console.log('Q1_MOBILE_STAGE portrait-pass');
-  await mobile.close();
 });
 report.passed = report.classes.length === 9 && report.failures.length === 0 && report.errors.filter((e) => /TypeError|ReferenceError|SyntaxError|RangeError/.test(e)).length === 0;
 fs.writeFileSync('../character-q1-smoke-report.json', JSON.stringify(report, null, 2));
