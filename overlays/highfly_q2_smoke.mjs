@@ -2,29 +2,49 @@ import { chromium } from 'playwright';
 
 const base = process.env.HIGHFLY_Q2_URL || 'http://127.0.0.1:4190/u6-mobile-runtime-probe/';
 const classes = ['warrior','paladin','hunter','rogue','priest','shaman','mage','warlock','druid'];
-const browser = await chromium.launch({ headless: true });
-const context = await browser.newContext({
-  viewport: { width: 900, height: 420 },
-  hasTouch: true,
-  isMobile: true,
+const browser = await chromium.launch({
+  headless: true,
+  args: ['--enable-webgl', '--use-gl=angle', '--use-angle=swiftshader'],
 });
+// Proven Q1 boot pattern: cold-start ClaudeCraft as a normal desktop WebGL
+// page, then switch the exact HUD signal + viewport after __game is ready.
+// Headless Chromium's phone media/touch emulation during cold boot is not a
+// reliable startup signal for this app.
+const context = await browser.newContext({ viewport: { width: 1600, height: 900 } });
 const page = await context.newPage();
-const report = { classes: [], layout: null, element: null };
+const report = { classes: [], layout: null, element: null, pageErrors: [] };
+page.on('pageerror', (e) => {
+  report.pageErrors.push(String(e));
+  console.error('Q2_PAGEERROR ' + String(e));
+});
+page.on('console', (msg) => {
+  if (msg.type() === 'error') console.error('Q2_CONSOLE_ERROR ' + msg.text());
+});
 
 function require(value, message) {
   if (!value) throw new Error(message);
 }
 
 for (const cls of classes) {
+  console.log('Q2_STAGE boot-' + cls);
   await page.goto(base + '?q2test=1&labclass=' + cls + '&gem=fire', {
     waitUntil: 'domcontentloaded',
-    timeout: 180000,
+    timeout: 60000,
   });
-  await page.waitForFunction(() => window.__game?.sim?.player && window.__highflyQ2, null, { timeout: 180000 });
+  await page.waitForFunction(() => Boolean(window.__game?.sim?.player && window.__highflyQ2), null, { timeout: 180000 });
+  console.log('Q2_STAGE ready-' + cls);
+  await page.setViewportSize({ width: 900, height: 420 });
   await page.evaluate(() => {
     document.body.classList.add('mobile-touch', 'game-active', 'hf-q2-active');
     window.dispatchEvent(new Event('resize'));
   });
+  await page.waitForFunction(() =>
+    document.body.classList.contains('mobile-touch') &&
+    innerWidth === 900 &&
+    innerHeight === 420,
+    null,
+    { timeout: 10000 },
+  );
   await page.waitForFunction((want) => {
     const g = window.__game;
     const p = g?.sim?.player;
@@ -48,12 +68,14 @@ for (const cls of classes) {
   report.classes.push(state);
 }
 
-await page.goto(base + '?q2test=1&labclass=warrior&gem=fire', { waitUntil: 'domcontentloaded', timeout: 180000 });
-await page.waitForFunction(() => window.__game?.sim?.player && window.__highflyQ2, null, { timeout: 180000 });
+await page.goto(base + '?q2test=1&labclass=warrior&gem=fire', { waitUntil: 'domcontentloaded', timeout: 60000 });
+await page.waitForFunction(() => Boolean(window.__game?.sim?.player && window.__highflyQ2), null, { timeout: 180000 });
+await page.setViewportSize({ width: 900, height: 420 });
 await page.evaluate(() => {
   document.body.classList.add('mobile-touch', 'game-active', 'hf-q2-active');
   window.dispatchEvent(new Event('resize'));
 });
+await page.waitForFunction(() => innerWidth === 900 && innerHeight === 420, null, { timeout: 10000 });
 await page.waitForTimeout(1200);
 
 const layout = await page.evaluate(() => {
