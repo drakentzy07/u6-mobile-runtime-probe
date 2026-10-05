@@ -124,15 +124,15 @@ body.mobile-touch.hf-q1-active #actionbar .keybind { display: none; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="1"] { right: 8px !important; bottom: 0px !important; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="2"] { right: 50px !important; bottom: 8px !important; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="3"] { right: 88px !important; bottom: 28px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="4"] { right: 118px !important; bottom: 56px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="5"] { right: 138px !important; bottom: 92px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="4"] { right: 120px !important; bottom: 58px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="5"] { right: 145px !important; bottom: 96px !important; }
 
   /* Outer crescent: S6 -> S10, offset left/up from the first arc. */
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="6"] { right: 156px !important; bottom: 0px !important; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="7"] { right: 198px !important; bottom: 10px !important; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="8"] { right: 236px !important; bottom: 32px !important; }
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="9"] { right: 266px !important; bottom: 62px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="10"] { right: 284px !important; bottom: 100px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="10"] { right: 286px !important; bottom: 102px !important; }
 }
 
 @media (max-width: 480px) {
