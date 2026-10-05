@@ -1,8 +1,8 @@
-name: HIGHFLY CHARACTER Q1
+name: HIGHFLY CHARACTER Q1.1 VISUAL HOTFIX
 
 on:
   push:
-    branches: [highfly/character-q1]
+    branches: [highfly/character-q1-visual-hotfix]
   workflow_dispatch:
 
 permissions:
@@ -110,6 +110,7 @@ jobs:
           cp ../tests/highfly_q1_hotbar.test.ts tests/highfly_q1_hotbar.test.ts
           cp ../tests/highfly_q1_infusion.test.ts tests/highfly_q1_infusion.test.ts
           cp ../tests/highfly_q1_clip_retarget.test.ts tests/highfly_q1_clip_retarget.test.ts
+          cp ../tests/highfly_q1_weapon_fit.test.ts tests/highfly_q1_weapon_fit.test.ts
           git diff --check
           git diff --stat
 
@@ -166,6 +167,7 @@ jobs:
             tests/highfly_q1_infusion.test.ts \
             tests/highfly_affinity_lab_v1.test.ts \
             tests/highfly_q1_clip_retarget.test.ts \
+            tests/highfly_q1_weapon_fit.test.ts \
             tests/combat_damage.test.ts \
             tests/combat_casting_lifecycle.test.ts \
             tests/architecture.test.ts \
@@ -237,7 +239,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: highfly-character-q1-diagnostics
+          name: highfly-character-q11-visual-diagnostics
           path: |
             character-q1-rig-report.json
             character-q1-pose-report.json
@@ -248,7 +250,7 @@ jobs:
           retention-days: 3
 
   deploy-playtest:
-    name: Deploy HIGHFLY Character Q1
+    name: Deploy HIGHFLY Character Q1.1
     needs: build
     runs-on: ubuntu-latest
     environment:
