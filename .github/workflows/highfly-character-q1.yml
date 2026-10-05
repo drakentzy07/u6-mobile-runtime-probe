@@ -12,8 +12,10 @@ permissions:
   id-token: write
 
 concurrency:
-  group: highfly-character-q1
-  cancel-in-progress: true
+  # Q1.1 owns a separate queue from the frozen Q1 branch. Never cancel an
+  # already-green Pages deployment just because another Q1.1 attempt is queued.
+  group: highfly-character-q1-visual-hotfix
+  cancel-in-progress: false
 
 jobs:
   build:
