@@ -45,18 +45,18 @@ body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="10"] {
 body.mobile-touch.hf-q2-active #actionbar .keybind { display: none !important; }
 
 /* Inner crescent S1-S5: closest to Attack. */
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="1"] { right: 4px !important; bottom: 0 !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="1"] { right: 4px !important; bottom: 0px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="2"] { right: 52px !important; bottom: 10px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="3"] { right: 96px !important; bottom: 30px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="4"] { right: 136px !important; bottom: 60px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="5"] { right: 168px !important; bottom: 98px !important; }
 
 /* Outer crescent S6-S10. The upper-left space remains free for future EX/ULT. */
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="6"] { right: 100px !important; bottom: 104px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="7"] { right: 146px !important; bottom: 118px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="8"] { right: 190px !important; bottom: 140px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="9"] { right: 232px !important; bottom: 170px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="10"] { right: 280px !important; bottom: 178px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="6"] { right: 76px !important; bottom: 118px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="7"] { right: 124px !important; bottom: 142px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="8"] { right: 172px !important; bottom: 160px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="9"] { right: 220px !important; bottom: 176px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="10"] { right: 268px !important; bottom: 180px !important; }
 
 /* Native mobile ring keeps only the big Attack/Use control. Skill petals are replaced by S1-S10. */
 body.mobile-touch.hf-q2-active #mobile-action-ring .mobile-action-slot,
