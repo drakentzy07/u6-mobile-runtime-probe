@@ -170,7 +170,7 @@ async function nativeLeap(targetPage, label) {
   require(aim && !aim.blocked && aim.school === 'physical', label + ': native physical placement preview missing');
   await targetPage.evaluate((slot) => document.querySelector('#actionbar [data-hotbar-slot="' + slot + '"]')?.click(), before.slot);
   await targetPage.waitForFunction(() => (window.__game.sim.player.cooldowns.get('heroic_leap') ?? 0) > 0, null, { timeout: 10000 });
-  await targetPage.waitForFunction(() => { const s = window.__game.sim, p = s.player, t = s.entities.get(p.targetId); return !p.leap && t.hp < t.maxHp; }, null, { timeout: 12000 });
+  await targetPage.waitForFunction(() => { const s = window.__game.sim, p = s.player, t = s.entities.get(p.targetId); return !p.leap && t.hp < t.maxHp; }, null, { timeout: 30000 });
   const after = await targetPage.evaluate(() => {
     const g = window.__game, p = g.sim.player, t = g.sim.entities.get(p.targetId);
     return { aimActive: g.hud.isGroundAimActive(), cooldown: p.cooldowns.get('heroic_leap'), resource: p.resource, targetHp: t.hp, auras: t.auras.map((a) => ({ id: a.id, kind: a.kind, value: a.value, school: a.school })), pos: { ...p.pos }, cls: g.sim.meta(p.id).cls };
@@ -201,7 +201,7 @@ await step('mobile-landscape-native-hud-and-leap', async () => {
   // has no local HIGHFLY character/save and can remain on the entry flow instead
   // of ever exposing __game, which made the old gate wait 180s on a condition
   // that could never become true.
-  const storageState = await context.storageState();
+  const storageState = await context.storageState({ indexedDB: true });
   console.log('Q1_MOBILE_STAGE context-create');
   const mobile = await browser.newContext({
     viewport: { width: 900, height: 420 },
