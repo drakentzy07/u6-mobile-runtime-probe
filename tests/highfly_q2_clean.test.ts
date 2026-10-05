@@ -85,12 +85,15 @@ describe('HIGHFLY Q2 Claude clean foundation', () => {
   it('reserves exactly ten native skill seats in two non-overlapping crescents', () => {
     const css = readFileSync('src/styles/hf_q2_clean.css', 'utf8');
     const points: Array<{ slot: number; right: number; bottom: number }> = [];
+    const lines = css.split(/\r?\n/);
     for (let slot = 1; slot <= 10; slot++) {
-      const marker = '[data-hotbar-slot="' + slot + '"] { right: ';
-      const start = css.indexOf(marker);
-      const tail = start >= 0 ? css.slice(start + marker.length, start + marker.length + 96) : '';
-      const match = tail.match(/^(\d+)px !important; bottom: (\d+)px !important;/);
-      expect(match, 'missing S' + slot).not.toBeNull();
+      const marker = '[data-hotbar-slot="' + slot + '"]';
+      const line = lines.find((row) =>
+        row.includes(marker) && row.includes('{ right:') && row.includes('bottom:'),
+      );
+      expect(line, 'missing S' + slot).toBeDefined();
+      const match = line?.match(/right:\s*(\d+)px[^;]*;\s*bottom:\s*(\d+)px/);
+      expect(match, 'unreadable geometry S' + slot).not.toBeNull();
       points.push({ slot, right: Number(match?.[1]), bottom: Number(match?.[2]) });
     }
     expect(new Set(points.map((p) => p.right + ':' + p.bottom)).size).toBe(10);
