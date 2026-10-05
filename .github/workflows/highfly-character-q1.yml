@@ -256,7 +256,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     environment:
-      name: highfly-character-q1-preview
+      # Q1.1 gets its own deployment environment. Reusing the frozen Q1
+      # environment can gate this branch before a runner is assigned.
+      name: highfly-character-q11-preview
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy Character Q1 to GitHub Pages
