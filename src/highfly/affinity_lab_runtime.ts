@@ -38,7 +38,11 @@ let lastWeaponSignature = '';
 let lastHotbarSignature = '';
 
 function equippedWeaponId(): string | null {
-  return game()?.sim?.player?.mainhandItemId ?? game()?.sim?.equipment?.mainhand ?? null;
+  const g = game();
+  if (!g) return null;
+  // PlayerMeta equipment is ClaudeCraft's canonical gameplay owner. mainhandItemId
+  // is only the render mirror and may lag an equip/unequip by a frame.
+  return g.sim.equipment?.mainhand ?? g.sim.player?.mainhandItemId ?? null;
 }
 
 function selectWeaponAffinity(next: HighflyAffinity): void {
@@ -535,7 +539,10 @@ w.__highflyCharacterQ0 = {
 
 w.__highflyAffinityLab = {
   audit: HIGHFLY_AFFINITY_AUDIT_V1,
-  affinity: () => affinity,
+  affinity: () => {
+    syncWeaponAffinity();
+    return affinity;
+  },
   selectAffinity: (next: HighflyAffinity) => selectWeaponAffinity(next),
   weaponId: () => equippedWeaponId(),
   nativeHotbar: () => game()?.hud?.actionBarController?.actions?.slice(0, 10) ?? [],
