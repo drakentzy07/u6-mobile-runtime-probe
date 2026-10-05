@@ -55,14 +55,26 @@ describe('HIGHFLY CHARACTER Q0', () => {
   });
 
   it('preserves Warrior and Paladin class-specific presentation hooks on Q0 keys', () => {
-    const overlay = readFileSync('overlays/apply_highfly_character_q0.py','utf8');
-    expect(overlay).toContain("'player_warrior_qmale'");
-    expect(overlay).toContain("'player_warrior_qfemale'");
-    expect(overlay).toContain("'player_paladin_qmale'");
-    expect(overlay).toContain("'player_paladin_qfemale'");
-    expect(overlay).toContain('prepareWarrior');
-    expect(overlay).toContain('PaladinBastionSweepFx');
-    expect(overlay).toContain('PaladinTemplarsVerdictFx');
+    const warriorAliases = readFileSync('src/render/characters/warrior_ability_clips.ts','utf8');
+    const warriorFallbacks = readFileSync('src/render/characters/warrior_action_fallbacks.ts','utf8');
+    const warriorBody = readFileSync('src/render/characters/warrior_body_effects.ts','utf8');
+    const warriorBlend = readFileSync('src/render/characters/warrior_action_blend.ts','utf8');
+    const assets = readFileSync('src/render/characters/assets.ts','utf8');
+    const visual = readFileSync('src/render/characters/visual.ts','utf8');
+
+    for (const src of [warriorAliases, warriorFallbacks, warriorBody]) {
+      expect(src).toContain("'player_warrior_qmale'");
+      expect(src).toContain("'player_warrior_qfemale'");
+    }
+    expect(warriorBlend).toContain("'player_warrior_qmale'");
+    expect(warriorBlend).toContain("'player_warrior_qfemale'");
+
+    expect(assets).toContain("'player_paladin_qmale'");
+    expect(assets).toContain("'player_paladin_qfemale'");
+    expect(visual).toContain("'player_paladin_qmale'");
+    expect(visual).toContain("'player_paladin_qfemale'");
+    expect(visual).toContain('PaladinBastionSweepFx');
+    expect(visual).toContain('PaladinTemplarsVerdictFx');
   });
 
   it('keeps Q0 selector out of SIM/combat/movement authority', () => {
