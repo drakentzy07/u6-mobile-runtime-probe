@@ -86,10 +86,10 @@ describe('HIGHFLY Q2 Claude clean foundation', () => {
     const css = readFileSync('src/styles/hf_q2_clean.css', 'utf8');
     const points: Array<{ slot: number; right: number; bottom: number }> = [];
     for (let slot = 1; slot <= 10; slot++) {
-      const re = new RegExp(
-        '\\[data-hotbar-slot="' + slot + '"\\] \\{ right: (\\d+)px !important; bottom: (\\d+)px !important; \\}',
-      );
-      const match = css.match(re);
+      const marker = '[data-hotbar-slot="' + slot + '"] { right: ';
+      const start = css.indexOf(marker);
+      const tail = start >= 0 ? css.slice(start + marker.length, start + marker.length + 96) : '';
+      const match = tail.match(/^(\d+)px !important; bottom: (\d+)px !important;/);
       expect(match, 'missing S' + slot).not.toBeNull();
       points.push({ slot, right: Number(match?.[1]), bottom: Number(match?.[2]) });
     }
