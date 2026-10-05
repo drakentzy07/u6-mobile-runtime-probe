@@ -35,15 +35,11 @@ describe('HIGHFLY CHARACTER Q0', () => {
     expect(index).toContain("? null");
   });
 
-  it('fits Q0 held props visually without changing combat authority', () => {
+  it('fits replacement held props visually without changing combat authority', () => {
     const visual = readFileSync('src/render/characters/visual.ts','utf8');
-    expect(visual).toContain("key.endsWith('_qmale') ? 0.74");
-    expect(visual).toContain("key.endsWith('_qfemale') ? 0.70");
-    expect(visual).toContain("heldPropHolder");
-    const q0Slice = visual.slice(
-      visual.indexOf('const highflyQ0HeldScale'),
-      visual.indexOf('// Release-on-throw', visual.indexOf('const highflyQ0HeldScale')),
-    );
+    expect(visual).toContain('fitQ1Weapons(this.model, key, weaponItemId, offhandItemId)');
+    const q0Slice = readFileSync('src/highfly/character_q1_weapon_fit.ts','utf8');
+    expect(q0Slice).toContain('heldPropHolder');
     expect(q0Slice).not.toContain('WeaponTrace');
     expect(q0Slice).not.toContain('hitbox');
     expect(q0Slice).not.toContain('castAbility');

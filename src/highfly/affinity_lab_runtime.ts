@@ -1,30 +1,91 @@
 import '../styles/hf_affinity_lab.css';
+import { configureWeaponInfusion } from '../sim/combat/highfly_weapon_affinity';
 import {
+  type AffinityReceptor,
   HIGHFLY_AFFINITY_AUDIT_V1,
   HIGHFLY_AFFINITY_CLASSES,
-  type AffinityReceptor,
   type HighflyAffinity,
   type HighflyClass,
 } from './affinity_lab_loadouts';
 import {
+  type HighflyCharacterQ0Body,
   highflyCharacterQ0Body,
   setHighflyCharacterQ0Body,
-  type HighflyCharacterQ0Body,
 } from './character_q0_visual';
+import {
+  AFFINITY_MODES,
+  buildAffinityHotbar,
+  parseWeaponAffinities,
+  weaponAffinity,
+} from './weapon_affinity_core';
 
 const w = window as any;
-const ELEMENTS: readonly Exclude<HighflyAffinity, 'base'>[] = ['fire', 'frost', 'lightning'];
 const CLASS_SPECS: Partial<Record<HighflyClass, readonly string[]>> = {
   warrior: ['arms', 'fury', 'prot'],
   rogue: ['assassination', 'combat', 'subtlety'],
   mage: ['arcane', 'fire', 'frost'],
 };
-const savedQ0Body = (localStorage.getItem('hf_character_q0_body') || 'claude') as HighflyCharacterQ0Body;
-setHighflyCharacterQ0Body(savedQ0Body);
-let q0Collapsed = localStorage.getItem('hf_character_q0_collapsed') === '1';
+const savedQ0Body = (localStorage.getItem('hf_character_q0_body') ||
+  'qmale') as HighflyCharacterQ0Body;
+setHighflyCharacterQ0Body(
+  new URLSearchParams(location.search).get('affinitylab') === '1' ? savedQ0Body : 'claude',
+);
+let q0Collapsed = localStorage.getItem('hf_character_q0_collapsed') !== '0';
 
-let affinity = (localStorage.getItem('hf_affinity_lab_element') as HighflyAffinity) || 'fire';
-if (!ELEMENTS.includes(affinity as Exclude<HighflyAffinity, 'base'>)) affinity = 'fire';
+const weaponInlays = parseWeaponAffinities(localStorage.getItem('hf_q1_weapon_inlays'));
+let affinity: HighflyAffinity = 'base';
+let lastWeaponSignature = '';
+let lastHotbarSignature = '';
+
+function equippedWeaponId(): string | null {
+  return game()?.sim?.player?.mainhandItemId ?? game()?.sim?.equipment?.mainhand ?? null;
+}
+
+function selectWeaponAffinity(next: HighflyAffinity): void {
+  const g = game();
+  const weaponId = equippedWeaponId();
+  if (!g || !weaponId || !AFFINITY_MODES.includes(next)) return;
+  weaponInlays[weaponId] = next;
+  localStorage.setItem('hf_q1_weapon_inlays', JSON.stringify(weaponInlays));
+  affinity = next;
+  configureWeaponInfusion(g.sim.player, weaponId, next);
+  const cls = metaClass();
+  if (cls) renderHud(cls);
+}
+
+function syncNativeHotbar(cls: HighflyClass): void {
+  const g = game();
+  if (!g?.hud?.actionBarController) return;
+  const bar = g.hud.actionBarController;
+  const ids = buildAffinityHotbar(cls, g.sim.known, affinity);
+  const signature =
+    cls +
+    ':' +
+    (g.sim.player.specId ?? '') +
+    ':' +
+    bar.activeForm +
+    ':' +
+    bar.profile +
+    ':' +
+    ids.map((a) => a.id).join(',');
+  if (signature === lastHotbarSignature) return;
+  const firstTen = [...ids, ...Array.from({ length: Math.max(0, 10 - ids.length) }, () => null)];
+  bar.replaceActions([...firstTen, ...bar.actions.slice(10)]);
+  lastHotbarSignature = signature;
+}
+
+function syncWeaponAffinity(): boolean {
+  const g = game();
+  if (!g) return false;
+  const id = equippedWeaponId();
+  const mode = weaponAffinity(weaponInlays, id);
+  const signature = (id ?? '') + ':' + mode;
+  if (signature === lastWeaponSignature) return false;
+  lastWeaponSignature = signature;
+  affinity = mode;
+  configureWeaponInfusion(g.sim.player, id, mode);
+  return true;
+}
 
 function game(): any {
   return w.__game?.sim ? w.__game : null;
@@ -67,12 +128,13 @@ function stageDummy(distance = 8): any {
   if (!g) return null;
   const sim = g.sim;
   const p = sim.player;
-  let target = [...sim.entities.values()].find(
+  const target = [...sim.entities.values()].find(
     (e: any) => e.id !== p.id && e.kind === 'mob' && e.ownerId == null,
   );
   if (!target) return null;
   const x = p.pos.x + Math.sin(p.facing) * distance;
   const z = p.pos.z + Math.cos(p.facing) * distance;
+  target.templateId = 'training_dummy';
   target.dead = false;
   target.hostile = true;
   target.maxHp = Math.max(target.maxHp || 1, 50000);
@@ -139,7 +201,10 @@ function prepareCast(
       ? 8
       : receptor.target === 'none'
         ? 5
-        : meta?.cls === 'mage' || meta?.cls === 'warlock' || meta?.cls === 'priest' || meta?.cls === 'shaman'
+        : meta?.cls === 'mage' ||
+            meta?.cls === 'warlock' ||
+            meta?.cls === 'priest' ||
+            meta?.cls === 'shaman'
           ? 12
           : 2.4;
   const target = stageDummy(targetDistance);
@@ -167,7 +232,7 @@ function prepareCast(
 }
 
 function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
-  const id = receptor.variants[mode];
+  const id = receptor.variants.base;
   if (!id) {
     toast('VARIANTE AÚN NO IMPLEMENTADA', true);
     return;
@@ -178,6 +243,7 @@ function cast(receptor: AffinityReceptor, mode: HighflyAffinity): void {
     return;
   }
   const { sim, p, target, cls, spec } = prep;
+  configureWeaponInfusion(p, equippedWeaponId(), mode);
   const startHp = target?.hp ?? null;
   try {
     if (receptor.target === 'position') {
@@ -276,7 +342,10 @@ function selectQ0Body(next: HighflyCharacterQ0Body): void {
   const cls = metaClass();
   if (cls) renderHud(cls);
   if (selected !== before) {
-    toast('PERSONAJE · ' + (selected === 'claude' ? 'CLAUDE' : selected === 'qmale' ? 'Q-MALE' : 'Q-FEMALE'));
+    toast(
+      'PERSONAJE · ' +
+        (selected === 'claude' ? 'CLAUDE' : selected === 'qmale' ? 'Q-MALE' : 'Q-FEMALE'),
+    );
     result('HOT SWAP VISUAL · esperando renderer…');
     const started = performance.now();
     const verify = () => {
@@ -319,144 +388,111 @@ function resetLab(): void {
 
 function renderHud(cls: HighflyClass): void {
   const audit = HIGHFLY_AFFINITY_AUDIT_V1[cls];
-  document.body.classList.add('hf-affinity-active');
+  document.body.classList.add('hf-affinity-active', 'hf-q1-active');
   document.getElementById('hf-affinity-hud')?.remove();
-
-  const root = document.createElement('div');
+  const root = document.createElement('section');
   root.id = 'hf-affinity-hud';
+  root.className = 'ui-panel';
   root.classList.toggle('hf-collapsed', q0Collapsed);
   document.body.classList.toggle('hf-q0-collapsed', q0Collapsed);
-
   const head = document.createElement('div');
   head.className = 'hf-aff-head';
-  head.innerHTML =
-    '<span class="hf-aff-title">HIGHFLY AFFINITY LAB v1</span>' +
-    '<span class="hf-aff-class">' + audit.label + '</span>' +
-    '<span class="hf-aff-level">LVL 20</span>' +
-    '<span class="hf-aff-spacer"></span>';
-
-  const bodyLabel = document.createElement('span');
-  bodyLabel.className = 'hf-q0-label';
-  bodyLabel.textContent = 'PERSONAJE';
-  head.append(bodyLabel);
-  for (const candidate of ['claude', 'qmale', 'qfemale'] as const) {
-    const button = document.createElement('button');
-    button.className = 'hf-q0-body' + (highflyCharacterQ0Body() === candidate ? ' hf-active' : '');
-    button.dataset.body = candidate;
-    button.textContent = candidate === 'claude' ? 'CLAUDE' : candidate === 'qmale' ? 'Q-MALE' : 'Q-FEMALE';
-    button.addEventListener('click', () => selectQ0Body(candidate));
-    head.append(button);
-  }
-
+  const title = document.createElement('span');
+  title.className = 'hf-aff-title';
+  title.textContent = 'HIGHFLY Q1';
+  head.append(title);
   const activeBody = document.createElement('span');
   activeBody.id = 'hf-q0-active';
   activeBody.className = 'hf-q0-active';
-  activeBody.textContent = 'ACTIVO: …';
   head.append(activeBody);
-
+  const current = document.createElement('span');
+  current.className = 'hf-aff-summary';
+  current.textContent = audit.label + ' / ' + affinity.toUpperCase();
+  head.append(current);
   const minimize = document.createElement('button');
-  minimize.className = 'hf-q0-collapse';
-  minimize.textContent = q0Collapsed ? 'MAXIMIZAR' : 'MINIMIZAR';
+  minimize.className = 'hf-q0-collapse ui-btn';
+  minimize.textContent = q0Collapsed ? 'AJUSTES' : 'CERRAR';
+  minimize.setAttribute('aria-expanded', String(!q0Collapsed));
   minimize.addEventListener('click', toggleQ0Collapsed);
   head.append(minimize);
-
+  root.append(head);
+  const controls = document.createElement('div');
+  controls.className = 'hf-aff-controls';
+  const row = (label: string) => {
+    const group = document.createElement('div');
+    group.className = 'hf-aff-row';
+    const caption = document.createElement('span');
+    caption.className = 'hf-q0-label';
+    caption.textContent = label;
+    group.append(caption);
+    controls.append(group);
+    return group;
+  };
+  const bodies = row('PERSONAJE');
+  for (const candidate of ['claude', 'qmale', 'qfemale'] as const) {
+    const button = document.createElement('button');
+    button.className =
+      'hf-q0-body ui-btn' + (highflyCharacterQ0Body() === candidate ? ' hf-active' : '');
+    button.dataset.body = candidate;
+    button.textContent =
+      candidate === 'claude' ? 'CLAUDE' : candidate === 'qmale' ? 'Q-MALE' : 'Q-FEMALE';
+    button.addEventListener('click', () => selectQ0Body(candidate));
+    bodies.append(button);
+  }
+  const classes = row('CLASE');
   for (const candidate of HIGHFLY_AFFINITY_CLASSES) {
     const button = document.createElement('button');
-    button.className = 'hf-aff-classpick' + (candidate === cls ? ' hf-active' : '');
+    button.className = 'hf-aff-classpick ui-btn' + (candidate === cls ? ' hf-active' : '');
     button.textContent = candidate.toUpperCase();
     button.addEventListener('click', () => switchClass(candidate));
-    head.append(button);
+    classes.append(button);
   }
-
   const specs = CLASS_SPECS[cls] ?? [];
-  const currentSpec = game()?.sim?.player?.specId ?? game()?.sim?.meta(game()?.sim?.player?.id)?.spec ?? null;
-  for (const spec of specs) {
-    const button = document.createElement('button');
-    button.className = 'hf-aff-spec' + (spec === currentSpec ? ' hf-active' : '');
-    button.textContent = spec.toUpperCase();
-    button.addEventListener('click', () => selectSpec(cls, spec));
-    head.append(button);
-  }
-
-  for (const element of ELEMENTS) {
-    const button = document.createElement('button');
-    button.className = 'hf-aff-element' + (affinity === element ? ' hf-active' : '');
-    button.textContent = element === 'fire' ? '🔥 FUEGO' : element === 'frost' ? '❄ HIELO' : '⚡ RAYO';
-    button.addEventListener('click', () => {
-      affinity = element;
-      localStorage.setItem('hf_affinity_lab_element', affinity);
-      renderHud(cls);
-    });
-    head.append(button);
-  }
-
-  const reset = document.createElement('button');
-  reset.className = 'hf-aff-reset';
-  reset.textContent = 'RESET';
-  reset.addEventListener('click', resetLab);
-  head.append(reset);
-
-  const change = document.createElement('button');
-  change.className = 'hf-aff-change';
-  change.textContent = 'CAMBIAR CLASE';
-  change.addEventListener('click', () => {
-    location.href = location.pathname;
-  });
-  head.append(change);
-  root.append(head);
-
-  const implemented = audit.receptors.filter((r) => r.implemented);
-  if (implemented.length) {
-    for (const receptor of implemented) {
-      const row = document.createElement('div');
-      row.className = 'hf-aff-compare';
-      const label = document.createElement('div');
-      label.className = 'hf-aff-receptor';
-      const activeSpec = game()?.sim?.player?.specId ?? game()?.sim?.meta(game()?.sim?.player?.id)?.spec ?? null;
-      label.textContent = receptor.label + (receptor.spec ? ' [' + receptor.spec.toUpperCase() + ']' : '');
-      row.classList.toggle('hf-spec-mismatch', Boolean(receptor.spec && receptor.spec !== activeSpec));
-      row.append(label);
-
-      const base = document.createElement('button');
-      base.className = 'hf-aff-skill hf-base';
-      base.dataset.ability = receptor.variants.base;
-      base.textContent = 'BASE · ' + receptor.label;
-      base.disabled = Boolean(receptor.spec && receptor.spec !== activeSpec);
-      base.addEventListener('click', () => cast(receptor, 'base'));
-      row.append(base);
-
-      const elementalId = receptor.variants[affinity];
-      const elemental = document.createElement('button');
-      elemental.className = 'hf-aff-skill hf-elemental';
-      elemental.dataset.ability = elementalId ?? '';
-      elemental.textContent =
-        (affinity === 'fire' ? '🔥 FUEGO' : affinity === 'frost' ? '❄ HIELO' : '⚡ RAYO') +
-        ' · ' +
-        receptor.label;
-      elemental.disabled = !elementalId || Boolean(receptor.spec && receptor.spec !== activeSpec);
-      elemental.addEventListener('click', () => cast(receptor, affinity));
-      row.append(elemental);
-      root.append(row);
+  const currentSpec =
+    game()?.sim?.player?.specId ?? game()?.sim?.meta(game()?.sim?.player?.id)?.spec ?? null;
+  if (specs.length) {
+    const specRow = row('SPEC');
+    for (const spec of specs) {
+      const button = document.createElement('button');
+      button.className = 'hf-aff-spec ui-btn' + (spec === currentSpec ? ' hf-active' : '');
+      button.textContent = spec.toUpperCase();
+      button.addEventListener('click', () => selectSpec(cls, spec));
+      specRow.append(button);
     }
-  } else {
-    const pending = document.createElement('div');
-    pending.className = 'hf-aff-pending';
-    pending.textContent = 'RECEPTORES AUDITADOS · implementación bloqueada hasta GREEN de Heroic Leap.';
-    root.append(pending);
   }
-
-  const queue = document.createElement('div');
-  queue.className = 'hf-aff-queue';
-  queue.innerHTML =
-    '<strong>RECEPTORES:</strong> ' +
-    audit.receptors.map((r) => r.label + (r.implemented ? ' ✓' : '')).join(' · ');
-  root.append(queue);
-
+  const elements = row('ELEMENTO DEL ARMA');
+  for (const element of AFFINITY_MODES) {
+    const button = document.createElement('button');
+    button.className = 'hf-aff-element ui-btn' + (affinity === element ? ' hf-active' : '');
+    button.dataset.affinity = element;
+    button.textContent =
+      element === 'base'
+        ? 'BASE'
+        : element === 'fire'
+          ? 'FUEGO'
+          : element === 'frost'
+            ? 'HIELO'
+            : 'RAYO';
+    button.disabled = equippedWeaponId() === null;
+    button.addEventListener('click', () => selectWeaponAffinity(element));
+    elements.append(button);
+  }
+  const detail = document.createElement('div');
+  detail.className = 'hf-aff-weapon';
+  detail.textContent = equippedWeaponId()
+    ? 'ARMA: ' + equippedWeaponId()
+    : 'EQUIPÁ UN ARMA PARA ACTIVAR ELEMENTOS';
+  controls.append(detail);
+  const reset = document.createElement('button');
+  reset.className = 'hf-aff-reset ui-btn';
+  reset.textContent = 'REINICIAR PRUEBA';
+  reset.addEventListener('click', resetLab);
+  controls.append(reset);
   const resultEl = document.createElement('div');
   resultEl.id = 'hf-affinity-result';
-  resultEl.textContent = 'BASE y elemental permanecen disponibles lado a lado.';
-  root.append(resultEl);
-
+  resultEl.textContent = '10 habilidades nativas. Afinidad en receptores compatibles.';
+  controls.append(resultEl);
+  root.append(controls);
   document.body.append(root);
   updateQ0VisualStatus();
 }
@@ -471,7 +507,9 @@ function boot(): void {
     if (cls) {
       const g = game();
       if (g.sim.player.level !== 20) g.sim.setPlayerLevel(20);
-      if (cls !== lastClass || !document.getElementById('hf-affinity-hud')) {
+      const weaponChanged = syncWeaponAffinity();
+      syncNativeHotbar(cls);
+      if (cls !== lastClass || weaponChanged || !document.getElementById('hf-affinity-hud')) {
         lastClass = cls;
         renderHud(cls);
       }
@@ -498,31 +536,34 @@ w.__highflyCharacterQ0 = {
 w.__highflyAffinityLab = {
   audit: HIGHFLY_AFFINITY_AUDIT_V1,
   affinity: () => affinity,
-  selectAffinity: (next: HighflyAffinity) => {
-    if (ELEMENTS.includes(next as Exclude<HighflyAffinity, 'base'>)) {
-      affinity = next;
-      localStorage.setItem('hf_affinity_lab_element', affinity);
-      const cls = metaClass();
-      if (cls) renderHud(cls);
-    }
-  },
+  selectAffinity: (next: HighflyAffinity) => selectWeaponAffinity(next),
+  weaponId: () => equippedWeaponId(),
+  nativeHotbar: () => game()?.hud?.actionBarController?.actions?.slice(0, 10) ?? [],
+  weaponAffinities: () => ({ ...weaponInlays }),
+  resetLab: () => resetLab(),
   selectSpec: (spec: string) => {
     const cls = metaClass();
     if (cls) selectSpec(cls, spec);
   },
   castReceptor: (id: string, mode: HighflyAffinity = 'base') => {
     const cls = metaClass();
-    const receptor = cls ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.id === id && r.implemented) : null;
+    const receptor = cls
+      ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.id === id && r.implemented)
+      : null;
     if (receptor) cast(receptor, mode);
   },
   castBase: () => {
     const cls = metaClass();
-    const receptor = cls ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.implemented) : null;
+    const receptor = cls
+      ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.implemented)
+      : null;
     if (receptor) cast(receptor, 'base');
   },
   castElement: () => {
     const cls = metaClass();
-    const receptor = cls ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.implemented) : null;
+    const receptor = cls
+      ? HIGHFLY_AFFINITY_AUDIT_V1[cls].receptors.find((r) => r.implemented)
+      : null;
     if (receptor) cast(receptor, affinity);
   },
 };
