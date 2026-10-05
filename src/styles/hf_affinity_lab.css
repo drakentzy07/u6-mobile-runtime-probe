@@ -109,7 +109,7 @@ body.mobile-touch.hf-q1-active #actionbar .keybind { display: none; }
     --hf-q1-skill-size: 44px;
     display: block !important;
     width: 336px !important;
-    height: 152px !important;
+    height: 224px !important;
     right: max(8px, env(safe-area-inset-right)) !important;
     bottom: calc(92px + env(safe-area-inset-bottom)) !important;
     pointer-events: none !important;
@@ -122,17 +122,17 @@ body.mobile-touch.hf-q1-active #actionbar .keybind { display: none; }
 
   /* Inner crescent: S1 -> S5. */
   body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="1"] { right: 8px !important; bottom: 0px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="2"] { right: 50px !important; bottom: 8px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="3"] { right: 88px !important; bottom: 28px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="4"] { right: 120px !important; bottom: 58px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="5"] { right: 145px !important; bottom: 96px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="2"] { right: 54px !important; bottom: 8px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="3"] { right: 100px !important; bottom: 24px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="4"] { right: 146px !important; bottom: 48px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="5"] { right: 192px !important; bottom: 80px !important; }
 
   /* Outer crescent: S6 -> S10, offset left/up from the first arc. */
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="6"] { right: 156px !important; bottom: 0px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="7"] { right: 198px !important; bottom: 10px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="8"] { right: 236px !important; bottom: 32px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="9"] { right: 266px !important; bottom: 62px !important; }
-  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="10"] { right: 286px !important; bottom: 102px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="6"] { right: 100px !important; bottom: 100px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="7"] { right: 146px !important; bottom: 108px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="8"] { right: 192px !important; bottom: 124px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="9"] { right: 238px !important; bottom: 148px !important; }
+  body.mobile-touch.hf-q1-active #actionbar [data-hotbar-slot="10"] { right: 284px !important; bottom: 180px !important; }
 }
 
 @media (max-width: 480px) {
