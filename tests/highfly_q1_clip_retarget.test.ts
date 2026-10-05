@@ -37,11 +37,12 @@ describe('Q1 external class animation retargeting', () => {
     const originalRotation = Array.from(rotation.values);
     const result = retargetQ1Clip(source, donor.scene, target.scene);
 
-    expectVector(result.tracks[0].values, [0.3, 0.95, 0.05, 0.35, 1.02, 0.07, 0.25, 0.92, 0.03]);
-    // The gait's displacements and timing remain the donor's exact motion.
+    // Running_A keeps vertical bounce but damps only hips-local horizontal sway.
+    expectVector(result.tracks[0].values, [0.3, 0.95, 0.05, 0.326, 1.02, 0.0604, 0.274, 0.92, 0.0396]);
     const moved = result.tracks[0].values;
     expect(moved[4] - moved[1]).toBeCloseTo(position.values[4] - position.values[1], 6);
-    expect(moved[6] - moved[0]).toBeCloseTo(position.values[6] - position.values[0], 6);
+    expect(moved[6] - moved[0]).toBeCloseTo((position.values[6] - position.values[0]) * 0.52, 6);
+    expect(moved[8] - moved[2]).toBeCloseTo((position.values[8] - position.values[2]) * 0.52, 6);
     expect(Array.from(result.tracks[1].values)).toEqual(originalRotation);
     expect(result.tracks.map((t) => Array.from(t.times))).toEqual(
       source.tracks.map((t) => Array.from(t.times)),
@@ -53,6 +54,17 @@ describe('Q1 external class animation retargeting', () => {
     expect(Array.from(rotation.values)).toEqual(originalRotation);
     expect(donor.bone.position.toArray()).toEqual([0.2, 0.4, -0.1]);
     expect(target.bone.position.toArray()).toEqual([0.3, 0.95, 0.05]);
+  });
+
+
+  it('does not damp combat or unrelated-bone translations', () => {
+    const donor = rig('spine', [0.1, 0.4, 0.2]);
+    const target = rig('spine', [0.2, 0.8, 0.3]);
+    const source = new AnimationClip('Warrior_Reaping_Arc', 1, [
+      new VectorKeyframeTrack('spine.position', [0, 1], [0.1, 0.4, 0.2, 0.3, 0.5, 0.4]),
+    ]);
+    const result = retargetQ1Clip(source, donor.scene, target.scene);
+    expectVector(result.tracks[0].values, [0.2, 0.8, 0.3, 0.4, 0.9, 0.5]);
   });
 
   it('leaves canonical CLAUDE and Q1 native clips untouched when their scene is unchanged', () => {
