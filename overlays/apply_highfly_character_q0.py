@@ -95,4 +95,25 @@ rep(
       : (modularLookProvider?.(e) ?? null);""",
 )
 
+
+# Q0 visual-only held-prop fit. The body remains on the exact same Rig_Medium
+# and the SIM/hitbox/WeaponTrace authority are untouched.
+visual = 'src/render/characters/visual.ts'
+rep(
+    visual,
+    """    this.model = timeBuildSpan('view-part:assemble', () =>
+      assembleModel(this.def, weaponItemId, offhandItemId, look, opts),
+    );""",
+    """    this.model = timeBuildSpan('view-part:assemble', () =>
+      assembleModel(this.def, weaponItemId, offhandItemId, look, opts),
+    );
+    const highflyQ0HeldScale =
+      key.endsWith('_qmale') ? 0.74 : key.endsWith('_qfemale') ? 0.70 : 1;
+    if (highflyQ0HeldScale !== 1) {
+      this.model.traverse((o) => {
+        if (o.userData?.heldPropHolder === true) o.scale.multiplyScalar(highflyQ0HeldScale);
+      });
+    }""",
+)
+
 print('HIGHFLY_CHARACTER_Q0=1')
