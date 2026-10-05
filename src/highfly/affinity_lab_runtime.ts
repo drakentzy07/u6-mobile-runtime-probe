@@ -14,7 +14,6 @@ import {
 
 const w = window as any;
 const ELEMENTS: readonly Exclude<HighflyAffinity, 'base'>[] = ['fire', 'frost', 'lightning'];
-const TANDA1_CLASSES: readonly HighflyClass[] = ['warrior', 'rogue', 'mage'];
 const CLASS_SPECS: Partial<Record<HighflyClass, readonly string[]>> = {
   warrior: ['arms', 'fury', 'prot'],
   rogue: ['assassination', 'combat', 'subtlety'],
