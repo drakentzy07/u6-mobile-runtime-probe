@@ -54,6 +54,17 @@ describe('HIGHFLY CHARACTER Q0', () => {
     expect(runtime).toContain('for (const candidate of HIGHFLY_AFFINITY_CLASSES)');
   });
 
+  it('preserves Warrior and Paladin class-specific presentation hooks on Q0 keys', () => {
+    const overlay = readFileSync('overlays/apply_highfly_character_q0.py','utf8');
+    expect(overlay).toContain("'player_warrior_qmale'");
+    expect(overlay).toContain("'player_warrior_qfemale'");
+    expect(overlay).toContain("'player_paladin_qmale'");
+    expect(overlay).toContain("'player_paladin_qfemale'");
+    expect(overlay).toContain('prepareWarrior');
+    expect(overlay).toContain('PaladinBastionSweepFx');
+    expect(overlay).toContain('PaladinTemplarsVerdictFx');
+  });
+
   it('keeps Q0 selector out of SIM/combat/movement authority', () => {
     const selector = readFileSync('src/highfly/character_q0_visual.ts','utf8');
     expect(selector).not.toContain('castAbility');
