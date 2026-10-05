@@ -197,24 +197,50 @@ await step('native-paid-rogue-skill', async () => {
   require(after.resource <= before.resource - before.cost + 5 && after.gcd > 0, 'Paid native button did not consume canonical cost');
 });
 await step('mobile-landscape-native-hud-and-leap', async () => {
-  const mobile = await browser.newContext({ viewport: { width: 900, height: 420 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  // Reuse the already-proven desktop session state. A brand-new mobile context
+  // has no local HIGHFLY character/save and can remain on the entry flow instead
+  // of ever exposing __game, which made the old gate wait 180s on a condition
+  // that could never become true.
+  const storageState = await context.storageState();
+  console.log('Q1_MOBILE_STAGE context-create');
+  const mobile = await browser.newContext({
+    viewport: { width: 900, height: 420 },
+    hasTouch: true,
+    isMobile: true,
+    deviceScaleFactor: 1,
+    storageState,
+  });
   await mobile.addInitScript(() => localStorage.setItem('hf_character_q0_body', 'claude'));
   const mp = await mobile.newPage();
   mp.on('pageerror', (e) => report.errors.push(String(e)));
+
+  console.log('Q1_MOBILE_STAGE ready-landscape');
   await ready(mp, 'warrior');
+  console.log('Q1_MOBILE_STAGE ready-landscape-pass');
+
   for (const body of ['qmale', 'qfemale']) {
+    console.log('Q1_MOBILE_STAGE select-' + body);
     await selectBody(mp, 'warrior', body);
+    console.log('Q1_MOBILE_STAGE layout-' + body);
     await layout(mp, body + '-mobile-landscape');
     await mp.screenshot({ path: '../character-q1-warrior-' + body + '-mobile.png' });
+    console.log('Q1_MOBILE_STAGE screenshot-' + body + '-pass');
   }
+
+  console.log('Q1_MOBILE_STAGE leap');
   await nativeLeap(mp, 'mobile-landscape');
+  console.log('Q1_MOBILE_STAGE leap-pass');
+
   await mp.setViewportSize({ width: 360, height: 800 });
+  console.log('Q1_MOBILE_STAGE ready-portrait');
   await ready(mp, 'warrior');
+  console.log('Q1_MOBILE_STAGE ready-portrait-pass');
   await selectBody(mp, 'warrior', 'qmale');
   await layout(mp, 'qmale-mobile-portrait');
   const compact = await mp.locator('#hf-affinity-hud').boundingBox();
   require(compact && compact.x >= 0 && compact.y >= 0 && compact.x + compact.width <= 361, 'Compact lab panel leaves 360px viewport');
   await mp.screenshot({ path: '../character-q1-warrior-qmale-mobile-portrait.png' });
+  console.log('Q1_MOBILE_STAGE portrait-pass');
   await mobile.close();
 });
 report.passed = report.classes.length === 9 && report.failures.length === 0 && report.errors.filter((e) => /TypeError|ReferenceError|SyntaxError|RangeError/.test(e)).length === 0;
