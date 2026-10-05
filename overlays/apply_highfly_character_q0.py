@@ -116,4 +116,114 @@ rep(
     }""",
 )
 
+
+# Preserve Warrior's class-specific animation/presentation hooks on Q0 keys.
+rep(
+    'src/render/characters/warrior_ability_clips.ts',
+    """  if (key !== 'player_warrior' && key !== 'player_warrior_modular') return;""",
+    """  if (
+    key !== 'player_warrior' &&
+    key !== 'player_warrior_modular' &&
+    key !== 'player_warrior_qmale' &&
+    key !== 'player_warrior_qfemale'
+  ) return;""",
+)
+
+rep(
+    'src/render/characters/warrior_action_fallbacks.ts',
+    """  if (key !== 'player_warrior' && key !== 'player_warrior_modular') return;""",
+    """  if (
+    key !== 'player_warrior' &&
+    key !== 'player_warrior_modular' &&
+    key !== 'player_warrior_qmale' &&
+    key !== 'player_warrior_qfemale'
+  ) return;""",
+)
+
+rep(
+    'src/render/characters/warrior_body_effects.ts',
+    """    return key === 'player_warrior' || key === 'player_warrior_modular'
+      ? new WarriorBodyEffects(true)
+      : WarriorBodyEffects.disabled;""",
+    """    return key === 'player_warrior' ||
+      key === 'player_warrior_modular' ||
+      key === 'player_warrior_qmale' ||
+      key === 'player_warrior_qfemale'
+      ? new WarriorBodyEffects(true)
+      : WarriorBodyEffects.disabled;""",
+)
+
+rep(
+    'src/render/characters/warrior_action_blend.ts',
+    """  if (key !== 'player_warrior') return fallback;""",
+    """  if (
+    key !== 'player_warrior' &&
+    key !== 'player_warrior_qmale' &&
+    key !== 'player_warrior_qfemale'
+  ) return fallback;""",
+)
+
+rep(
+    visual,
+    """      if (key === 'player_warrior' || key === 'player_warrior_modular')
+        this.actionProps = new WarriorActionProps(this.model);""",
+    """      if (
+        key === 'player_warrior' ||
+        key === 'player_warrior_modular' ||
+        key === 'player_warrior_qmale' ||
+        key === 'player_warrior_qfemale'
+      )
+        this.actionProps = new WarriorActionProps(this.model);""",
+)
+
+rep(
+    visual,
+    """      const isWarriorRig = key === 'player_warrior' || key === 'player_warrior_modular';""",
+    """      const isWarriorRig =
+        key === 'player_warrior' ||
+        key === 'player_warrior_modular' ||
+        key === 'player_warrior_qmale' ||
+        key === 'player_warrior_qfemale';""",
+)
+
+# Preserve Paladin synthesized attacks and its bespoke visual FX on Q0 keys.
+rep(
+    'src/render/characters/assets.ts',
+    """  if (key === 'player_paladin' || key === modularVisualKey('paladin')) {""",
+    """  if (
+    key === 'player_paladin' ||
+    key === modularVisualKey('paladin') ||
+    key === 'player_paladin_qmale' ||
+    key === 'player_paladin_qfemale'
+  ) {""",
+)
+
+rep(
+    visual,
+    """      if (key === 'player_paladin') {
+        this.bastionSweepFx = new PaladinBastionSweepFx(this.model);
+        this.templarsVerdictFx = new PaladinTemplarsVerdictFx(this.model);
+      }""",
+    """      if (
+        key === 'player_paladin' ||
+        key === 'player_paladin_qmale' ||
+        key === 'player_paladin_qfemale'
+      ) {
+        this.bastionSweepFx = new PaladinBastionSweepFx(this.model);
+        this.templarsVerdictFx = new PaladinTemplarsVerdictFx(this.model);
+      }""",
+)
+
+rep(
+    visual,
+    """    this.templarsVerdictFx =
+      this.key === 'player_paladin' ? new PaladinTemplarsVerdictFx(this.model) : null;""",
+    """    this.templarsVerdictFx =
+      this.key === 'player_paladin' ||
+      this.key === 'player_paladin_qmale' ||
+      this.key === 'player_paladin_qfemale'
+        ? new PaladinTemplarsVerdictFx(this.model)
+        : null;""",
+)
+
 print('HIGHFLY_CHARACTER_Q0=1')
