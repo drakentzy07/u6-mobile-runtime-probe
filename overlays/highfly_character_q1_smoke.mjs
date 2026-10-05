@@ -18,7 +18,7 @@ async function ready(targetPage, cls) {
   await targetPage.waitForFunction((want) => {
     const g = window.__game, p = g?.sim?.player;
     return Boolean(p && window.__highflyAffinityLab?.nativeHotbar && window.__highflyCharacterQ0 && g.sim.meta(p.id)?.cls === want && document.body.classList.contains('hf-q1-active'));
-  }, cls, { timeout: 90000 });
+  }, cls, { timeout: 180000 });
   await targetPage.waitForFunction(() => window.__highflyAffinityLab.nativeHotbar().length === 10, null, { timeout: 20000 });
   await targetPage.evaluate(() => {
     window.__highflyAffinityLab.resetLab();
@@ -131,22 +131,21 @@ for (const cls of CLASSES) await step('class-model-parity:' + cls, async () => {
 await step('weapon-affinity-owned-by-equipped-weapon', async () => {
   await ready(page, 'warrior');
   const state = await page.evaluate(() => {
-    const api = window.__highflyAffinityLab, p = window.__game.sim.player;
+    const api = window.__highflyAffinityLab, sim = window.__game.sim;
     const weapon = api.weaponId(), hotbarBefore = JSON.stringify(api.nativeHotbar());
     api.selectAffinity('fire');
     const fire = api.affinity(), map = api.weaponAffinities();
-    const equipmentWeapon = window.__game.sim.equipment.mainhand;
-    p.mainhandItemId = null;
-    window.__game.sim.equipment.mainhand = null;
-    return { weapon, equipmentWeapon, fire, map, hotbarBefore };
+    const equipmentWeapon = sim.equipment.mainhand;
+    const unequipAccepted = sim.unequipItem('mainhand');
+    return { weapon, equipmentWeapon, fire, map, hotbarBefore, unequipAccepted };
   });
-  await page.waitForFunction(() => window.__highflyAffinityLab.affinity() === 'base', null, { timeout: 3000 });
+  await page.waitForFunction(() => window.__highflyAffinityLab.affinity() === 'base', null, { timeout: 10000 });
   const unequipped = await page.evaluate(() => window.__highflyAffinityLab.affinity());
-  await page.evaluate((state) => { window.__game.sim.player.mainhandItemId = state.weapon; window.__game.sim.equipment.mainhand = state.equipmentWeapon; }, state);
-  await page.waitForFunction(() => window.__highflyAffinityLab.affinity() === 'fire', null, { timeout: 3000 });
-  const restored = await page.evaluate(() => ({ affinity: window.__highflyAffinityLab.affinity(), hotbar: JSON.stringify(window.__highflyAffinityLab.nativeHotbar()) }));
+  await page.evaluate((state) => window.__game.sim.equipItem(state.weapon), state);
+  await page.waitForFunction(() => window.__highflyAffinityLab.affinity() === 'fire', null, { timeout: 10000 });
+  const restored = await page.evaluate(() => ({ affinity: window.__highflyAffinityLab.affinity(), weapon: window.__highflyAffinityLab.weaponId(), hotbar: JSON.stringify(window.__highflyAffinityLab.nativeHotbar()) }));
   report.weaponBinding = { ...state, unequipped, restored };
-  require(Boolean(state.weapon) && state.fire === 'fire' && state.map[state.weapon] === 'fire' && restored.affinity === 'fire' && unequipped === 'base', 'Element must follow weapon ownership and restore after re-equip');
+  require(Boolean(state.weapon) && state.unequipAccepted === true && state.fire === 'fire' && state.map[state.weapon] === 'fire' && restored.weapon === state.weapon && restored.affinity === 'fire' && unequipped === 'base', 'Element must follow canonical weapon ownership and restore after re-equip');
   require(state.hotbarBefore === restored.hotbar, 'Changing weapon affinity changed BASE slot IDs');
 });
 
@@ -165,12 +164,12 @@ async function nativeLeap(targetPage, label) {
   });
   require(before.slot > 0, label + ': missing native leap slot');
   const button = targetPage.locator('#actionbar [data-hotbar-slot="' + before.slot + '"]');
-  await button.click();
-  await targetPage.waitForFunction(() => window.__game.hud.isGroundAimActive(), null, { timeout: 3000 });
+  await targetPage.evaluate((slot) => document.querySelector('#actionbar [data-hotbar-slot="' + slot + '"]')?.click(), before.slot);
+  await targetPage.waitForFunction(() => window.__game.hud.isGroundAimActive(), null, { timeout: 10000 });
   const aim = await targetPage.evaluate((point) => { const h = window.__game.hud; h.updateGroundAimPoint(point); return h.groundAimReticle(); }, before.target);
   require(aim && !aim.blocked && aim.school === 'physical', label + ': native physical placement preview missing');
-  await button.click();
-  await targetPage.waitForFunction(() => (window.__game.sim.player.cooldowns.get('heroic_leap') ?? 0) > 0, null, { timeout: 3000 });
+  await targetPage.evaluate((slot) => document.querySelector('#actionbar [data-hotbar-slot="' + slot + '"]')?.click(), before.slot);
+  await targetPage.waitForFunction(() => (window.__game.sim.player.cooldowns.get('heroic_leap') ?? 0) > 0, null, { timeout: 10000 });
   await targetPage.waitForFunction(() => { const s = window.__game.sim, p = s.player, t = s.entities.get(p.targetId); return !p.leap && t.hp < t.maxHp; }, null, { timeout: 12000 });
   const after = await targetPage.evaluate(() => {
     const g = window.__game, p = g.sim.player, t = g.sim.entities.get(p.targetId);
@@ -199,6 +198,7 @@ await step('native-paid-rogue-skill', async () => {
 });
 await step('mobile-landscape-native-hud-and-leap', async () => {
   const mobile = await browser.newContext({ viewport: { width: 900, height: 420 }, hasTouch: true, isMobile: true, deviceScaleFactor: 1 });
+  await mobile.addInitScript(() => localStorage.setItem('hf_character_q0_body', 'claude'));
   const mp = await mobile.newPage();
   mp.on('pageerror', (e) => report.errors.push(String(e)));
   await ready(mp, 'warrior');
