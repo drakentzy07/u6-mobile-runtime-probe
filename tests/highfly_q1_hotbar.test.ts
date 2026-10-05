@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { HIGHFLY_AFFINITY_CLASSES } from '../src/highfly/affinity_lab_loadouts';
 import {
@@ -9,6 +10,37 @@ import {
 import { abilitiesKnownAt } from '../src/sim/content/classes';
 
 const known = (id: string, flags = {}) => ({ def: { id, ...flags } });
+
+describe('Q1.1 mobile double-crescent geometry', () => {
+  it('owns ten unique non-overlapping skill seats in landscape', () => {
+    const css = readFileSync('src/styles/hf_affinity_lab.css', 'utf8');
+    expect(css).toContain('HIGHFLY mobile landscape — approved DOUBLE CRESCENT');
+    expect(css).toContain('@media (orientation: landscape)');
+
+    const points: Array<{ slot: number; right: number; bottom: number }> = [];
+    for (let slot = 1; slot <= 10; slot++) {
+      const re = new RegExp(
+        '\\[data-hotbar-slot="' + slot + '"\\] \\{ right: (\\d+)px !important; bottom: (\\d+)px !important; \\}',
+      );
+      const match = css.match(re);
+      expect(match, 'missing crescent seat for slot ' + slot).not.toBeNull();
+      points.push({ slot, right: Number(match?.[1]), bottom: Number(match?.[2]) });
+    }
+    expect(new Set(points.map((p) => p.right + ':' + p.bottom)).size).toBe(10);
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        const dx = points[i].right - points[j].right;
+        const dy = points[i].bottom - points[j].bottom;
+        expect(Math.hypot(dx, dy), 'overlap slots ' + points[i].slot + '/' + points[j].slot).toBeGreaterThanOrEqual(42);
+      }
+    }
+
+    // S1..S5 are the inner/right arc, S6..S10 the outer/left arc.
+    const innerMean = points.slice(0, 5).reduce((n, p) => n + p.right, 0) / 5;
+    const outerMean = points.slice(5).reduce((n, p) => n + p.right, 0) / 5;
+    expect(outerMean).toBeGreaterThan(innerMean);
+  });
+});
 
 describe('Q1 native skill slots and equipped weapon elements', () => {
   it('preserves exact native ids when the weapon element changes', () => {
