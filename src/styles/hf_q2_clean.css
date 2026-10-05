@@ -1,0 +1,174 @@
+/* HIGHFLY Q2 — clean Claude foundation. No Q bodies, no skill infusion variants. */
+body.hf-q2-active #hf-affinity-hud,
+body.hf-q2-active #hf-q0-active { display: none !important; }
+
+body.mobile-touch.hf-q2-active #actionbar {
+  --hf-q2-skill: 44px;
+  display: block !important;
+  position: fixed !important;
+  width: 336px !important;
+  height: 224px !important;
+  right: max(8px, env(safe-area-inset-right)) !important;
+  bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+  left: auto !important;
+  top: auto !important;
+  pointer-events: none !important;
+  z-index: 180 !important;
+  transform: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot] {
+  display: none !important;
+}
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="1"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="2"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="3"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="4"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="5"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="6"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="7"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="8"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="9"],
+body.mobile-touch.hf-q2-active #actionbar .action-btn[data-hotbar-slot="10"] {
+  display: flex !important;
+  position: absolute !important;
+  width: var(--hf-q2-skill) !important;
+  height: var(--hf-q2-skill) !important;
+  min-width: var(--hf-q2-skill) !important;
+  min-height: var(--hf-q2-skill) !important;
+  border-radius: 50% !important;
+  margin: 0 !important;
+  pointer-events: auto !important;
+}
+body.mobile-touch.hf-q2-active #actionbar .keybind { display: none !important; }
+
+/* Inner crescent S1-S5: closest to Attack. */
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="1"] { right: 4px !important; bottom: 0 !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="2"] { right: 52px !important; bottom: 10px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="3"] { right: 96px !important; bottom: 30px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="4"] { right: 136px !important; bottom: 60px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="5"] { right: 168px !important; bottom: 98px !important; }
+
+/* Outer crescent S6-S10. The upper-left space remains free for future EX/ULT. */
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="6"] { right: 100px !important; bottom: 104px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="7"] { right: 146px !important; bottom: 118px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="8"] { right: 190px !important; bottom: 140px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="9"] { right: 232px !important; bottom: 170px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="10"] { right: 280px !important; bottom: 178px !important; }
+
+/* Native mobile ring keeps only the big Attack/Use control. Skill petals are replaced by S1-S10. */
+body.mobile-touch.hf-q2-active #mobile-action-ring .mobile-action-slot,
+body.mobile-touch.hf-q2-active #mobile-action-page-toggle,
+body.mobile-touch.hf-q2-active #mobile-action-radial {
+  display: none !important;
+}
+body.mobile-touch.hf-q2-active #mobile-interact { display: none !important; }
+body.mobile-touch.hf-q2-active #mobile-action-attack {
+  width: 72px !important;
+  height: 72px !important;
+  right: 14px !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  border-radius: 50% !important;
+}
+body.mobile-touch.hf-q2-active #mobile-action-attack::after {
+  content: 'ATK\A USAR';
+  white-space: pre;
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 10px;
+  line-height: 1.05;
+  font-weight: 800;
+  pointer-events: none;
+}
+body.mobile-touch.hf-q2-active #mobile-action-attack .mobile-label,
+body.mobile-touch.hf-q2-active #mobile-action-attack .icon-label { opacity: .45; }
+
+body.mobile-touch.hf-q2-active #mobile-target-cycle {
+  right: 18px !important;
+  bottom: calc(100px + env(safe-area-inset-bottom)) !important;
+}
+body.mobile-touch.hf-q2-active #mobile-jump {
+  right: 102px !important;
+  bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+}
+body.mobile-touch.hf-q2-active #mobile-evade {
+  right: 154px !important;
+  bottom: calc(14px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Bottom utility/buff lane: compact squares, away from joystick and skill crescent. */
+body.mobile-touch.hf-q2-active #buff-bar {
+  position: fixed !important;
+  left: 28vw !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: calc(10px + env(safe-area-inset-bottom)) !important;
+  max-width: 38vw !important;
+  display: flex !important;
+  flex-flow: row nowrap !important;
+  gap: 4px !important;
+  z-index: 178 !important;
+}
+body.mobile-touch.hf-q2-active #buff-bar .buff,
+body.mobile-touch.hf-q2-active #buff-bar .ui-aura {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 4px !important;
+}
+
+#hf-q2-gem-seat {
+  display: none;
+}
+body.mobile-touch.hf-q2-active #hf-q2-gem-seat {
+  display: grid;
+  place-items: center;
+  position: fixed;
+  left: 23vw;
+  bottom: calc(10px + env(safe-area-inset-bottom));
+  width: 42px;
+  height: 42px;
+  z-index: 181;
+  border-radius: 5px;
+  border: 2px solid rgba(221,194,112,.9);
+  background: rgba(12,10,18,.9);
+  font-size: 21px;
+  touch-action: none;
+}
+
+#hf-q2-toast {
+  position: fixed;
+  left: 50%;
+  top: 17%;
+  translate: -50% -8px;
+  min-width: 190px;
+  max-width: min(420px, 72vw);
+  padding: 9px 14px;
+  border: 1px solid rgba(223,199,124,.8);
+  border-radius: 8px;
+  background: rgba(10,8,16,.94);
+  color: #f5e9c6;
+  text-align: center;
+  font-size: 12px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .12s ease, translate .12s ease;
+  z-index: 400;
+}
+#hf-q2-toast strong,
+#hf-q2-toast span { display: block; }
+#hf-q2-toast span { margin-top: 3px; opacity: .82; font-size: 10px; }
+#hf-q2-toast.show { opacity: 1; translate: -50% 0; }
+
+@media (max-height: 520px) and (orientation: landscape) {
+  body.mobile-touch.hf-q2-active #actionbar {
+    --hf-q2-skill: 42px;
+    transform: scale(.90) !important;
+    transform-origin: right bottom !important;
+    bottom: calc(78px + env(safe-area-inset-bottom)) !important;
+  }
+}
