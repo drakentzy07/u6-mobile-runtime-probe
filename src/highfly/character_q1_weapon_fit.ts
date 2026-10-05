@@ -5,7 +5,7 @@ type Family = 'sword' | 'dagger' | 'axe' | 'shield' | 'spear' | 'bow' | 'staff' 
 
 /**
  * Maximum visual long-axis / body-height ratio for a Q1 held prop.
- * Gameplay reach, WeaponTrace, damage and attachment bones remain untouched.
+ * Gameplay reach, hit authority, damage and attachment bones remain untouched.
  *
  * Q1 v1 used sword=.52/shield=.35, which was visibly oversized on the
  * Quaternius bodies because those values describe fantasy prop length, not a
