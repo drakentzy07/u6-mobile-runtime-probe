@@ -361,14 +361,12 @@ function renderHud(cls: HighflyClass): void {
   minimize.addEventListener('click', toggleQ0Collapsed);
   head.append(minimize);
 
-  if (TANDA1_CLASSES.includes(cls)) {
-    for (const candidate of TANDA1_CLASSES) {
-      const button = document.createElement('button');
-      button.className = 'hf-aff-classpick' + (candidate === cls ? ' hf-active' : '');
-      button.textContent = candidate.toUpperCase();
-      button.addEventListener('click', () => switchClass(candidate));
-      head.append(button);
-    }
+  for (const candidate of HIGHFLY_AFFINITY_CLASSES) {
+    const button = document.createElement('button');
+    button.className = 'hf-aff-classpick' + (candidate === cls ? ' hf-active' : '');
+    button.textContent = candidate.toUpperCase();
+    button.addEventListener('click', () => switchClass(candidate));
+    head.append(button);
   }
 
   const specs = CLASS_SPECS[cls] ?? [];
