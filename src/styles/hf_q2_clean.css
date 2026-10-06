@@ -48,8 +48,8 @@ body.mobile-touch.hf-q2-active #actionbar .keybind { display: none !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="1"] { right: 4px !important; bottom: 0px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="2"] { right: 52px !important; bottom: 10px !important; }
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="3"] { right: 96px !important; bottom: 30px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="4"] { right: 136px !important; bottom: 60px !important; }
-body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="5"] { right: 168px !important; bottom: 98px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="4"] { right: 140px !important; bottom: 60px !important; }
+body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="5"] { right: 184px !important; bottom: 98px !important; }
 
 /* Outer crescent S6-S10. The upper-left space remains free for future EX/ULT. */
 body.mobile-touch.hf-q2-active #actionbar [data-hotbar-slot="6"] { right: 76px !important; bottom: 118px !important; }
