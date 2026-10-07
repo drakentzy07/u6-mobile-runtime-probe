@@ -19,6 +19,7 @@ concurrency:
 
 env:
   SKIN_FACTORY_SOURCE_SHA: "cd6d60c7e445534b5425e6e84192b07aa9ac4ee9"
+  CREATOR_LAB_SOURCE_SHA: "4d7e1fd3c5909a4f1c1dcd1c4ad6b08bf9f8e04b"
   CURRENT_SKILL_LAB_RUN: "37238315353"
 
 jobs:
@@ -40,6 +41,16 @@ jobs:
           sparse-checkout: |
             skinlab-v2
             scripts/skin_lab
+          sparse-checkout-cone-mode: true
+
+      - name: Checkout GREEN Creator Lab source separately
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: ${{ env.CREATOR_LAB_SOURCE_SHA }}
+          path: creator-lab-source
+          sparse-checkout: |
+            creator-lab
           sparse-checkout-cone-mode: true
 
       - name: Download current Skill Lab site as host base
@@ -81,6 +92,22 @@ jobs:
             node extract_bind_reference.mjs               --src "$GITHUB_WORKSPACE/site/skin-factory/assets/warrior_modular.glb"               --out "$GITHUB_WORKSPACE/site/skin-factory/assets/bind"               --list > "$GITHUB_WORKSPACE/site/skin-factory/assets/bind/joints.json"
             node extract_bind_reference.mjs               --src "$GITHUB_WORKSPACE/site/skin-factory/assets/warrior_modular.glb"               --out "$GITHUB_WORKSPACE/site/skin-factory/assets/bind"               --all
           )
+
+          # ADDITIVE creator-lab payload. Existing GAME root and Skin Factory paths stay untouched.
+          test "$(git -C creator-lab-source rev-parse HEAD)" = "$CREATOR_LAB_SOURCE_SHA"
+          rm -rf site/creator-lab
+          mkdir -p site/creator-lab/assets/bind
+          cp -a creator-lab-source/creator-lab/. site/creator-lab/
+          cp site/skin-factory/assets/warrior_modular.glb site/creator-lab/assets/warrior_modular.glb
+          cp site/skin-factory/assets/bind/reference_head.glb site/creator-lab/assets/bind/reference_head.glb
+          cp site/skin-factory/assets/bind/joints.json site/creator-lab/assets/bind/joints.json
+          test -s site/creator-lab/index.html
+          test -s site/creator-lab/creator.mjs
+          test -s site/creator-lab/geometry.mjs
+          test -s site/creator-lab/assets/bind/reference_head.glb
+          test "$(git hash-object site/creator-lab/assets/warrior_modular.glb)" = "e3fb52b8e064ab3927f3bc34a5ba7d04e8d701c2"
+          grep -F "<title>HIGHFLY · CREATOR LAB</title>" site/creator-lab/index.html
+          echo "CREATOR_LAB_ISOLATED_PAGES_GREEN=1"
 
           test -s site/skin-factory/index.html
           test -s site/skin-factory/modular-factory.html
