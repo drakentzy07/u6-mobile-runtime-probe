@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SKIN_FACTORY_SOURCE_SHA: "1684c809ae04032f0ab119f61314e622584cfe16"
+  SKIN_FACTORY_SOURCE_SHA: "cd6d60c7e445534b5425e6e84192b07aa9ac4ee9"
   CURRENT_SKILL_LAB_RUN: "37238315353"
 
 jobs:
