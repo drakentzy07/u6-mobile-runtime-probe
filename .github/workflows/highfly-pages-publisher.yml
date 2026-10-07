@@ -1,4 +1,5 @@
 name: HIGHFLY Pages Publisher
+# skin-factory-source: c72696fd73b0fd2a2375790586d73ea680f19947
 # refresh SKILL4 hunter-base publish
 # republish: melee-fusion2b private-run-36272250830
 # republish: melee-fusion2 private-run-36267369905
@@ -47,6 +48,57 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
+      - name: Checkout gated HIGHFLY Skin Factory
+        uses: actions/checkout@v4
+        with:
+          repository: drakentzy07/cobalt-hollow-lab
+          ref: c72696fd73b0fd2a2375790586d73ea680f19947
+          path: skin-factory-source
+          sparse-checkout: |
+            skinlab-v2
+            scripts/skin_lab
+          sparse-checkout-cone-mode: true
+
+      - name: Materialize native Skin Factory assets
+        shell: bash
+        run: |
+          set -euxo pipefail
+          test "$(git -C skin-factory-source rev-parse HEAD)" = "c72696fd73b0fd2a2375790586d73ea680f19947"
+          test -s skin-factory-source/skinlab-v2/index.html
+          test -s skin-factory-source/skinlab-v2/modular-factory.html
+          test -s skin-factory-source/skinlab-v2/donors/audits.json
+          test -s skin-factory-source/scripts/skin_lab/extract_bind_reference.mjs
+
+          rm -rf incoming/skin-factory /tmp/highfly-skin-bind
+          mkdir -p incoming/skin-factory/assets/bind /tmp/highfly-skin-bind
+          cp -a skin-factory-source/skinlab-v2/. incoming/skin-factory/
+
+          BASE="https://raw.githubusercontent.com/levy-street/world-of-claudecraft/9b57e49c9676d75962700f828cc00a50a9a988b5/public"
+          curl -fsSL "$BASE/models/chars/modular/warrior_modular.glb" -o incoming/skin-factory/assets/warrior_modular.glb
+          curl -fsSL "$BASE/models/chars/npc_gear/harbormaster_tricorne.glb" -o incoming/skin-factory/assets/harbormaster_tricorne.glb
+          curl -fsSL "$BASE/models/chars/npc_gear/harbormaster_spyglass.glb" -o incoming/skin-factory/assets/harbormaster_spyglass.glb
+
+          test "$(stat -c%s incoming/skin-factory/assets/warrior_modular.glb)" = "3477500"
+          test "$(git hash-object incoming/skin-factory/assets/warrior_modular.glb)" = "e3fb52b8e064ab3927f3bc34a5ba7d04e8d701c2"
+          test "$(stat -c%s incoming/skin-factory/assets/harbormaster_tricorne.glb)" = "40512"
+          test "$(sha256sum incoming/skin-factory/assets/harbormaster_tricorne.glb | cut -d' ' -f1)" = "c02cc2676b5ec85cc050a3a9cb044760b670b8f5040b35caa252f841536acba5"
+          test "$(stat -c%s incoming/skin-factory/assets/harbormaster_spyglass.glb)" = "11024"
+          test "$(sha256sum incoming/skin-factory/assets/harbormaster_spyglass.glb | cut -d' ' -f1)" = "74aa429a1aed82725ab54ce8c9409f67075b213698b5277bc38c8fdc8e4f8df7"
+
+          cp skin-factory-source/scripts/skin_lab/extract_bind_reference.mjs /tmp/highfly-skin-bind/extract_bind_reference.mjs
+          (
+            cd /tmp/highfly-skin-bind
+            npm init -y >/dev/null 2>&1
+            npm install @gltf-transform/core @gltf-transform/extensions @gltf-transform/functions meshoptimizer --no-save >/dev/null
+            node extract_bind_reference.mjs               --src "$GITHUB_WORKSPACE/incoming/skin-factory/assets/warrior_modular.glb"               --out "$GITHUB_WORKSPACE/incoming/skin-factory/assets/bind"               --list > "$GITHUB_WORKSPACE/incoming/skin-factory/assets/bind/joints.json"
+            node extract_bind_reference.mjs               --src "$GITHUB_WORKSPACE/incoming/skin-factory/assets/warrior_modular.glb"               --out "$GITHUB_WORKSPACE/incoming/skin-factory/assets/bind"               --all
+          )
+          test -s incoming/skin-factory/assets/bind/joints.json
+          test -s incoming/skin-factory/assets/bind/reference_head.glb
+          test -s incoming/skin-factory/assets/bind/reference_hips.glb
+          test -s incoming/skin-factory/assets/bind/reference_chest.glb
+          echo "SKIN_FACTORY_NATIVE_PAYLOAD_GREEN=1"
+
       - name: Resolve latest successful lab runs
         id: runs
         shell: bash
@@ -143,6 +195,9 @@ jobs:
           cp -a incoming/skills/. site/
           cp -a incoming/loot/. site/loot-monster-lab-run0a/
           cp -a incoming/skill3-sidekick126/. site/skill3-sidekick126/
+          rm -rf site/skin-factory
+          mkdir -p site/skin-factory
+          cp -a incoming/skin-factory/. site/skin-factory/
           touch site/.nojekyll
 
       - name: Validate publisher invariants
@@ -188,12 +243,30 @@ jobs:
           grep -q "SIDEKICK 1.2.6 MATERIAL FIX" site/skill3-sidekick126/RUN0I3_BUILD.txt
           test -d site/skill3-sidekick126/Build
 
+          test -f site/skin-factory/index.html
+          test -f site/skin-factory/modular-factory.html
+          test -f site/skin-factory/donors/audits.json
+          test -f site/skin-factory/assets/warrior_modular.glb
+          test -f site/skin-factory/assets/harbormaster_tricorne.glb
+          test -f site/skin-factory/assets/harbormaster_spyglass.glb
+          test -f site/skin-factory/assets/bind/joints.json
+          test -f site/skin-factory/assets/bind/reference_head.glb
+          test -f site/skin-factory/assets/bind/reference_hips.glb
+          grep -F "<title>HIGHFLY · SKIN FACTORY</title>" site/skin-factory/index.html
+          grep -F "WEARABLE / BONE ATTACH LAB" site/skin-factory/index.html
+          grep -F "DONOR INSPECTOR" site/skin-factory/index.html
+          grep -F '"head"' site/skin-factory/assets/bind/joints.json
+          grep -F '"hips"' site/skin-factory/assets/bind/joints.json
+
           echo "HIGHFLY_PUBLISHER_OK=1" > site/PUBLISHER.txt
           echo "SKILLS_RUN=${{ steps.runs.outputs.skills_run }}" >> site/PUBLISHER.txt
           echo "LOOT_RUN=${{ steps.runs.outputs.loot_run }}" >> site/PUBLISHER.txt
           echo "SKILL3_SIDEKICK126_RUN=${{ steps.runs.outputs.sidekick3_run }}" >> site/PUBLISHER.txt
           echo "PREVIOUS_PAGES_RUN=${{ steps.runs.outputs.previous_pages_run }}" >> site/PUBLISHER.txt
           echo "LEGACY_LABS_PRESERVED_FROM_PREVIOUS_SITE=1" >> site/PUBLISHER.txt
+          echo "SKIN_FACTORY_SOURCE=c72696fd73b0fd2a2375790586d73ea680f19947" >> site/PUBLISHER.txt
+          echo "SKIN_FACTORY_PATH=/skin-factory/" >> site/PUBLISHER.txt
+          echo "SKIN_FACTORY_NATIVE_WEARABLES=1" >> site/PUBLISHER.txt
           du -sh site
 
       - name: Configure GitHub Pages
