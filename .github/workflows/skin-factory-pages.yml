@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SKIN_FACTORY_SOURCE_SHA: "38e338d3cf366bf899b3fa5cf61cf89e36efc15b"
+  SKIN_FACTORY_SOURCE_SHA: "1684c809ae04032f0ab119f61314e622584cfe16"
   CURRENT_SKILL_LAB_RUN: "37238315353"
 
 jobs:
@@ -89,7 +89,7 @@ jobs:
           test -s site/skin-factory/assets/bind/reference_head.glb
           test -s site/skin-factory/assets/bind/reference_hips.glb
           grep -F "<title>HIGHFLY · SKIN FACTORY</title>" site/skin-factory/index.html
-          grep -F "WEARABLE / BONE ATTACH LAB" site/skin-factory/index.html
+          grep -F "ACCESORIOS / ANCLAJE A HUESO" site/skin-factory/index.html
           touch site/.nojekyll
           echo "SKIN_FACTORY_ISOLATED_PAGES_GREEN=1"
 
