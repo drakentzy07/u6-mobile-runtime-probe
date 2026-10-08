@@ -19,7 +19,7 @@ concurrency:
 
 env:
   SKIN_FACTORY_SOURCE_SHA: "cd6d60c7e445534b5425e6e84192b07aa9ac4ee9"
-  CREATOR_LAB_SOURCE_SHA: "d0e738b411859b2adae328b4e7ae94369b3efe21"
+  CREATOR_LAB_SOURCE_SHA: "f551cae119b022562387b706b9d632f04bc0590e"
   CURRENT_SKILL_LAB_RUN: "37238315353"
 
 jobs:
@@ -119,6 +119,58 @@ jobs:
           grep -F "ACCESORIOS / ANCLAJE A HUESO" site/skin-factory/index.html
           touch site/.nojekyll
           echo "SKIN_FACTORY_ISOLATED_PAGES_GREEN=1"
+
+
+      - name: Forge genuine Blender GLB for isolated Creator Lab (no apt)
+        shell: bash
+        timeout-minutes: 9
+        run: |
+          set -euo pipefail
+          VERSION="4.2.23"
+          NAME="blender-${VERSION}-linux-x64.tar.xz"
+          BASE="https://download.blender.org/release/Blender4.2"
+          mkdir -p "$RUNNER_TEMP/highfly-blender" "$RUNNER_TEMP/highfly-blender-archive"
+          cd "$RUNNER_TEMP/highfly-blender-archive"
+          curl --fail --show-error --location --retry 2 --retry-delay 2 --connect-timeout 15 --max-time 390 "$BASE/$NAME" -o "$NAME"
+          curl --fail --show-error --location --retry 2 --connect-timeout 15 --max-time 35 "$BASE/blender-${VERSION}.sha256" -o SHA256SUMS
+          grep -F "$NAME" SHA256SUMS | head -n 1 | sha256sum --check
+          tar -xJf "$NAME" --strip-components=1 -C "$RUNNER_TEMP/highfly-blender"
+          cd "$GITHUB_WORKSPACE"
+          test -s site/creator-lab/assets/bind/reference_head.glb
+          mkdir -p site/creator-lab/assets/blender
+          "$RUNNER_TEMP/highfly-blender/blender" --background --factory-startup \
+            --python creator-lab-source/creator-lab/blender/headless_forge.py -- \
+            --native site/creator-lab/assets/bind/reference_head.glb \
+            --out site/creator-lab/assets/blender/highfly-blender-forge.glb
+          test -s site/creator-lab/assets/blender/highfly-blender-forge.glb
+          test -s site/creator-lab/assets/blender/highfly-blender-forge.json
+          node - <<'JS'
+          const fs=require('fs');
+          const proof=JSON.parse(fs.readFileSync('site/creator-lab/assets/blender/highfly-blender-forge.json','utf8'));
+          if(proof.native_reference!=='M_Head'||proof.geometry_objects!==7||
+            !proof.gltf_y_up_export||!proof.bezier_curves_converted||
+            proof.roundtrip_world_space_error>0.001||proof.glb_bytes<1000)
+            throw Error('Blender forge production check failed '+JSON.stringify(proof));
+          console.log('PAGES_BLENDER_NATIVE_GLTF_Y_UP_GREEN=1');
+          JS
+
+      - name: Validate published Blender GLB using Khronos
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/gltf-validate"
+          npm install --prefix "$RUNNER_TEMP/gltf-validate" --no-save --silent gltf-validator
+          node - <<'JS'
+          const fs=require('fs'),path=require('path');
+          const validator=require(path.join(process.env.RUNNER_TEMP,'gltf-validate/node_modules/gltf-validator'));
+          (async()=>{
+            const file='site/creator-lab/assets/blender/highfly-blender-forge.glb';
+            const bytes=fs.readFileSync(file);
+            const v=await validator.validateBytes(new Uint8Array(bytes),{uri:'highfly-blender-forge.glb',maxIssues:50});
+            if(v.issues.numErrors!==0)throw Error('Production GLB invalid: '+JSON.stringify(v.issues.messages.slice(0,5)));
+            console.log('PAGES_CREATOR_BLENDER_GLTF_VALID_GREEN='+bytes.length+' warnings='+v.issues.numWarnings);
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          JS
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
